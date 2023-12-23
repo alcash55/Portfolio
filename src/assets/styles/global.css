@@ -1,0 +1,11 @@
+#root,
+html,
+body {
+  display: block;
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+img {
+  font-style: italic;
+}
