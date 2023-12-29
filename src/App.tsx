@@ -1,9 +1,12 @@
+import { Suspense } from "react"
+import { Providers } from "./layout/Providers"
+
 function App() {
 
   return (
-    <>
-      hello world
-    </>
+    <Suspense>
+      <Providers/>
+    </Suspense>
   )
 }
 
