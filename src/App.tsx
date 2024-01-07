@@ -1,13 +1,12 @@
-import { Suspense } from "react"
-import { Providers } from "./layout/Providers"
+import { Suspense } from "react";
+import { Providers } from "./layout/Providers";
 
 function App() {
-
   return (
     <Suspense>
-      <Providers/>
+      <Providers />
     </Suspense>
-  )
+  );
 }
 
-export default App
+export default App;

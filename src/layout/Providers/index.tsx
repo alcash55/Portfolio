@@ -4,6 +4,6 @@ import {Router} from '../../components/Router/Router'
 
 export function Providers({ children }: PropsWithChildren<{}>) {
     return (
-        <RouterProvider router={Router} />
+        <RouterProvider router={Router} fallbackElement={<>loading</>} />
     );
 }
