@@ -1,8 +1,13 @@
+import { Stack } from "@mui/material";
+import { Pages } from "../../Pages";
+
 const Home = () => {
   return (
-    <section>
-      <div>home page</div>
-    </section>
+    <Stack component={"article"}>
+      <Pages.About />
+      <Pages.Projects />
+      <Pages.Contact />
+    </Stack>
   );
 };
 

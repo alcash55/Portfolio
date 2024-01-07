@@ -1,11 +1,11 @@
 import { Stack } from "@mui/material";
 
-const About = () => {
+const Contact = () => {
   return (
     <Stack id="about" component={"section"}>
-      <div>about me</div>
+      Contact
     </Stack>
   );
 };
 
-export default About;
+export default Contact;

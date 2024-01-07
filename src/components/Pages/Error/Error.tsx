@@ -1,8 +1,10 @@
+import { Stack } from "@mui/material";
+
 const Error = () => {
   return (
-    <section>
-      <div>Error page</div>
-    </section>
+    <Stack id="about" component={"section"}>
+      Error page
+    </Stack>
   );
 };
 
