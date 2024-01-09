@@ -7,7 +7,7 @@ const AppShellContext = createContext({});
 
 export default function AppShellProvider({ children }: PropsWithChildren) {
   return (
-    <Stack sx={{ width: "100%", top: 0 }}>
+    <Stack>
       <NavBar />
       <AppShellContext.Provider value={{}}>{children}</AppShellContext.Provider>
       <Footer />

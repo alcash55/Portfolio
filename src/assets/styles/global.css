@@ -4,6 +4,7 @@ body {
   display: block;
   height: 100%;
   scroll-behavior: smooth;
+  scroll-padding: 64px; /*height of navbar*/
 }
 
 section {
