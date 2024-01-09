@@ -3,7 +3,10 @@ import { Pages } from "../../Pages";
 
 const Home = () => {
   return (
-    <Stack component={"article"}>
+    <Stack
+      component={"article"}
+      sx={{ px: 2, py: 2, width: "100%", height: "100%" }}
+    >
       <Pages.About />
       <Pages.Projects />
       <Pages.Contact />

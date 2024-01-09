@@ -2,7 +2,7 @@ import { Stack } from "@mui/material";
 
 const Contact = () => {
   return (
-    <Stack id="about" component={"section"}>
+    <Stack id="contact" component={"section"}>
       Contact
     </Stack>
   );
