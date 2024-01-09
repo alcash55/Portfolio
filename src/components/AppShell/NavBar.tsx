@@ -3,13 +3,14 @@ import { Box, AppBar, Toolbar, Button } from "@mui/material";
 export const NavBar = () => {
   return (
     <Box sx={{ flexGrow: 1, top: 0, position: "sticky" }}>
-      <AppBar position="sticky" sx={{ bgcolor: "black", width: "100%" }}>
+      <AppBar position="sticky" sx={{ bgcolor: "black" }}>
         <Toolbar
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-evenly",
-            gap: 5,
+            width: "100%",
+            flexWrap: "wrap",
           }}
         >
           <Button variant="text" sx={{ color: "white" }} href="#summary">
