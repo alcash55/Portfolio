@@ -50,13 +50,13 @@ export const darkTheme: ThemeOptions = createTheme({
     },
   },
   typography: {
-    // overline: {
-    //   fontSize: 12,
-    //   fontWeight: 400,
-    //   letterSpacing: 0.499,
-    //   lineHeight: 31.92,
-    //   textCase: "uppercase",
-    // },
+    overline: {
+      fontSize: 12,
+      fontWeight: 400,
+      letterSpacing: 0.499,
+      // lineHeight: 31.92,
+      textCase: "uppercase",
+    },
     h1: {
       fontSize: 96,
       fontWeight: 700,
