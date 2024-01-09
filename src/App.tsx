@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { Providers } from "./layout/Providers";
+import { Loading } from "./components/Loading/Loading";
 
 function App() {
   return (
-    <Suspense>
+    <Suspense fallback={<Loading />}>
       <Providers />
     </Suspense>
   );
