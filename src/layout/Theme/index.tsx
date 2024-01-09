@@ -1,13 +1,21 @@
-import { CssBaseline } from "@mui/material";
-import { PropsWithChildren, createContext } from "react";
+import { CssBaseline, ThemeProvider as MuiThemeProvider } from "@mui/material";
+import { PropsWithChildren } from "react";
+import { darkTheme } from "./darkTheme";
 
-const ThemeContext = createContext({});
+// export default function ThemeProvider({ children }: PropsWithChildren) {
+//   const theme = useTheme();
+//   return (
+//     <MuiThemeProvider theme={theme}>
+//       <CssBaseline>{children}</CssBaseline>
+//     </MuiThemeProvider>
+//   );
+// }
 
-export default function ThemeProvider({ children }: PropsWithChildren) {
+export const ThemeProvider = ({ children }: PropsWithChildren) => {
   return (
-    <>
+    <MuiThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <ThemeContext.Provider value={{}}>{children}</ThemeContext.Provider>
-    </>
+      {children}
+    </MuiThemeProvider>
   );
-}
+};

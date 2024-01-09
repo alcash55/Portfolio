@@ -1,6 +1,6 @@
 import { RouterProvider } from "react-router-dom";
 import { Router } from "../../components/Router/Router";
-import ThemeProvider from "../Theme";
+import { ThemeProvider } from "../Theme";
 import AppShellProvider from "../../components/AppShell/AppShell";
 import { Loading } from "../../components/Loading/Loading";
 
