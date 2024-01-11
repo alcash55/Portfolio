@@ -1,4 +1,5 @@
 import { Box, AppBar, Toolbar, Button } from "@mui/material";
+import { ThemeButton } from "./ThemeButton";
 
 export const NavBar = () => {
   return (
@@ -26,6 +27,7 @@ export const NavBar = () => {
             Contact
           </Button>
         </Toolbar>
+        <ThemeButton />
       </AppBar>
     </Box>
   );

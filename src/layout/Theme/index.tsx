@@ -1,12 +1,12 @@
-import { CssBaseline, ThemeProvider as MuiThemeProvider } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import { PropsWithChildren } from "react";
-import { darkTheme } from "./darkTheme";
+import ToggleColorMode from "../../layout/Theme/Context"; // Import your ToggleColorMode component
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
   return (
-    <MuiThemeProvider theme={darkTheme}>
+    <ToggleColorMode>
       <CssBaseline />
       {children}
-    </MuiThemeProvider>
+    </ToggleColorMode>
   );
 };

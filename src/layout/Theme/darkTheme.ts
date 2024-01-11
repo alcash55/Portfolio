@@ -2,6 +2,7 @@ import { ThemeOptions, createTheme } from "@mui/material/styles";
 
 export const darkTheme: ThemeOptions = createTheme({
   palette: {
+    mode: "dark",
     primary: {
       main: "#379dee",
     },
@@ -54,74 +55,62 @@ export const darkTheme: ThemeOptions = createTheme({
       fontSize: 12,
       fontWeight: 400,
       letterSpacing: 0.499,
-      // lineHeight: 31.92,
       textCase: "uppercase",
     },
     h1: {
       fontSize: 96,
       fontWeight: 700,
       letterSpacing: -2.141,
-      // lineHeight: 112.03,
     },
     h2: {
       fontSize: 60,
       fontWeight: 700,
       letterSpacing: -1.34,
-      // lineHeight: 72,
     },
     h3: {
       fontSize: 48,
       fontWeight: 700,
       letterSpacing: -1.07,
-      // lineHeight: 56.016,
     },
     h4: {
       fontSize: 34,
       fontWeight: 700,
       letterSpacing: -0.741,
-      // lineHeight: 41.99,
     },
     h5: {
       fontSize: 24,
       fontWeight: 700,
       letterSpacing: -0.046,
-      // lineHeight: 32.016,
     },
     h6: {
       fontSize: 20,
       fontWeight: 700,
       letterSpacing: -0.334,
-      // lineHeight: 32,
     },
     body1: {
       fontSize: 16,
       fontWeight: 400,
       letterSpacing: -0.176,
-      // lineHeight: 24,
     },
     body2: {
       fontSize: 14,
       fontWeight: 400,
       letterSpacing: -0.087,
-      // lineHeight: 20.02,
     },
     subtitle1: {
       fontSize: 16,
       fontWeight: 500,
       letterSpacing: -0.176,
-      // lineHeight: 28,
     },
     subtitle2: {
       fontSize: 14,
       fontWeight: 500,
       letterSpacing: -0.087,
-      // lineHeight: 21.98,
     },
     caption: {
       fontSize: 12,
       fontWeight: 400,
       letterSpacing: -0.006,
-      // lineHeight: 19.92,
     },
     button: {
       fontSize: 14,
