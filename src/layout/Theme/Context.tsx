@@ -1,3 +1,4 @@
+//need to add persisting theme on refresh
 import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { ThemeProvider } from "@mui/material";
 import { redTheme } from "./redTheme";
