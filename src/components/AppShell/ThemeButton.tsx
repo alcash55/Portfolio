@@ -5,11 +5,16 @@ export const ThemeButton = () => {
   const { toggleColorMode } = useColorMode();
 
   return (
-    <Stack direction={"row"}>
+    <Stack direction={"row"} spacing={1}>
       <Button variant="outlined" onClick={() => toggleColorMode("red")}>
         Red
       </Button>
-      <Button onClick={() => toggleColorMode("dark")}>Dark</Button>
+      <Button variant="outlined" onClick={() => toggleColorMode("dark")}>
+        Dark
+      </Button>
+      <Button variant="outlined" onClick={() => toggleColorMode("blue")}>
+        Blue
+      </Button>
     </Stack>
   );
 };

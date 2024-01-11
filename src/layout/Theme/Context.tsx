@@ -3,6 +3,7 @@ import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { ThemeProvider } from "@mui/material";
 import { redTheme } from "./redTheme";
 import { darkTheme } from "./darkTheme";
+import { blueTheme } from "./blueTheme";
 
 const ColorModeContext = createContext({
   mode: darkTheme,
@@ -20,6 +21,7 @@ export default function ToggleColorMode({ children }: PropsWithChildren) {
   const toggleColorMode = (color: string) => {
     if (color === "red") setMode(redTheme);
     else if (color === "dark") setMode(darkTheme);
+    else if (color === "blue") setMode(blueTheme);
   };
 
   const contextValue = {
