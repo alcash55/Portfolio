@@ -9,7 +9,7 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
   return (
     <>
       <Box sx={{ flexGrow: 1, top: 0, position: "sticky" }}>
-        <AppBar position="sticky" sx={{ bgcolor: "black" }}>
+        <AppBar sx={{ bgcolor: "black" }}>
           <Toolbar>
             <Box
               sx={{
