@@ -5,6 +5,7 @@ import { SettingsDrawer } from "./SettingsDrawer";
 
 export const NavBar = () => {
   const { openSettingDrawer, handleSettingDrawer } = useSettingDrawer();
+
   return (
     <>
       <Box sx={{ flexGrow: 1, top: 0, position: "sticky" }}>

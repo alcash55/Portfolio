@@ -1,11 +1,16 @@
 import { Button, Stack } from "@mui/material";
-import { useColorMode } from "../../layout/Theme/Context";
+import { useColorMode } from "../../../layout/Theme/Context";
 
 export const ThemeButton = () => {
   const { toggleColorMode, mode } = useColorMode();
 
   return (
-    <Stack direction={"row"} spacing={1}>
+    <Stack
+      direction={"row"}
+      spacing={1}
+      justifyContent={"center"}
+      alignItems={"center"}
+    >
       <Button
         variant={
           mode.palette?.background?.paper === "#731010"
