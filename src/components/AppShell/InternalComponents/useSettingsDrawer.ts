@@ -1,10 +1,19 @@
 import { useState } from "react";
 export const useSettingDrawer = () => {
-  const [openSettingDrawer, setOpenSettingDrawer] = useState(false);
+  const [settingDrawer, setSettingDrawer] = useState(false);
 
-  const handleSettingDrawer = () => {
-    setOpenSettingDrawer(!openSettingDrawer);
+  const openSettingDrawer = () => {
+    setSettingDrawer(true);
   };
 
-  return { openSettingDrawer, handleSettingDrawer };
+  const closeSettingsDrawer = () => {
+    setSettingDrawer(false);
+  };
+
+  return {
+    openSettingDrawer,
+    closeSettingsDrawer,
+    settingDrawer,
+    setSettingDrawer,
+  };
 };

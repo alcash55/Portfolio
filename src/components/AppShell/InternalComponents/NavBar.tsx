@@ -1,11 +1,11 @@
 import { Box, AppBar, Toolbar, Button, IconButton } from "@mui/material";
 import { Menu } from "@mui/icons-material/";
-import { useSettingDrawer } from "./useSettingsDrawer";
-import { SettingsDrawer } from "./SettingsDrawer";
 
-export const NavBar = () => {
-  const { openSettingDrawer, handleSettingDrawer } = useSettingDrawer();
+interface NavBarProps {
+  setSettingDrawer: (value: boolean) => void;
+}
 
+export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
   return (
     <>
       <Box sx={{ flexGrow: 1, top: 0, position: "sticky" }}>
@@ -35,14 +35,13 @@ export const NavBar = () => {
             </Box>
             <IconButton
               aria-label="Open Settings Drawer"
-              onClick={handleSettingDrawer}
+              onClick={() => setSettingDrawer(true)}
             >
               <Menu sx={{ color: "white" }} />
             </IconButton>
           </Toolbar>
         </AppBar>
       </Box>
-      <SettingsDrawer open={openSettingDrawer} close={handleSettingDrawer} />
     </>
   );
 };
