@@ -14,13 +14,21 @@ export const LayoutButton = () => {
       alignItems={"center"}
     >
       <Button
-        variant={layout === <Default /> ? "contained" : "outlined"}
+        variant={
+          localStorage.getItem("layout") === "default"
+            ? "contained"
+            : "outlined"
+        }
         onClick={() => toggleLayout("default")}
       >
         Default (Footer + Header)
       </Button>
       <Button
-        variant={layout === <SideNav /> ? "contained" : "outlined"}
+        variant={
+          localStorage.getItem("layout") === "sideNav"
+            ? "contained"
+            : "outlined"
+        }
         onClick={() => toggleLayout("sideNav")}
       >
         Left Side Nav collapsible + Header + FAB
