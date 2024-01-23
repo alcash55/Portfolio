@@ -19,7 +19,7 @@ export const LayoutButton = () => {
         }
         onClick={() => toggleLayout("default")}
       >
-        Default (Footer + Header)
+        Default
       </Button>
       <Button
         variant={
@@ -29,7 +29,7 @@ export const LayoutButton = () => {
         }
         onClick={() => toggleLayout("sideNav")}
       >
-        Left Side Nav collapsible + Header + FAB
+        Left Side Navigation
       </Button>
     </Stack>
   );
