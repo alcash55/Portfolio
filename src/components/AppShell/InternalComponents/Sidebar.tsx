@@ -83,18 +83,22 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <Stack>
-      <Stack direction={"row"}>
-        <Box
-          component="nav"
-          position={"sticky"}
-          sx={{ width: 240, height: "100%", px: 1, py: 2, top: 0 }}
-        >
-          <SideBarTopItem />
-          <SideBarItems />
-        </Box>
-        <Box width={"100%"}>{children}</Box>
-      </Stack>
+    <Stack direction={"row"}>
+      <Box
+        component="nav"
+        position={"sticky"}
+        sx={{
+          width: 240,
+          height: "100%",
+          px: 1,
+          py: 2,
+          top: 0,
+        }}
+      >
+        <SideBarTopItem />
+        <SideBarItems />
+      </Box>
+      <Box width={"100%"}>{children}</Box>
     </Stack>
   );
 };
