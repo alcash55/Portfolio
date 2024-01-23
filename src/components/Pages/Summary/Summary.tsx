@@ -1,9 +1,11 @@
-import { Stack } from "@mui/material";
+import { Card, Stack, Typography } from "@mui/material";
 
 const Summary = () => {
   return (
     <Stack id="summary" component={"section"}>
-      Summary
+      <Card sx={{ height: "100%" }}>
+        <Typography>Summary</Typography>
+      </Card>
     </Stack>
   );
 };
