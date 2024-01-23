@@ -5,33 +5,32 @@ export const LayoutButton = () => {
   const { toggleLayout } = useAppShellLayout();
 
   return (
-          <Stack
-        direction={"row"}
-        spacing={1}
-        justifyContent={"center"}
-        alignItems={"center"}
+    <Stack
+      direction={"row"}
+      spacing={1}
+      justifyContent={"center"}
+      alignItems={"center"}
+    >
+      <Button
+        variant={
+          localStorage.getItem("layout") === "default"
+            ? "contained"
+            : "outlined"
+        }
+        onClick={() => toggleLayout("default")}
       >
-        <Button
-          variant={
-            localStorage.getItem("layout") === "default"
-              ? "contained"
-              : "outlined"
-          }
-          onClick={() => toggleLayout("default")}
-        >
-          Default
-        </Button>
-        <Button
-          variant={
-            localStorage.getItem("layout") === "sideNav"
-              ? "contained"
-              : "outlined"
-          }
-          onClick={() => toggleLayout("sideNav")}
-        >
-          Left Side Navigation
-        </Button>
-      </Stack>
-    </Card>
+        Default
+      </Button>
+      <Button
+        variant={
+          localStorage.getItem("layout") === "sideNav"
+            ? "contained"
+            : "outlined"
+        }
+        onClick={() => toggleLayout("sideNav")}
+      >
+        Left Side Navigation
+      </Button>
+    </Stack>
   );
 };
