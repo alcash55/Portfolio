@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { ThemeButton } from "./ThemeButton";
+import { LayoutButton } from "./LayoutButton";
 
 interface SettingsDrawerProps {
   settingDrawer: boolean;
@@ -82,7 +83,9 @@ export const SettingsDrawer = ({
       </Card>
       <Card sx={{ width: "100%" }}>
         <CardHeader title="Select a Layout" />
-        <CardContent>{/* Add layout selections */}</CardContent>
+        <CardContent>
+          <LayoutButton />
+        </CardContent>
       </Card>
     </Stack>
   );

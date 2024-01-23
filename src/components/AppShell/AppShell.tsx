@@ -1,25 +1,46 @@
-import { Stack } from "@mui/material";
-import { NavBar } from "./InternalComponents/NavBar";
-import { PropsWithChildren, createContext } from "react";
-import { Footer } from "./InternalComponents/Footer";
-import { useSettingDrawer } from "./InternalComponents/useSettingsDrawer";
-import { SettingsDrawer } from "./InternalComponents/SettingsDrawer";
+import {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { Default } from "./InternalComponents/Layouts/Default";
+import { SideNav } from "./InternalComponents/Layouts/SideNav";
 
-const AppShellContext = createContext({});
+const AppShellLayoutContext = createContext({
+  layout: <Default />,
+  toggleLayout: (newLayout: string) => {},
+});
+
+export const useAppShellLayout = () => {
+  const context = useContext(AppShellLayoutContext);
+  return context;
+};
 
 export default function AppShellProvider({ children }: PropsWithChildren) {
-  const { settingDrawer, setSettingDrawer } = useSettingDrawer();
+  const [layout, setLayout] = useState(<Default children={children} />);
+
+  useEffect(() => {
+    const initialLayout = localStorage.getItem("layout") || "default";
+    toggleLayout(initialLayout);
+  }, []); // Run only once on mount to set initial layout
+
+  const toggleLayout = (newLayout: string) => {
+    if (newLayout === "default") setLayout(<Default children={children} />);
+    else if (newLayout === "sideNav")
+      setLayout(<SideNav children={children} />);
+
+    localStorage.setItem("layout", newLayout); //update local storage
+  };
+
+  const contextValue = {
+    layout,
+    toggleLayout,
+  };
   return (
-    <Stack>
-      <NavBar setSettingDrawer={setSettingDrawer} />
-      <AppShellContext.Provider value={{}}>
-        <SettingsDrawer
-          settingDrawer={settingDrawer}
-          setSettingDrawer={setSettingDrawer}
-        />
-        {children}
-      </AppShellContext.Provider>
-      <Footer />
-    </Stack>
+    <AppShellLayoutContext.Provider value={contextValue}>
+      {layout}
+    </AppShellLayoutContext.Provider>
   );
 }
