@@ -1,7 +1,5 @@
 import { Stack, Button } from "@mui/material";
 import { useAppShellLayout } from "../AppShell";
-import { Default } from "./Layouts/Default";
-import { SideNav } from "./Layouts/SideNav";
 
 export const LayoutButton = () => {
   const { toggleLayout, layout } = useAppShellLayout();
