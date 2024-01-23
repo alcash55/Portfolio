@@ -13,6 +13,10 @@ export const SideNav = ({ children }: PropsWithChildren) => {
       name: "Summary",
     },
     {
+      href: "#about",
+      name: "About",
+    },
+    {
       href: "#projects",
       name: "Projects",
     },
