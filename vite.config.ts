@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     outDir: "./dist",
   },
-  base: "/Portfolio/",
+  base: "https://alcash55.github.io/Portfolio/",
   plugins: [react()],
   server: {
     port: 3000,
