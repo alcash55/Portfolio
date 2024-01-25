@@ -27,6 +27,7 @@ export const SettingsDrawer = ({
   const tempSidebar = useMediaQuery(theme.breakpoints.down(2561));
   const isMobile = useMediaQuery(theme.breakpoints.down(426));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const showLayout = useMediaQuery(theme.breakpoints.down(650));
 
   const SettingDrawerTopItem = () => (
     <Stack
@@ -81,12 +82,14 @@ export const SettingsDrawer = ({
           <ThemeButton />
         </CardContent>
       </Card>
-      <Card sx={{ width: "100%" }}>
-        <CardHeader title="Select a Layout" />
-        <CardContent>
-          <LayoutButton />
-        </CardContent>
-      </Card>
+      {!showLayout && (
+        <Card sx={{ width: "100%" }}>
+          <CardHeader title="Select a Layout" />
+          <CardContent>
+            <LayoutButton />
+          </CardContent>
+        </Card>
+      )}
     </Stack>
   );
 

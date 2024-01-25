@@ -5,8 +5,10 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useMediaQuery, useTheme } from "@mui/material";
 import { Default } from "./InternalComponents/Layouts/Default";
 import { SideNav } from "./InternalComponents/Layouts/SideNav";
+import { Mobile } from "./InternalComponents/Layouts/Mobile";
 
 const AppShellLayoutContext = createContext({
   layout: <Default />,
@@ -20,6 +22,8 @@ export const useAppShellLayout = () => {
 
 export default function AppShellProvider({ children }: PropsWithChildren) {
   const [layout, setLayout] = useState(<Default children={children} />);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down(650));
 
   useEffect(() => {
     const initialLayout = localStorage.getItem("layout") || "default";
@@ -27,11 +31,12 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
   }, []); // Run only once on mount to set initial layout
 
   const toggleLayout = (newLayout: string) => {
+    if (isMobile) setLayout(<Mobile children={children} />);
     if (newLayout === "default") setLayout(<Default children={children} />);
     else if (newLayout === "sideNav")
       setLayout(<SideNav children={children} />);
 
-    localStorage.setItem("layout", newLayout); //update local storage
+    localStorage.setItem("layout", isMobile ? "mobile" : newLayout); //update local storage
   };
 
   const contextValue = {
