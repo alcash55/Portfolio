@@ -70,9 +70,10 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
         {navItems.map((item) => (
           <Button
             variant="contained"
-            startIcon={item.icon} // Render the icon component
+            startIcon={item.icon}
             href={item.href}
             key={item.name}
+            sx={{ minWidth: 150 }}
           >
             {item.name}
           </Button>

@@ -7,9 +7,9 @@ export const ThemeButton = () => {
   return (
     <Stack
       direction={"row"}
-      spacing={1}
-      justifyContent={"center"}
+      justifyContent={"space-evenly"}
       alignItems={"center"}
+      sx={{ flexWrap: "wrap", gap: 1 }}
     >
       <Button
         variant={
