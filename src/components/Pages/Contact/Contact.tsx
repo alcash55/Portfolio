@@ -1,9 +1,9 @@
-import { Stack } from "@mui/material";
+import { Card, Stack } from "@mui/material";
 
 const Contact = () => {
   return (
     <Stack id="contact" component={"section"}>
-      Contact
+      <Card sx={{ height: "100%" }}>Contact</Card>
     </Stack>
   );
 };
