@@ -18,20 +18,28 @@ export const redTheme: ThemeOptions = createTheme({
       styleOverrides: {
         paper: {
           elevation: 5,
-          backgroundColor: "paper",
-          backgroundImage:
-            "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15))",
-          boxShadow:
-            "rgba(0, 0, 0, 0.2) 0px 8px 10px -5px, rgba(0, 0, 0, 0.14) 0px 16px 24px 2px, rgba(0, 0, 0, 0.12) 0px 6px 30px 5px",
+          backgroundColor: "#310000",
+          color: "white",
+          //   backgroundImage:
+          //     "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15))",
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: "rgb(115, 16, 16)",
-          borderRadius: "4px",
           color: "white",
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "paper",
+          backgroundImage:
+            "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15))",
+          boxShadow:
+            "rgba(0, 0, 0, 0.2) 0px 8px 10px -5px, rgba(0, 0, 0, 0.14) 0px 16px 24px 2px, rgba(0, 0, 0, 0.12) 0px 6px 30px 5px",
         },
       },
     },
