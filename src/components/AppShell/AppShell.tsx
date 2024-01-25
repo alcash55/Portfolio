@@ -25,10 +25,16 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(650));
 
+  // Run only on mount to set initial layout and set local storage
   useEffect(() => {
     const initialLayout = localStorage.getItem("layout") || "default";
     toggleLayout(initialLayout);
-  }, []); // Run only once on mount to set initial layout
+  }, []);
+  //check window size for mobile bp
+  useEffect(() => {
+    const newLayout = isMobile ? "mobile" : "default";
+    toggleLayout(newLayout);
+  }, [window.innerWidth]);
 
   const toggleLayout = (newLayout: string) => {
     if (isMobile) setLayout(<Mobile children={children} />);
