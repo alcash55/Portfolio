@@ -73,7 +73,11 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
             startIcon={item.icon}
             href={item.href}
             key={item.name}
-            sx={{ minWidth: 150 }}
+            sx={{
+              minWidth: 150,
+              display: "flex",
+              justifyContent: "space-evenly",
+            }}
           >
             {item.name}
           </Button>
