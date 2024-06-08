@@ -1,6 +1,7 @@
 import { Stack, Link, Toolbar, Typography, Card } from "@mui/material";
 
 export const Footer = () => {
+  const date = new Date().getFullYear();
   return (
     <Toolbar component={"footer"}>
       <Card sx={{ width: "100%", p: 2 }}>
@@ -27,7 +28,7 @@ export const Footer = () => {
           >
             Sitemap.xml
           </Link>
-          <Typography>All rights reserved © Alex Cash 2024</Typography>
+          <Typography>All rights reserved © Alex Cash {date}</Typography>
         </Stack>
       </Card>
     </Toolbar>
