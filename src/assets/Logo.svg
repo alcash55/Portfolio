@@ -1,0 +1,29 @@
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" color="white">
+      <!-- Letter A -->
+      <text
+        x="10"
+        y="50"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize="48"
+        fontWeight="bold"
+        fill="#000000"
+        stroke="#192A56"
+        strokeWidth="1"
+      >
+        A
+      </text>
+
+      <!-- Letter C stacked on top of A -->
+      <text
+        x="10"
+        y="71"
+        stroke="#192A56"
+        strokeWidth="1"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize="48"
+        fontWeight="bold"
+        fill="#000000"
+      >
+        C
+      </text>
+    </svg>

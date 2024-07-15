@@ -34,7 +34,7 @@ const Summary = () => {
           title="Hello, I'm Alex!"
         />
         <CardContent>
-          <CardMedia component="img" height="100%" alt="logo" image={logo} />
+          {/* <CardMedia component="img" height="100%" alt="logo" image={logo} /> */}
         </CardContent>
       </Card>
     </Stack>
