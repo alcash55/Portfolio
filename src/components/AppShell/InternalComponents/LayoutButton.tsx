@@ -8,8 +8,9 @@ export const LayoutButton = () => {
     <Stack
       direction={"row"}
       spacing={1}
-      justifyContent={"center"}
+      justifyContent={"space-evenly"}
       alignItems={"center"}
+      sx={{ flexWrap: "wrap" }}
     >
       <Button
         variant={
@@ -19,7 +20,7 @@ export const LayoutButton = () => {
         }
         onClick={() => toggleLayout("default")}
       >
-        Default
+        Top Nav
       </Button>
       <Button
         variant={
@@ -29,7 +30,7 @@ export const LayoutButton = () => {
         }
         onClick={() => toggleLayout("sideNav")}
       >
-        Left Side Navigation
+        Side Nav
       </Button>
     </Stack>
   );

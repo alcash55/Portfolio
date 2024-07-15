@@ -9,9 +9,9 @@ export const ThemeButton = () => {
       direction={"row"}
       justifyContent={"space-evenly"}
       alignItems={"center"}
-      sx={{ flexWrap: "wrap", gap: 1 }}
+      sx={{ flexWrap: "wrap" }}
     >
-      <Button
+      {/* <Button
         variant={
           mode.palette?.background?.paper === "#731010"
             ? "contained"
@@ -20,7 +20,7 @@ export const ThemeButton = () => {
         onClick={() => toggleColorMode("red")}
       >
         Red
-      </Button>
+      </Button> */}
       <Button
         variant={
           mode.palette?.background?.paper === "#292929"
