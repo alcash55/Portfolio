@@ -11,6 +11,7 @@ export const Footer = () => {
           p: 2,
           display: "flex",
           alignItems: "center",
+          backgroundColor: "#202020",
         }}
       >
         <Stack spacing={2} width={"50%"}>
