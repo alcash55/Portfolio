@@ -20,6 +20,11 @@ export const useAppShellLayout = () => {
   return context;
 };
 
+/**
+ * The AppShellProvider component that provides the layout context
+ * @param {PropsWithChildren} children - children to render
+ * @returns
+ */
 export default function AppShellProvider({ children }: PropsWithChildren) {
   const [layout, setLayout] = useState(<Default children={children} />);
   const theme = useTheme();
@@ -36,6 +41,10 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
     toggleLayout(newLayout);
   }, [window.innerWidth]);
 
+  /**
+   * logic for toggling layout (mobile, default, sideNav)
+   * @param {string} newLayout - new layout to set
+   */
   const toggleLayout = (newLayout: string) => {
     if (isMobile) setLayout(<Mobile children={children} />);
     if (newLayout === "default") setLayout(<Default children={children} />);
