@@ -1,6 +1,10 @@
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import useConnectForm from "./useConnectForm";
 
+/**
+ * Form in the footer of the app
+ * @returns {JSX.Element}
+ */
 const ConnectForm = () => {
   const { setName, setEmail, setMessage, sendMessage, name, email, message } =
     useConnectForm();
