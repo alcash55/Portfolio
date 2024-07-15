@@ -10,10 +10,12 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Fab,
+  Box,
 } from "@mui/material";
 import { PropsWithChildren, SyntheticEvent, useState } from "react";
 import { useSettingDrawer } from "../useSettingsDrawer";
 import { SettingsDrawer } from "../SettingsDrawer";
+import { Footer } from "../Footer";
 
 export const Mobile = ({ children }: PropsWithChildren) => {
   const [value, setValue] = useState("summary");
@@ -49,6 +51,9 @@ export const Mobile = ({ children }: PropsWithChildren) => {
   return (
     <Stack>
       {children}
+      <Box sx={{ mb: "85px" }}>
+        <Footer />
+      </Box>
       <Fab
         size="medium"
         color="secondary"
