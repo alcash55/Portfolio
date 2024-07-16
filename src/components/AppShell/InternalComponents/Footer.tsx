@@ -33,7 +33,9 @@ export const Footer = () => {
           order={tablet ? 2 : 1}
           sx={{ textAlign: "start" }}
         >
-          <Typography variant="h6">Sitemap</Typography>
+          <Typography variant="h6" component={"h1"}>
+            Sitemap
+          </Typography>
           <Link
             underline="hover"
             target="_blank"
