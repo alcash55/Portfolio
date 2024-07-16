@@ -1,11 +1,16 @@
 import {
+  Box,
   Card,
   CardContent,
   CardHeader,
   CardMedia,
+  Icon,
+  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import logo from "../../../assets/Logo.svg";
 
 const Summary = () => {
@@ -22,19 +27,41 @@ const Summary = () => {
           m: 0,
         }}
       >
-        <CardHeader
+        <CardContent
           sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
             width: "100%",
+            height: "100%",
           }}
-          titleTypographyProps={{
-            textAlign: "start",
-            variant: "h4",
-            component: "h1",
-          }}
-          title="Hello, I'm Alex!"
-        />
-        <CardContent>
+        >
           {/* <CardMedia component="img" height="100%" alt="logo" image={logo} /> */}
+          <Typography variant="h3" component={"h1"}>
+            Alex Cash
+          </Typography>
+          <Typography variant="h4" component={"h2"}>
+            Software Engineer
+          </Typography>
+          <Box sx={{ display: "flex", justigyContent: "space-evenly" }}>
+            <IconButton
+              size="large"
+              href="https://github.com/alcash55"
+              target="_blank"
+              aria-label="Navigate to GitHub"
+            >
+              <GitHubIcon />
+            </IconButton>
+            <IconButton
+              size="large"
+              href="https://www.linkedin.com/in/alexander-cash/"
+              target="_blank"
+              aria-label="Navigate to LinkedIn"
+            >
+              <LinkedInIcon />
+            </IconButton>
+          </Box>
         </CardContent>
       </Card>
     </Stack>

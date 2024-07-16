@@ -1,13 +1,25 @@
 import { Box, AppBar, Toolbar, Button, IconButton } from "@mui/material";
 import { Menu } from "@mui/icons-material/";
+import { showNavBar } from "./showNavBar";
 
 interface NavBarProps {
   setSettingDrawer: (value: boolean) => void;
 }
 
 export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
+  const isVisible = showNavBar();
   return (
-    <Box sx={{ flexGrow: 1, top: 0, position: "sticky", zIndex: 1 }}>
+    <Box
+      sx={{
+        flexGrow: 1,
+        top: 0,
+        position: "sticky",
+        zIndex: 1,
+        width: "100%",
+        transition: "top 1.0s",
+        visibility: isVisible ? "visible" : "hidden",
+      }}
+    >
       <AppBar sx={{ bgcolor: "black" }}>
         <Toolbar>
           <Box

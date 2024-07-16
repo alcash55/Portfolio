@@ -55,7 +55,7 @@ export const Footer = () => {
           >
             Sitemap.xml
           </Link>
-          <Typography>All rights reserved © Alex Cash {date}</Typography>
+          <Typography>© Alex Cash {date}</Typography>
         </Stack>
         <Box order={tablet ? 1 : 2}>
           <ConnectForm />

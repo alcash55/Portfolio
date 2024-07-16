@@ -16,13 +16,7 @@ export const Default = ({ children }: PropsWithChildren) => {
         settingDrawer={settingDrawer}
         setSettingDrawer={setSettingDrawer}
       />
-      <Box
-        sx={{
-          mt: smallMobile ? "65px" : "50px",
-        }}
-      >
-        {children}
-      </Box>
+      {children}
       <Footer />
     </Stack>
   );
