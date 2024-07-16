@@ -32,7 +32,7 @@ const Contact = () => {
           }}
           avatar={
             <IconButton
-              aria-label="settings"
+              aria-label="navigate to contact"
               href="#contact"
               sx={{ zIndex: 0 }}
             >

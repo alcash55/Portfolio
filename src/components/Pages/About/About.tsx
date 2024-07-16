@@ -33,7 +33,11 @@ const About = () => {
             component: "h1",
           }}
           avatar={
-            <IconButton aria-label="settings" href="#about" sx={{ zIndex: 0 }}>
+            <IconButton
+              aria-label="navigate to about"
+              href="#about"
+              sx={{ zIndex: 0 }}
+            >
               <LinkIcon />
             </IconButton>
           }

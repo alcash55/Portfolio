@@ -33,7 +33,7 @@ const Projects = () => {
           }}
           avatar={
             <IconButton
-              aria-label="settings"
+              aria-label="navigate to projects"
               href="#projects"
               sx={{ zIndex: 0 }}
             >
