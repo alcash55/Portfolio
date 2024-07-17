@@ -5,6 +5,7 @@ import {
   IconButton,
   Stack,
 } from "@mui/material";
+import ContactForm from "../../ConnectForm/ConnectForm";
 import LinkIcon from "@mui/icons-material/Link";
 
 const Contact = () => {
@@ -41,7 +42,16 @@ const Contact = () => {
           }
           title="Contact"
         />
-        <CardContent></CardContent>
+        <CardContent
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <ContactForm />
+        </CardContent>
       </Card>
     </Stack>
   );

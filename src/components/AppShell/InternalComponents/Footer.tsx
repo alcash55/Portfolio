@@ -27,12 +27,7 @@ export const Footer = () => {
           gap: 2,
         }}
       >
-        <Stack
-          spacing={2}
-          width={"50%"}
-          order={tablet ? 2 : 1}
-          sx={{ textAlign: "start" }}
-        >
+        <Stack spacing={2} width={"50%"} sx={{ textAlign: "start" }}>
           <Typography variant="h6" component={"h1"}>
             Sitemap
           </Typography>
@@ -59,9 +54,6 @@ export const Footer = () => {
           </Link>
           <Typography>© Alex Cash {date}</Typography>
         </Stack>
-        <Box order={tablet ? 1 : 2}>
-          <ConnectForm />
-        </Box>
       </Card>
     </Toolbar>
   );
