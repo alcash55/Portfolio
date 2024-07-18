@@ -1,5 +1,7 @@
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import useConnectForm from "./useConnectForm";
+import ConnectNotification from "./ConnectNotification";
+import useConnectNotification from "./useConnectNotification";
 
 /**
  * Form in the footer of the app
@@ -8,6 +10,8 @@ import useConnectForm from "./useConnectForm";
 const ConnectForm = () => {
   const { setName, setEmail, setMessage, sendMessage, name, email, message } =
     useConnectForm();
+  const { open, setOpen, setClose } = useConnectNotification();
+
   return (
     <Stack spacing={1}>
       <Typography variant="h5" component="h1">
@@ -41,6 +45,7 @@ const ConnectForm = () => {
       >
         Send
       </Button>
+      <ConnectNotification open={open} setClose={setClose} />
     </Stack>
   );
 };
