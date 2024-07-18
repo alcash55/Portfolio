@@ -10,6 +10,7 @@ const Home = () => {
     >
       <Pages.Summary />
       <Pages.About />
+      <Pages.Experience />
       <Pages.Projects />
       <Pages.Contact />
     </Stack>

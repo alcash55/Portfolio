@@ -7,4 +7,5 @@ export const Pages = {
   Error: lazy(() => import("./Error")),
   Projects: lazy(() => import("./Projects")),
   Summary: lazy(() => import("./Summary")),
+  Experience: lazy(() => import("./Experience")),
 };
