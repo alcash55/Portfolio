@@ -4,6 +4,7 @@ import {
   EmojiPeople,
   Home,
   Menu,
+  Work,
 } from "@mui/icons-material";
 import {
   Stack,
@@ -31,6 +32,11 @@ export const Mobile = ({ children }: PropsWithChildren) => {
       route: "#about",
       name: "About",
       icon: <EmojiPeople />,
+    },
+    {
+      route: "#experience",
+      name: "Experience",
+      icon: <Work />,
     },
     {
       route: "#projects",
