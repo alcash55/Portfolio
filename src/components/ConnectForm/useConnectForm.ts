@@ -3,7 +3,7 @@ import useConnectNotification from "./useConnectNotification";
 import { Octokit } from "@octokit/rest";
 
 const octokit = new Octokit({
-  auth: process.env.GH_TOKEN,
+  auth: import.meta.env.GH_TOKEN,
 });
 
 /**
