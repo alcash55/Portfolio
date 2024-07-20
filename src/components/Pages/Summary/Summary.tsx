@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -9,6 +10,14 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import {
+  ConnectWithoutContact,
+  Construction,
+  EmojiPeople,
+  Home,
+  Menu,
+  Work,
+} from "@mui/icons-material";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import MailIcon from "@mui/icons-material/Mail";
@@ -79,6 +88,46 @@ const Summary = () => {
             >
               <DownloadIcon />
             </IconButton>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-evenly",
+              gap: 3,
+            }}
+          >
+            <Button
+              variant="outlined"
+              startIcon={<EmojiPeople />}
+              href="#about"
+              aria-label="Navigate to About Me"
+            >
+              About me
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Work />}
+              href="#experience"
+              aria-label="Navigate to Experience"
+            >
+              Experience
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Construction />}
+              href="#projects"
+              aria-label="Navigate to Projects"
+            >
+              Projects
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<ConnectWithoutContact />}
+              href="#summary"
+              aria-label="Navigate to Contact"
+            >
+              Contact
+            </Button>
           </Box>
         </CardContent>
       </Card>
