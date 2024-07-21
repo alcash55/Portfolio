@@ -121,7 +121,7 @@ const Summary = () => {
             <Button
               variant="outlined"
               startIcon={<ConnectWithoutContact />}
-              href="#summary"
+              href="#contact"
               aria-label="Navigate to Contact"
             >
               Contact
