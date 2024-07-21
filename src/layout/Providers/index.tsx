@@ -1,15 +1,13 @@
-import { RouterProvider } from "react-router-dom";
-import { Router } from "../../components/Router/Router";
 import { ThemeProvider } from "../Theme";
 import AppShellProvider from "../../components/AppShell/AppShell";
-import { Loading } from "../../components/Loading/Loading";
+interface ProvidersProps {
+  children: JSX.Element;
+}
 
-export function Providers() {
+export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
-      <AppShellProvider>
-        <RouterProvider router={Router} fallbackElement={<Loading />} />
-      </AppShellProvider>
+      <AppShellProvider>{children}</AppShellProvider>
     </ThemeProvider>
   );
 }
