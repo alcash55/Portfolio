@@ -6,28 +6,23 @@ import {
   Card,
   useMediaQuery,
   useTheme,
-  Box,
 } from "@mui/material";
-import ConnectForm from "../../ConnectForm/ConnectForm";
 
 export const Footer = () => {
   const theme = useTheme();
-  const tablet = useMediaQuery(theme.breakpoints.down(768));
+  const mobile = useMediaQuery(theme.breakpoints.down(650));
   const date = new Date().getFullYear();
   return (
-    <Toolbar component={"footer"} sx={{ zIndex: 0 }}>
+    <Toolbar component={"footer"} disableGutters={true} sx={{ width: "100%" }}>
       <Card
         sx={{
           width: "100%",
-          p: 2,
           display: "flex",
-          flexDirection: tablet ? "column" : "row",
           alignItems: "center",
-          backgroundColor: "#202020",
-          gap: 2,
+          mb: mobile ? "56px" : 0,
         }}
       >
-        <Stack spacing={2} width={"50%"} sx={{ textAlign: "start" }}>
+        <Stack spacing={2} width={"50%"} sx={{ textAlign: "start", p: 2 }}>
           <Typography variant="h6" component={"h1"}>
             Sitemap
           </Typography>

@@ -1,6 +1,5 @@
 import { PropsWithChildren } from "react";
 import { Stack } from "@mui/material";
-import { Footer } from "../Footer";
 import { NavBar } from "../NavBar";
 import { SettingsDrawer } from "../SettingsDrawer";
 import { useSettingDrawer } from "../useSettingsDrawer";
@@ -15,7 +14,6 @@ export const Default = ({ children }: PropsWithChildren) => {
         setSettingDrawer={setSettingDrawer}
       />
       {children}
-      <Footer />
     </Stack>
   );
 };

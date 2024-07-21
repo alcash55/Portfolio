@@ -4,7 +4,6 @@ import { Menu } from "@mui/icons-material";
 import { useSettingDrawer } from "../useSettingsDrawer";
 import { SettingsDrawer } from "../SettingsDrawer";
 import { Sidebar } from "../Sidebar";
-import { Footer } from "../Footer";
 
 export const SideNav = ({ children }: PropsWithChildren) => {
   const { settingDrawer, setSettingDrawer } = useSettingDrawer();
@@ -17,7 +16,6 @@ export const SideNav = ({ children }: PropsWithChildren) => {
       />
       <Sidebar children={children} />
 
-      <Footer />
       <Fab
         size="medium"
         color="secondary"

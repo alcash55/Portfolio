@@ -4,7 +4,7 @@ import ConnectNotification from "./ConnectNotification";
 import useConnectNotification from "./useConnectNotification";
 
 /**
- * Form in the footer of the app
+ * Form in the connect section
  * @returns {JSX.Element}
  */
 const ConnectForm = () => {

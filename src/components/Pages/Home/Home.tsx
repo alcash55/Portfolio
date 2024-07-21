@@ -1,5 +1,6 @@
 import { Stack } from "@mui/material";
 import { Pages } from "../../Pages";
+import { Footer } from "../../AppShell/InternalComponents/Footer";
 
 const Home = () => {
   return (
@@ -13,6 +14,7 @@ const Home = () => {
       <Pages.Experience />
       <Pages.Projects />
       <Pages.Contact />
+      <Footer />
     </Stack>
   );
 };
