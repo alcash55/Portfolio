@@ -9,10 +9,10 @@ const Error = () => {
       height={"100vh"}
       justifyContent={"center"}
       alignItems={"center"}
-      spacing={2}
+      spacing={4}
     >
       <Typography variant="h1">404 :(</Typography>
-      <Button variant="contained" href="/Portfolio/">
+      <Button size="large" variant="contained" href="/Portfolio/">
         Go Home
       </Button>
     </Stack>
