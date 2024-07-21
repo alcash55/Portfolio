@@ -12,8 +12,6 @@ import {
   ConnectWithoutContact,
   Construction,
   EmojiPeople,
-  Home,
-  Menu,
   Work,
 } from "@mui/icons-material";
 import GitHubIcon from "@mui/icons-material/GitHub";
