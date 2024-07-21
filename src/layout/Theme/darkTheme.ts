@@ -1,4 +1,5 @@
 import { ThemeOptions, createTheme } from "@mui/material/styles";
+import "@fontsource/oxygen";
 
 export const darkTheme: ThemeOptions = createTheme({
   palette: {
@@ -51,6 +52,7 @@ export const darkTheme: ThemeOptions = createTheme({
     },
   },
   typography: {
+    fontFamily: "Oxygen, Arial, sans-serif",
     overline: {
       fontSize: 12,
       fontWeight: 400,
@@ -114,6 +116,7 @@ export const darkTheme: ThemeOptions = createTheme({
     },
     button: {
       fontSize: 14,
+      fontWeight: 700,
       lineHeight: 1.75,
       textTransform: "none",
     },

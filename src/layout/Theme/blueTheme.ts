@@ -1,5 +1,5 @@
 import { ThemeOptions, createTheme } from "@mui/material/styles";
-
+import "@fontsource/public-sans";
 export const blueTheme: ThemeOptions = createTheme({
   palette: {
     mode: "dark",
@@ -15,6 +15,7 @@ export const blueTheme: ThemeOptions = createTheme({
     },
   },
   typography: {
+    fontFamily: "public-sans, sans-serif",
     overline: {
       fontSize: 12,
       fontWeight: 400,
@@ -78,6 +79,7 @@ export const blueTheme: ThemeOptions = createTheme({
     },
     button: {
       fontSize: 14,
+      fontWeight: 700,
       lineHeight: 1.75,
       textTransform: "none",
     },
