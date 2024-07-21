@@ -28,9 +28,6 @@ const Summary = () => {
     <Stack id="summary" component={"section"}>
       <Card
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
           height: "100%",
           width: "100%",
           p: 0,
@@ -45,6 +42,7 @@ const Summary = () => {
             alignItems: "center",
             width: "100%",
             height: "100%",
+            gap: 1,
           }}
         >
           {/* <CardMedia component="img" height="100%" alt="logo" image={logo} /> */}
