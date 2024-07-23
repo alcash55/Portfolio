@@ -12,6 +12,7 @@ import {
   ConnectWithoutContact,
   Construction,
   EmojiPeople,
+  Work,
 } from "@mui/icons-material";
 
 export const Sidebar = ({ children }: PropsWithChildren) => {
@@ -45,6 +46,11 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
         href: "#about",
         name: "About",
         icon: <EmojiPeople />,
+      },
+      {
+        href: "#experience",
+        name: "Experience",
+        icon: <Work />,
       },
       {
         href: "#projects",
