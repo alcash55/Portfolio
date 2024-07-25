@@ -23,8 +23,8 @@ import Resume from "../../../assets/resume2024.pdf";
 import logo from "../../../assets/Logo.svg";
 
 const Summary = () => {
-  const theme = useTheme()
-  const mobile = useMediaQuery(theme.breakpoints.down(600))
+  const theme = useTheme();
+  const mobile = useMediaQuery(theme.breakpoints.down(600));
   return (
     <Stack id="summary" component={"section"}>
       <Card
@@ -86,47 +86,51 @@ const Summary = () => {
               <DownloadIcon />
             </IconButton>
           </Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: mobile ? 'column' : 'row',
-              justifyContent: "space-evenly",
-              gap: 3,
-            }}
-          >
-            <Button
-              variant="outlined"
-              startIcon={<EmojiPeople />}
-              href="#about"
-              aria-label="Navigate to About Me"
+
+          {/* only show buttons if default layout */}
+          {localStorage.getItem("layout") === "default" && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: mobile ? "column" : "row",
+                justifyContent: "space-evenly",
+                gap: 3,
+              }}
             >
-              About me
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Work />}
-              href="#experience"
-              aria-label="Navigate to Experience"
-            >
-              Experience
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Construction />}
-              href="#projects"
-              aria-label="Navigate to Projects"
-            >
-              Projects
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<ConnectWithoutContact />}
-              href="#contact"
-              aria-label="Navigate to Contact"
-            >
-              Contact
-            </Button>
-          </Box>
+              <Button
+                variant="outlined"
+                startIcon={<EmojiPeople />}
+                href="#about"
+                aria-label="Navigate to About Me"
+              >
+                About me
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Work />}
+                href="#experience"
+                aria-label="Navigate to Experience"
+              >
+                Experience
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Construction />}
+                href="#projects"
+                aria-label="Navigate to Projects"
+              >
+                Projects
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<ConnectWithoutContact />}
+                href="#contact"
+                aria-label="Navigate to Contact"
+              >
+                Contact
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Stack>
