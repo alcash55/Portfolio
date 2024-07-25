@@ -1,4 +1,3 @@
-//TODO: need to add persisting theme on refresh
 import {
   createContext,
   PropsWithChildren,
@@ -17,7 +16,7 @@ const ColorModeContext = createContext({
 });
 
 /**
- *  useColorMode hook that returns the current color mode and a function to toggle the color mode
+ * useColorMode hook that returns the current color mode and a function to toggle the color mode
  * @returns {UseColorMode}
  */
 export const useColorMode = () => {
