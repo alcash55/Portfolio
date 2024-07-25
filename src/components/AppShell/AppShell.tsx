@@ -10,11 +10,18 @@ import { Default } from "./InternalComponents/Layouts/Default";
 import { SideNav } from "./InternalComponents/Layouts/SideNav";
 import { Mobile } from "./InternalComponents/Layouts/Mobile";
 
+/**
+ * AppShellLayoutContext context that provides the layout and a function to toggle the layout
+ */
 const AppShellLayoutContext = createContext({
   layout: <Default />,
   toggleLayout: (newLayout: string) => {},
 });
 
+/**
+ * useAppShellLayout hook that returns the current layout and a function to toggle the layout
+ * @returns {UseAppShellLayout}
+ */
 export const useAppShellLayout = () => {
   const context = useContext(AppShellLayoutContext);
   return context;
@@ -32,12 +39,15 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
 
   // Run only on mount to set initial layout and set local storage
   useEffect(() => {
-    const initialLayout = localStorage.getItem("layout") || "default";
+    const initialLayout = localStorage.getItem("layout") ?? "default";
     toggleLayout(initialLayout);
   }, []);
-  //check window size for mobile bp
+
+  //check window size for mobile bp if not mobile get layour from local storage
   useEffect(() => {
-    const newLayout = isMobile ? "mobile" : "default";
+    const newLayout = isMobile
+      ? "mobile"
+      : localStorage.getItem("layout") ?? "default";
     toggleLayout(newLayout);
   }, [window.innerWidth]);
 
@@ -48,8 +58,9 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
   const toggleLayout = (newLayout: string) => {
     if (isMobile) setLayout(<Mobile children={children} />);
     if (newLayout === "default") setLayout(<Default children={children} />);
-    else if (newLayout === "sideNav")
+    else if (newLayout === "sideNav") {
       setLayout(<SideNav children={children} />);
+    }
 
     localStorage.setItem("layout", isMobile ? "mobile" : newLayout); //update local storage
   };
