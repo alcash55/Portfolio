@@ -3,10 +3,11 @@ import {
   Button,
   Card,
   CardContent,
-  CardMedia,
   IconButton,
   Stack,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   ConnectWithoutContact,
@@ -22,6 +23,8 @@ import Resume from "../../../assets/resume2024.pdf";
 import logo from "../../../assets/Logo.svg";
 
 const Summary = () => {
+  const theme = useTheme()
+  const mobile = useMediaQuery(theme.breakpoints.down(600))
   return (
     <Stack id="summary" component={"section"}>
       <Card
@@ -86,6 +89,7 @@ const Summary = () => {
           <Box
             sx={{
               display: "flex",
+              flexDirection: mobile ? 'column' : 'row',
               justifyContent: "space-evenly",
               gap: 3,
             }}
