@@ -10,6 +10,9 @@ import { redTheme } from "./redTheme";
 import { darkTheme } from "./darkTheme";
 import { blueTheme } from "./blueTheme";
 
+/**
+ * ColorModeContext context that provides the color mode and a function to toggle the color mode
+ */
 const ColorModeContext = createContext({
   mode: darkTheme,
   toggleColorMode: (color: string) => {},
