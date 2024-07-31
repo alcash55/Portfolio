@@ -7,7 +7,6 @@ export const LayoutButton = () => {
   return (
     <Stack
       direction={"row"}
-      spacing={1}
       justifyContent={"space-evenly"}
       alignItems={"center"}
       sx={{ flexWrap: "wrap" }}

@@ -30,39 +30,43 @@ export const useAppShellLayout = () => {
 /**
  * The AppShellProvider component that provides the layout context
  * @param {PropsWithChildren} children - children to render
- * @returns
+ * @returns {JSX.Element}
  */
 export default function AppShellProvider({ children }: PropsWithChildren) {
   const [layout, setLayout] = useState(<Default children={children} />);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(650));
 
-  // Run only on mount to set initial layout and set local storage
   useEffect(() => {
-    const initialLayout = localStorage.getItem("layout") ?? "default";
-    toggleLayout(initialLayout);
-  }, []);
+    //set initial layout
+    let layout = "default";
 
-  //check window size for mobile bp if not mobile get layour from local storage
-  useEffect(() => {
-    const newLayout = isMobile
-      ? "mobile"
-      : localStorage.getItem("layout") ?? "default";
-    toggleLayout(newLayout);
-  }, [window.innerWidth]);
+    //check window size for mobile bp if not mobile get layout from local storage
+    if (isMobile) {
+      layout = "mobile";
+    } else if (localStorage.getItem("layout") === "sideNav") {
+      layout = "sideNav";
+    }
+
+    toggleLayout(layout);
+  }, [isMobile, window.innerWidth]);
 
   /**
    * logic for toggling layout (mobile, default, sideNav)
    * @param {string} newLayout - new layout to set
    */
   const toggleLayout = (newLayout: string) => {
-    if (isMobile) setLayout(<Mobile children={children} />);
-    if (newLayout === "default") setLayout(<Default children={children} />);
-    else if (newLayout === "sideNav") {
+    if (isMobile) {
+      setLayout(<Mobile children={children} />);
+    } else if (newLayout === "default") {
+      setLayout(<Default children={children} />);
+    } else if (newLayout === "sideNav") {
       setLayout(<SideNav children={children} />);
+    } else {
+      setLayout(<Default children={children} />);
     }
 
-    localStorage.setItem("layout", isMobile ? "mobile" : newLayout); //update local storage
+    localStorage.setItem("layout", newLayout); // update local storage
   };
 
   const contextValue = {
