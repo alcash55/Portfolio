@@ -26,11 +26,7 @@ const Summary = () => {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down(600));
   return (
-    <Stack
-      id="summary"
-      component={"section"}
-      sx={{ height: "calc(100vh - 73.98px)" }}
-    >
+    <Stack id="summary" component={"section"}>
       <Card
         sx={{
           height: "100%",

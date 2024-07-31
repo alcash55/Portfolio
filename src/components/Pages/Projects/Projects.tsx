@@ -10,11 +10,7 @@ import LinkIcon from "@mui/icons-material/Link";
 
 const Projects = () => {
   return (
-    <Stack
-      id="projects"
-      component={"section"}
-      sx={{ height: "calc(100vh - 73.98px)" }}
-    >
+    <Stack id="projects" component={"section"}>
       <Card
         sx={{
           display: "flex",
