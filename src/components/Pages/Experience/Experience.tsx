@@ -11,7 +11,11 @@ import ExperienceTimeline from "../../DataVis/ExperienceTimeline/ExperienceTimel
 
 const Experience = () => {
   return (
-    <Stack id="experience" component={"section"}>
+    <Stack
+      id="experience"
+      component={"section"}
+      sx={{ height: "calc(100vh - 73.98px)" }}
+    >
       <Card
         sx={{
           display: "flex",

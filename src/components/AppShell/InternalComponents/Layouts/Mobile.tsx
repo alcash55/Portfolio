@@ -11,7 +11,8 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Fab,
-  Box,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { PropsWithChildren, SyntheticEvent, useState } from "react";
 import { useSettingDrawer } from "../useSettingsDrawer";
@@ -20,6 +21,9 @@ import { SettingsDrawer } from "../SettingsDrawer";
 export const Mobile = ({ children }: PropsWithChildren) => {
   const [value, setValue] = useState("summary");
   const { settingDrawer, setSettingDrawer } = useSettingDrawer();
+
+  const theme = useTheme();
+  const isLargeMobile = useMediaQuery(theme.breakpoints.down(425));
 
   const navItems = [
     {
@@ -76,6 +80,9 @@ export const Mobile = ({ children }: PropsWithChildren) => {
       >
         {navItems.map((item) => (
           <BottomNavigationAction
+            sx={{
+              minWidth: isLargeMobile ? "65px" : "auto",
+            }}
             key={item.route}
             label={item.name}
             value={item.route}
