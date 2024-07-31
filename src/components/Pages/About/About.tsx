@@ -1,4 +1,5 @@
 import {
+  Box,
   Card,
   CardContent,
   CardHeader,
@@ -7,11 +8,16 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import SwipeableCards from "../../SwipeableCards/SwipeableCards";
 import LinkIcon from "@mui/icons-material/Link";
 
 const About = () => {
   return (
-    <Stack id="about" component={"section"} sx={{ height: "100vh" }}>
+    <Stack
+      id="about"
+      component={"section"}
+      sx={{ height: "calc(100vh - 73.98px)" }}
+    >
       <Card
         sx={{
           display: "flex",
@@ -43,7 +49,29 @@ const About = () => {
           }
           title="About Me"
         />
-        <CardContent></CardContent>
+        <CardContent
+          sx={{
+            display: "flex",
+            width: "100%",
+            height: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <SwipeableCards />
+          <Stack spacing={2}>
+            <Typography variant="h5" component={"h2"}>
+              About me About meAbout meAbout meAbout meAbout meAbout meAbout
+            </Typography>
+            <Typography>
+              About me About me About me About me About me About me About me
+              About me About meAbout meAbout meAbout meAbout me About me About
+              me About me About meAbout meAbout meAbout meAbout meAbout meAbout
+              me
+            </Typography>
+          </Stack>
+        </CardContent>
       </Card>
     </Stack>
   );
