@@ -9,6 +9,7 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  CardMedia,
   IconButton,
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -43,7 +44,7 @@ const SwipeableCards = () => {
       sx={{
         width: "100%",
         height: "100%",
-        display: "flex",
+        position: "relative",
         backgroundImage: `linear-gradient(90deg, hsla(221, 45%, 73%, 1) 0%, hsla(220, 78%, 29%, 1) 100%)`,
         border: "1px solid black",
         borderRadius: "1rem",
@@ -52,26 +53,54 @@ const SwipeableCards = () => {
     >
       <CardContent
         sx={{
+          position: "relative",
           width: "100%",
           height: "100%",
-          display: "flex",
-          backgroundImage: `url(${images[activeIndex].img})`,
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          border: "1px solid black",
           p: 0,
+          m: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
+        <CardMedia
+          component="img"
+          src={images[activeIndex].img}
+          alt={`${images[activeIndex].alt}`}
+          sx={{
+            width: "100%",
+            height: "100%",
+            objectFit: "scale-down",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
+        />
         <CardActionArea
           aria-label="View the previous image"
-          onClick={() => handleLeftClick()}
-          sx={{ width: "50%", height: "100%" }}
+          onClick={handleLeftClick}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "50%",
+            height: "100%",
+            background: "rgba(0,0,0,0.2)", // Optional: semi-transparent overlay
+            zIndex: 1, // Ensures it appears on top of the image
+          }}
         />
         <CardActionArea
           aria-label="View the next image"
-          onClick={() => handleRightClick()}
-          sx={{ width: "50%", height: "100%" }}
+          onClick={handleRightClick}
+          sx={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: "50%",
+            height: "100%",
+            background: "rgba(0,0,0,0.2)", // Optional: semi-transparent overlay
+            zIndex: 1, // Ensures it appears on top of the image
+          }}
         />
       </CardContent>
     </Card>
