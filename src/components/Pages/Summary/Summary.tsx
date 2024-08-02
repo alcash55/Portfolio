@@ -47,10 +47,10 @@ const Summary = () => {
           }}
         >
           {/* <CardMedia component="img" height="100%" alt="logo" image={logo} /> */}
-          <Typography variant="h3" component={"h1"}>
+          <Typography variant="h3" component={"h1"} textAlign={"center"}>
             Alex Cash
           </Typography>
-          <Typography variant="h4" component={"h2"}>
+          <Typography variant="h4" component={"h2"} textAlign={"center"}>
             Software Engineer
           </Typography>
 
