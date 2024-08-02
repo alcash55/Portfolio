@@ -6,6 +6,7 @@ export default defineConfig({
   build: {
     outDir: "./dist",
   },
+  assetsInclude: ["**/*.pdf"],
   base: "/Portfolio/",
   plugins: [react()],
   server: {
