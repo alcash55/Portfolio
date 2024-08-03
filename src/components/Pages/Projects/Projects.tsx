@@ -7,15 +7,30 @@ import {
   Grid,
   IconButton,
   Stack,
+  Typography,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
 
 const Projects = () => {
   const projectsList = [
-    { name: "Project 1", img: "", href: "" },
-    { name: "Project 1", img: "", href: "" },
-    { name: "Project 1", img: "", href: "" },
-    { name: "Project 1", img: "", href: "" },
+    {
+      name: "Game Competition Website",
+      img: "",
+      href: "https://littletown.gay/",
+      alt: "",
+      description:
+        "A fullstack website for OSRS Bingo competitions using React",
+    },
+    {
+      name: "AC Composite Actions",
+      img: "",
+      href: "https://github.com/alcash55/ac-composite-actions",
+      alt: "",
+      description:
+        "A repository of workflows and composite actions to use in CI/CD pipelines",
+    },
+    { name: "Project 1", img: "", href: "", alt: "", description: "" },
+    { name: "Project 1", img: "", href: "", alt: "", description: "" },
   ];
   return (
     <Stack id="projects" component={"section"}>
@@ -61,13 +76,21 @@ const Projects = () => {
             {projectsList.map((project) => (
               <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
                 <Card>
-                  <CardActionArea>
+                  <CardActionArea href={project.href} target="_blank">
                     <CardMedia
                       component="img"
                       height="100%"
-                      alt="logo"
+                      alt={project.alt}
                       image={project.img}
                     />
+                    <CardContent>
+                      <Typography gutterBottom variant="h5" component="div">
+                        {project.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {project.description}
+                      </Typography>
+                    </CardContent>
                   </CardActionArea>
                 </Card>
               </Grid>
