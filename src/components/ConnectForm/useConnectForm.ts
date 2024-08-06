@@ -8,14 +8,14 @@ const useConnectForm = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
+  const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL ?? "";
 
   /**
    * @see https://github.com/alcash55/ac-composite-actions/tree/main/notifications/discord-messages
    */
   const sendMessage = async () => {
     try {
-      await fetch(WEBHOOK_URL, {
+      const response = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -27,9 +27,12 @@ const useConnectForm = () => {
         }),
       });
 
-      return true;
+      if (response.status === 200) {
+        return true;
+      }
     } catch (e) {
       console.log(`Error: ${e}`);
+    } finally {
       return false;
     }
   };
