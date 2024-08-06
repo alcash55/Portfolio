@@ -12,6 +12,9 @@ import {
 import LinkIcon from "@mui/icons-material/Link";
 
 const Projects = () => {
+  /** OSRS Bingo description
+   * @see https://www.youtube.com/watch?v=MF6LjbPVFtA
+   */
   const projectsList = [
     {
       name: "Game Competition Website",
@@ -73,8 +76,8 @@ const Projects = () => {
           }}
         >
           <Grid container spacing={2} width={"100%"} justifyContent={"center"}>
-            {projectsList.map((project) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+            {projectsList.map((project, idx) => (
+              <Grid key={idx} item xs={12} sm={6} md={4} lg={3} xl={2}>
                 <Card>
                   <CardActionArea href={project.href} target="_blank">
                     <CardMedia
