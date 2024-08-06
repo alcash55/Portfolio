@@ -32,7 +32,6 @@ const useConnectForm = () => {
       }
     } catch (e) {
       console.log(`Error: ${e}`);
-    } finally {
       return false;
     }
   };
