@@ -38,14 +38,19 @@ jobs:
           cache: "yarn"
 
       - name: Install dependencies & build
+        id: build
         run: |
           yarn
           yarn build
+        env:
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: Setup Pages
+        id: setup_pages
         uses: actions/configure-pages@v3
 
       - name: Upload artifact
+        id: artifact_upload
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload dist repository

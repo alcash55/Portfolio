@@ -6,6 +6,7 @@ import { useState } from "react";
  */
 const useConnectNotification = () => {
   const [open, setOpen] = useState(false);
+  const [messageSent, setMessageSent] = useState<boolean>(true);
 
   /**
    * Close the notification
@@ -14,7 +15,13 @@ const useConnectNotification = () => {
     setOpen(false);
   };
 
-  return { open, setOpen, setClose };
+  return {
+    open,
+    setOpen,
+    setClose,
+    messageSent,
+    setMessageSent,
+  };
 };
 
 export default useConnectNotification;
