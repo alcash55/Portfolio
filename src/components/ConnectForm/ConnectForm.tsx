@@ -37,13 +37,13 @@ const ConnectForm = () => {
   return (
     <>
       <Stack spacing={1}>
-        <Typography variant="h5" component="h1">
+        <Typography variant="h5" component="h2">
           Lets Work Together!
         </Typography>
         {formErrors && (
           <Typography
             variant="body1"
-            component="h2"
+            component="h3"
             color={"rgb(244, 67, 54)"}
             sx={{ pb: 1 }}
           >
