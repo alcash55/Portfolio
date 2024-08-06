@@ -37,7 +37,7 @@ jobs:
           bun install
           bun run build
         env:
-          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
+          VITE_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
 
       - name: Setup Pages
         id: setup_pages
