@@ -11,7 +11,9 @@ const useConnectForm = () => {
   const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL ?? "";
 
   /**
+   * Sends the message discord channel using a webhook
    * @see https://github.com/alcash55/ac-composite-actions/tree/main/notifications/discord-messages
+   * @returns {Promise<boolean>}
    */
   const sendMessage = async () => {
     try {
@@ -36,7 +38,58 @@ const useConnectForm = () => {
     }
   };
 
-  return { setName, setEmail, setMessage, sendMessage, name, email, message };
+  /**
+   * Validates the email to check if it's valid
+   * @param email
+   * @returns {boolean}
+   */
+  const validateEmail = () => {
+    if (!email) return false;
+
+    const checkEmail =
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+    if (email.match(checkEmail)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Validates the form to check if all required information is entered and email is valid
+   * @returns {string}
+   */
+  const validateForm = (name: string, email: string, message: string) => {
+    const checks = [
+      { check: name, error: "Please Fill out all require boxes ('name')" },
+      { check: email, error: "Please Fill out all require boxes ('Email')" },
+      {
+        check: message,
+        error: "Please Fill out all require boxes ('Message')",
+      },
+      { check: validateEmail(), error: "Please enter a valid email address" },
+    ];
+
+    for (const check of checks) {
+      if (!check.check) {
+        return check.error;
+      }
+    }
+
+    return "";
+  };
+
+  return {
+    setName,
+    setEmail,
+    setMessage,
+    sendMessage,
+    name,
+    email,
+    message,
+    validateForm,
+  };
 };
 
 export default useConnectForm;

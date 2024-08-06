@@ -8,11 +8,20 @@ import useConnectNotification from "./useConnectNotification";
  * @returns {JSX.Element}
  */
 const ConnectForm = () => {
-  const { setName, setEmail, setMessage, sendMessage, name, email, message } =
-    useConnectForm();
+  const {
+    setName,
+    setEmail,
+    setMessage,
+    sendMessage,
+    name,
+    email,
+    message,
+    validateForm,
+  } = useConnectForm();
 
   const { open, setOpen, setClose, messageSent, setMessageSent } =
     useConnectNotification();
+  const formErrors = validateForm(name, email, message);
 
   const handleClick = async () => {
     const message = await sendMessage();
@@ -31,6 +40,16 @@ const ConnectForm = () => {
         <Typography variant="h5" component="h1">
           Lets Work Together!
         </Typography>
+        {formErrors && (
+          <Typography
+            variant="body1"
+            component="h2"
+            color={"rgb(244, 67, 54)"}
+            sx={{ pb: 1 }}
+          >
+            *{formErrors}*
+          </Typography>
+        )}
         <Box sx={{ width: "100%", display: "flex", gap: 1 }}>
           <TextField
             id="name"
@@ -60,7 +79,7 @@ const ConnectForm = () => {
         />
         <Button
           variant="contained"
-          disabled={name && email && message ? false : true}
+          disabled={formErrors.length ? true : false}
           onClick={handleClick}
         >
           Send
