@@ -27,7 +27,7 @@ const useConnectForm = () => {
         }),
       });
 
-      if (response.status === 200) {
+      if (response.ok) {
         return true;
       }
     } catch (e) {
