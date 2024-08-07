@@ -29,7 +29,7 @@ const Projects = () => {
       href: "https://littletown.gay/",
       alt: "",
       description:
-        "A fullstack website for OSRS Bingo competitions using React",
+        "A fullstack website for Video Game competitions using React",
     },
     {
       name: "AC Composite Actions",
@@ -44,7 +44,8 @@ const Projects = () => {
       img: vsCodeTheme,
       href: "https://marketplace.visualstudio.com/items?itemName=Alcash55.royaltytheme",
       alt: "Royalty VS Code Theme",
-      description: "A custom theme for VS Code inspired by the color scheme ",
+      description:
+        "A custom theme for VS Code inspired by the colors of royalty",
     },
     { name: "Project 1", img: "", href: "", alt: "", description: "" },
   ];
