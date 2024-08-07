@@ -14,7 +14,6 @@ import {
 import LinkIcon from "@mui/icons-material/Link";
 import vsCodeTheme from "../../../assets/images/vsCodeTheme.png";
 import littleTown from "../../../assets/images/littleTown.png";
-import acCompositeActions from "../../../assets/images/ac-composite-action.png";
 import compositeActions from "../../../assets/images/compositeActions.png";
 
 const Projects = () => {
