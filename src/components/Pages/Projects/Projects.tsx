@@ -8,17 +8,25 @@ import {
   IconButton,
   Stack,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
+import vsCodeTheme from "../../../assets/images/vsCodeTheme.png";
+import littleTown from "../../../assets/images/littleTown.png";
+import acCompositeActions from "../../../assets/images/ac-composite-action.png";
+import compositeActions from "../../../assets/images/compositeActions.png";
 
 const Projects = () => {
+  const theme = useTheme();
+  const largeMobile = useMediaQuery(theme.breakpoints.down(600));
   /** OSRS Bingo description
    * @see https://www.youtube.com/watch?v=MF6LjbPVFtA
    */
   const projectsList = [
     {
       name: "Game Competition Website",
-      img: "",
+      img: littleTown,
       href: "https://littletown.gay/",
       alt: "",
       description:
@@ -26,13 +34,19 @@ const Projects = () => {
     },
     {
       name: "AC Composite Actions",
-      img: "",
+      img: compositeActions,
       href: "https://github.com/alcash55/ac-composite-actions",
-      alt: "",
+      alt: "Composite actions code",
       description:
         "A repository of workflows and composite actions to use in CI/CD pipelines",
     },
-    { name: "Project 1", img: "", href: "", alt: "", description: "" },
+    {
+      name: "VS Code Royalty Theme",
+      img: vsCodeTheme,
+      href: "https://marketplace.visualstudio.com/items?itemName=Alcash55.royaltytheme",
+      alt: "Royalty VS Code Theme",
+      description: "A custom theme for VS Code inspired by the color scheme ",
+    },
     { name: "Project 1", img: "", href: "", alt: "", description: "" },
   ];
   return (
@@ -73,20 +87,56 @@ const Projects = () => {
             width: "100%",
             height: "100%",
             display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexGrow: 1,
           }}
         >
-          <Grid container spacing={2} width={"100%"} justifyContent={"center"}>
+          <Grid
+            container
+            spacing={2}
+            width={"100%"}
+            height={"100%"}
+            justifyContent={"center"}
+          >
             {projectsList.map((project, idx) => (
-              <Grid key={idx} item xs={12} sm={6} md={4} lg={3} xl={2}>
-                <Card>
-                  <CardActionArea href={project.href} target="_blank">
-                    <CardMedia
-                      component="img"
-                      height="100%"
-                      alt={project.alt}
-                      image={project.img}
-                    />
-                    <CardContent>
+              <Grid
+                key={idx}
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                lg={4}
+                xl={4}
+                justifyContent={"center"}
+                sx={{ height: largeMobile ? "auto" : 300 }}
+              >
+                <Card sx={{ width: "100%", height: "100%" }}>
+                  <CardActionArea
+                    href={project.href}
+                    target="_blank"
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {!largeMobile && (
+                      <CardMedia
+                        component="img"
+                        alt={project.alt}
+                        image={project.img}
+                        sx={{
+                          width: "100%",
+                          height: "50%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    )}
+                    <CardContent sx={{ maxHeight: "60%" }}>
                       <Typography gutterBottom variant="h5" component="div">
                         {project.name}
                       </Typography>
