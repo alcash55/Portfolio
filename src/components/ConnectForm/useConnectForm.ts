@@ -40,7 +40,8 @@ const useConnectForm = () => {
 
   /**
    * Validates the email to check if it's valid
-   * @param email
+   * @see https://emailregex.com/
+   * @param {string} - email
    * @returns {boolean}
    */
   const validateEmail = () => {
