@@ -38,7 +38,7 @@ const ConnectForm = () => {
     <>
       <Stack spacing={1}>
         <Typography variant="h5" component="h2">
-          Lets Work Together!
+          Lets Connect!
         </Typography>
         {formErrors && (
           <Typography
@@ -47,7 +47,7 @@ const ConnectForm = () => {
             color={"rgb(244, 67, 54)"}
             sx={{ pb: 1 }}
           >
-            *{formErrors}*
+            {formErrors}*
           </Typography>
         )}
         <Box sx={{ width: "100%", display: "flex", gap: 1 }}>

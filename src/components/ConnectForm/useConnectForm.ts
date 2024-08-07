@@ -63,11 +63,11 @@ const useConnectForm = () => {
    */
   const validateForm = (name: string, email: string, message: string) => {
     const checks = [
-      { check: name, error: "Please Fill out all require boxes ('name')" },
-      { check: email, error: "Please Fill out all require boxes ('Email')" },
+      { check: name, error: "Please Fill out all require boxes (name)" },
+      { check: email, error: "Please Fill out all require boxes (Email)" },
       {
         check: message,
-        error: "Please Fill out all require boxes ('Message')",
+        error: "Please Fill out all require boxes (Message)",
       },
       { check: validateEmail(), error: "Please enter a valid email address" },
     ];
