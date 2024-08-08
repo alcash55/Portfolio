@@ -74,7 +74,7 @@ const ConnectForm = () => {
           required
           multiline
           rows={4}
-          placeholder="Hey Alex, I'm interested in your work, I would love to connect and work together!"
+          placeholder="Hey Alex, I'm interested in your work. I would love to connect and work together!"
           onChange={(e) => setMessage(e.target.value)}
         />
         <Button
