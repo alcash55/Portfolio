@@ -37,8 +37,8 @@ const ConnectForm = () => {
   return (
     <>
       <Stack spacing={1}>
-        <Typography variant="h5" component="h2">
-          Lets Connect!
+        <Typography variant="h5" component="h2" sx={{ textAlign: "center" }}>
+          Leave a message!
         </Typography>
         {formErrors && (
           <Typography
@@ -74,7 +74,7 @@ const ConnectForm = () => {
           required
           multiline
           rows={4}
-          placeholder="Type your message here..."
+          placeholder="Hey Alex, I'm interested in your work, I would love to connect and work together!"
           onChange={(e) => setMessage(e.target.value)}
         />
         <Button
