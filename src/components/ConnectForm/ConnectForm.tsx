@@ -1,4 +1,12 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import useConnectForm from "./useConnectForm";
 import ConnectNotification from "./ConnectNotification";
 import useConnectNotification from "./useConnectNotification";
@@ -22,6 +30,8 @@ const ConnectForm = () => {
   const { open, setOpen, setClose, messageSent, setMessageSent } =
     useConnectNotification();
   const formErrors = validateForm(name, email, message);
+  const theme = useTheme();
+  const largeMobile = useMediaQuery(theme.breakpoints.down(425));
 
   const handleClick = async () => {
     const message = await sendMessage();
@@ -36,17 +46,21 @@ const ConnectForm = () => {
 
   return (
     <>
-      <Stack spacing={1}>
-        <Typography variant="h5" component="h2" sx={{ textAlign: "center" }}>
+      <Stack spacing={1} width={"100%"}>
+        <Typography
+          variant="h3"
+          component="h2"
+          sx={{
+            fontSize: largeMobile ? "1.5rem" : "2rem",
+            textAlign: "start",
+            width: "100%",
+            flexWrap: "nowrap",
+          }}
+        >
           Leave a message!
         </Typography>
         {formErrors && (
-          <Typography
-            variant="body1"
-            component="h3"
-            color={"rgb(244, 67, 54)"}
-            sx={{ pb: 1 }}
-          >
+          <Typography variant="body1" component="h3" color={"rgb(244, 67, 54)"}>
             {formErrors}*
           </Typography>
         )}
