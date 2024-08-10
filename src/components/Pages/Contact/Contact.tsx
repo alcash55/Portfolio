@@ -61,7 +61,7 @@ const Contact = () => {
         >
           <ListItemText
             primary="LinkedIn"
-            secondary="www.linkedin.com/in/alexander-cash"
+            secondary="linkedin.com/in/alexander-cash"
             sx={listItemStyles}
           />
         </ListItem>
@@ -74,7 +74,7 @@ const Contact = () => {
         >
           <ListItemText
             primary="GitHub"
-            secondary="https://github.com/alcash55"
+            secondary="github.com/alcash55"
             sx={listItemStyles}
           />
         </ListItem>
