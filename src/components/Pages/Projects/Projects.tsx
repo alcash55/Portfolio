@@ -47,7 +47,13 @@ const Projects = () => {
       description:
         "A custom theme for VS Code inspired by the colors of royalty",
     },
-    { name: "Project 1", img: "", href: "", alt: "", description: "" },
+    {
+      name: "Portfolio Website",
+      img: "",
+      href: "https://github.com/alcash55/Portfolio",
+      alt: "Front page of my portfolio website",
+      description: "A website build to showcase my skills and experiences",
+    },
   ];
   return (
     <Stack id="projects" component={"section"}>
@@ -111,7 +117,9 @@ const Projects = () => {
                 justifyContent={"center"}
                 sx={{ height: largeMobile ? "auto" : 300 }}
               >
-                <Card sx={{ width: "100%", height: "100%" }}>
+                <Card
+                  sx={{ width: "100%", height: "100%", bgcolor: "#202020" }}
+                >
                   <CardActionArea
                     href={project.href}
                     target="_blank"

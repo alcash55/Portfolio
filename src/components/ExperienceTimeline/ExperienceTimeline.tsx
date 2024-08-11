@@ -30,10 +30,14 @@ interface ExperienceTimelineProps {
 
 const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
   const [experience, setExperience] = useState<JSX.Element>(
-    experiences[0].description
+    experiences[experiences.length - 1].description
   );
-  const [header, setHeader] = useState<string>(experiences[0].title);
-  const [avatar, setAvatar] = useState<JSX.Element>(experiences[0].icon);
+  const [header, setHeader] = useState<string>(
+    experiences[experiences.length - 1].title
+  );
+  const [avatar, setAvatar] = useState<JSX.Element>(
+    experiences[experiences.length - 1].icon
+  );
 
   return (
     <Box
@@ -45,8 +49,8 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
         height: "100%",
       }}
     >
-      <Card sx={{ maxWidth: "50%" }}>
-        <CardHeader title={header} avatar={avatar} />
+      <Card sx={{ maxWidth: "50%", bgcolor: "#202020" }}>
+        <CardHeader component="h2" title={header} avatar={avatar} />
         <CardContent>{experience}</CardContent>
       </Card>
 
