@@ -4,14 +4,14 @@ import React from "react";
 const Ncr = (props: SvgIconProps) => {
   const svg = (
     <svg
-      clip-rule="evenodd"
-      fill-rule="evenodd"
-      stroke-linejoin="round"
-      stroke-miterlimit="2"
+      clipRule="evenodd"
+      fillRule="evenodd"
+      strokeLinejoin="round"
+      strokeMiterlimit="2"
       viewBox="140 100 280 200"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g fill-rule="nonzero">
+      <g fillRule="nonzero">
         <path d="m145 65h270v270h-270z" fill="#51b948" />
         <g fill="#fff">
           <path d="m303.543 203.849s-.436-1.59-.436-2.768v-18.431h7.386v35.501l-23.635-19.568c-1.265-1.078-2.007-2.277-2.007-2.277s.37 1.32.37 2.466l-.007 18.577h-7.382v-35.364l23.415 19.18c1.252 1.066 2.296 2.684 2.296 2.684" />
