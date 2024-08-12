@@ -105,6 +105,7 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
           titleTypographyProps={{ fontSize: "1.5rem" }}
           subheader={dateRange}
           avatar={avatar}
+          sx={{ py: 0 }}
         />
         <CardContent>{experience}</CardContent>
       </Card>
