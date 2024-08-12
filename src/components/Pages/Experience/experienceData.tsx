@@ -7,9 +7,10 @@ import Rmu from "../../../assets/icons/Rmu";
 export const experienceData = [
   {
     date: "2020",
+    dateRange: "7/2020 - 9/2020",
     title: "Software Engineer Intern at NCR Corporation",
     description: (
-      <List sx={{ listStyleType: "disc", pl: 2 }}>
+      <List sx={{ listStyleType: "disc", pl: 3.5 }}>
         <ListItem sx={{ display: "list-item" }}>
           <ListItemText primary="Processed data generated from instore kitchens using NCR APIs to Google Cloud Platform to provide better business intelligence and decision making" />
         </ListItem>
@@ -22,9 +23,10 @@ export const experienceData = [
   },
   {
     date: "2021",
+    dateRange: "8/2016 - 5/2021",
     title: "Graduated from Robert Morris University",
     description: (
-      <List sx={{ listStyleType: "disc", pl: 2 }}>
+      <List sx={{ listStyleType: "disc", pl: 3.5 }}>
         <ListItem sx={{ display: "list-item" }}>
           <ListItemText primary="" />
         </ListItem>
@@ -36,10 +38,11 @@ export const experienceData = [
     icon: <Rmu />,
   },
   {
-    date: "2021",
+    date: "2023",
+    dateRange: "7/2021 - 4/2023",
     title: "UI Engineer I at NCR Corporation",
     description: (
-      <List sx={{ listStyleType: "disc", pl: 2 }}>
+      <List sx={{ listStyleType: "disc", pl: 3.5 }}>
         <ListItem sx={{ display: "list-item" }}>
           <ListItemText primary="Architected the design and development of the Store Health project for Starbucks UK, aligning technical solutions with business objectives and user needs" />
         </ListItem>
@@ -54,10 +57,11 @@ export const experienceData = [
     icon: <Ncr />,
   },
   {
-    date: "2023",
+    date: "2024",
+    dateRange: "4/2023 - 6/2024",
     title: "Software Engineer II at NCR Voyix Corporation",
     description: (
-      <List sx={{ listStyleType: "disc", pl: 2 }}>
+      <List sx={{ listStyleType: "disc", pl: 3.5 }}>
         <ListItem sx={{ display: "list-item" }}>
           <ListItemText primary="Orchestrated the innovation and refinement of existing static analysis composite GitHub Actions tailored for the Voyix Doc Site, ensuring streamlined workflows and enhanced code quality" />
         </ListItem>

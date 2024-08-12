@@ -22,6 +22,7 @@ import { useState } from "react";
 interface ExperienceTimelineProps {
   experiences: {
     date: string;
+    dateRange: string;
     title: string;
     description: JSX.Element;
     icon: JSX.Element;
@@ -38,6 +39,9 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
   const [avatar, setAvatar] = useState<JSX.Element>(
     experiences[experiences.length - 1].icon
   );
+  const [dateRange, setDateRange] = useState<string>(
+    experiences[experiences.length - 1].dateRange
+  );
 
   return (
     <Box
@@ -49,12 +53,8 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
         height: "100%",
       }}
     >
-      <Card sx={{ maxWidth: "50%", bgcolor: "#202020" }}>
-        <CardHeader component="h2" title={header} avatar={avatar} />
-        <CardContent>{experience}</CardContent>
-      </Card>
-
       <Timeline
+        position="left"
         sx={{
           [`& .${timelineOppositeContentClasses.root}`]: {
             flex: 0.2,
@@ -69,13 +69,14 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
                 setExperience(exprience.description);
                 setHeader(exprience.title);
                 setAvatar(exprience.icon);
+                setDateRange(exprience.dateRange);
               }}
-              sx={{ textAlign: "start" }}
+              sx={{ my: 1 }}
             >
-              <TimelineOppositeContent color="textSecondary">
+              <TimelineOppositeContent color="textSecondary" sx={{ mt: 1.5 }}>
                 {exprience.date}
               </TimelineOppositeContent>
-              <TimelineSeparator>
+              <TimelineSeparator sx={{ pr: 1, pl: 3 }}>
                 <TimelineDot sx={{ bgcolor: "#ffffff" }}>
                   {exprience.icon}
                 </TimelineDot>
@@ -83,19 +84,12 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
               </TimelineSeparator>
               <Button
                 component={TimelineContent}
-                variant="text"
-                textAlign="left"
+                variant="outlined"
                 sx={{
-                  textAlign: "left",
-                  ml: 2,
+                  pl: 2,
                   m: 0,
                   py: 0,
                   height: "auto",
-                  "& .MuiButton-text .MuiTimeline-root .MuiTimeline-positionRight .MuiTimeline-root":
-                    {
-                      position: "absolute",
-                      textAlign: "left",
-                    },
                 }}
               >
                 {exprience.title}
@@ -104,6 +98,16 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
           );
         })}
       </Timeline>
+      <Card sx={{ maxWidth: "50%", bgcolor: "#202020" }}>
+        <CardHeader
+          component="h2"
+          title={header}
+          titleTypographyProps={{ fontSize: "1.5rem" }}
+          subheader={dateRange}
+          avatar={avatar}
+        />
+        <CardContent>{experience}</CardContent>
+      </Card>
     </Box>
   );
 };
