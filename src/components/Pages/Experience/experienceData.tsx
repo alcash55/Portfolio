@@ -28,10 +28,18 @@ export const experienceData = [
     description: (
       <List sx={{ listStyleType: "disc", pl: 3.5 }}>
         <ListItem sx={{ display: "list-item" }}>
-          <ListItemText primary="" />
+          <ListItemText primary="Completed a Masters of Science in Web & Mobile Information Systems with a GPA of 3.78" />
         </ListItem>
         <ListItem sx={{ display: "list-item" }}>
-          <ListItemText primary="" />
+          <ListItemText primary="Completed a Bachelor of Science in Software Engineering with a GPA of 3.24" />
+        </ListItem>
+        <List sx={{ listStyleType: "circle", pl: 4.5 }}>
+          <ListItem sx={{ display: "list-item" }}>
+            <ListItemText primary="Minored in Data Analytics" />
+          </ListItem>
+        </List>
+        <ListItem sx={{ display: "list-item" }}>
+          <ListItemText primary="Dedicated 40+ hours as a D1 lacrosse player, practicing, lifting, analyzing game and practice film, and community service, while balancing a full academic course load" />
         </ListItem>
       </List>
     ),

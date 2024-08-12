@@ -58,13 +58,14 @@ const About = () => {
           <SwipeableCards />
           <Stack spacing={2}>
             <Typography variant="h5" component={"h2"}>
-              About me About meAbout meAbout meAbout meAbout meAbout meAbout
+              About me About meAbout meAbout
             </Typography>
             <Typography>
-              About me About me About me About me About me About me About me
-              About me About meAbout meAbout meAbout meAbout me About me About
-              me About me About meAbout meAbout meAbout meAbout meAbout meAbout
-              me
+              A dedicated and quality-focused software engineer with over three
+              years of hands-on development experience. Committed to continual
+              learning, I eagerly embrace new challenges to enhance my skill set
+              and consistently deliver impactful solutions that drive business
+              success and elevate user satisfaction.
             </Typography>
           </Stack>
         </CardContent>

@@ -4,6 +4,7 @@ import {
   CardHeader,
   IconButton,
   CardContent,
+  Typography,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
 import ExperienceTimeline from "../../ExperienceTimeline/ExperienceTimeline";
@@ -47,12 +48,24 @@ const Experience = () => {
           sx={{
             display: "flex",
             gap: 2,
-            justifyContent: "start",
+            flexDirection: "column",
             alignItems: "center",
             height: "100%",
             width: "100%",
+            px: 4,
           }}
         >
+          <Typography variant="body1" component={"h2"}>
+            With 4+ years of software engineering experience, a masters degree
+            in Web and Mobile Information systems, and a background in division
+            one athletics, I bring a unique blend of technical expertise and
+            competitive drive to every task and project I tackles. This
+            combination enables me to approach challenges with both analytical
+            precision and a determined mindset, ensuring innovative and
+            effective solutions. Whether collaborating with a team or working
+            independently, I leverages my diverse background to deliver
+            high-quality results.
+          </Typography>
           <ExperienceTimeline experiences={experienceData} />
         </CardContent>
       </Card>
