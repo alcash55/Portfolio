@@ -55,7 +55,7 @@ const Experience = () => {
             px: 4,
           }}
         >
-          <Typography variant="body1" component={"h2"}>
+          <Typography variant="h6" component={"h2"} sx={{ fontWeight: 500 }}>
             With 4+ years of software engineering experience, a masters degree
             in Web and Mobile Information systems, and a background in division
             one athletics, I bring a unique blend of technical expertise and
