@@ -16,6 +16,9 @@ import vsCodeTheme from "../../../assets/images/vsCodeTheme.png";
 import littleTown from "../../../assets/images/littleTown.png";
 import compositeActions from "../../../assets/images/compositeActions.png";
 
+/**
+ * @see https://mui-treasury.com/?path=/story/card-solidgame--solid-game
+ */
 const Projects = () => {
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(600));
