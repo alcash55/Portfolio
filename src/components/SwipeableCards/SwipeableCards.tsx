@@ -16,6 +16,9 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { useState } from "react";
 
+/**
+ * @see https://mui.com/material-ui/react-stepper/#text-with-carousel-effect
+ */
 const SwipeableCards = () => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
