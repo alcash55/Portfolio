@@ -17,7 +17,7 @@ import CodeIcon from "@mui/icons-material/Code";
 import vsCodeTheme from "../../../assets/images/vsCodeTheme.png";
 import littleTown from "../../../assets/images/littleTown.png";
 import compositeActions from "../../../assets/images/compositeActions.png";
-
+import portfolio from "../../../assets/images/portfolio.png";
 /**
  * @see https://mui-treasury.com/?path=/story/card-solidgame--solid-game
  */
@@ -54,7 +54,7 @@ const Projects = () => {
     },
     {
       name: "Portfolio Website",
-      img: null,
+      img: portfolio,
       href: "https://github.com/alcash55/Portfolio",
       alt: "Portfolio website built with React, TypeScript, and Material UI",
       description:
