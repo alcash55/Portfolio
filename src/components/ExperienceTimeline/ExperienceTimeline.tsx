@@ -16,6 +16,8 @@ import {
   CardContent,
   CardHeader,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useState } from "react";
 
@@ -30,6 +32,8 @@ interface ExperienceTimelineProps {
 }
 
 const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [experience, setExperience] = useState<JSX.Element>(
     experiences[experiences.length - 1].description
   );
@@ -47,14 +51,16 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
     <Box
       sx={{
         display: "flex",
+        flexDirection: isMobile ? "column" : "row",
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
         height: "100%",
+        gap: 2,
       }}
     >
       <Timeline
-        position="left"
+        position={isMobile ? "right" : "left"}
         sx={{
           [`& .${timelineOppositeContentClasses.root}`]: {
             flex: 0.2,
@@ -98,11 +104,11 @@ const ExperienceTimeline = ({ experiences }: ExperienceTimelineProps) => {
           );
         })}
       </Timeline>
-      <Card sx={{ maxWidth: "50%", bgcolor: "#202020" }}>
+      <Card sx={{ maxWidth: isMobile ? "100%" : "50%", bgcolor: "#202020" }}>
         <CardHeader
           component="h2"
           title={header}
-          titleTypographyProps={{ fontSize: "1.5rem" }}
+          titleTypographyProps={{ fontSize: isMobile ? "1.2rem" : "1.5rem" }}
           subheader={dateRange}
           avatar={avatar}
           sx={{ py: 0 }}

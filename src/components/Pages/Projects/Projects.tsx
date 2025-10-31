@@ -10,8 +10,10 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Box,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
+import CodeIcon from "@mui/icons-material/Code";
 import vsCodeTheme from "../../../assets/images/vsCodeTheme.png";
 import littleTown from "../../../assets/images/littleTown.png";
 import compositeActions from "../../../assets/images/compositeActions.png";
@@ -30,9 +32,9 @@ const Projects = () => {
       name: "Game Competition Website",
       img: littleTown,
       href: "https://littletown.gay/",
-      alt: "",
+      alt: "Fullstack game competition platform with tournament management",
       description:
-        "A fullstack website for Video Game competitions using React",
+        "A fullstack website for video game competitions built with React, featuring real-time tournament management and user engagement",
     },
     {
       name: "AC Composite Actions",
@@ -52,10 +54,11 @@ const Projects = () => {
     },
     {
       name: "Portfolio Website",
-      img: "",
+      img: null,
       href: "https://github.com/alcash55/Portfolio",
-      alt: "Front page of my portfolio website",
-      description: "A website build to showcase my skills and experiences",
+      alt: "Portfolio website built with React, TypeScript, and Material UI",
+      description:
+        "A website built to showcase my skills and experiences using modern web technologies",
     },
   ];
   return (
@@ -135,17 +138,37 @@ const Projects = () => {
                       alignItems: "center",
                     }}
                   >
-                    {!largeMobile && (
+                    {!largeMobile && project.img && (
                       <CardMedia
                         component="img"
                         alt={project.alt}
                         image={project.img}
+                        loading="lazy"
                         sx={{
                           width: "100%",
                           height: "50%",
                           objectFit: "contain",
                         }}
                       />
+                    )}
+                    {!largeMobile && !project.img && (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "50%",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          bgcolor: "rgba(255, 255, 255, 0.05)",
+                        }}
+                      >
+                        <CodeIcon
+                          sx={{
+                            fontSize: 120,
+                            color: "rgba(255, 255, 255, 0.3)",
+                          }}
+                        />
+                      </Box>
                     )}
                     <CardContent sx={{ maxHeight: "60%" }}>
                       <Typography gutterBottom variant="h5" component="div">

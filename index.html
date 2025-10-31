@@ -2,13 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        
+    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/src/assets/favicon/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/src/assets/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/src/assets/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/src/assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Viewport and theme -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Welcome to Alex Cash's portfolio website. Explore my projects, skills, and experiences in web development, design, and more.">
-    <title>Alex Cash</title>
+    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="color-scheme" content="dark" />
+  
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Alex Cash",
+      "jobTitle": "Software Engineer",
+      "description": "Software Engineer specializing in web development, React, and full-stack solutions.",
+      "url": "https://alcash55.github.io/Portfolio/",
+      "sameAs": [
+        "https://www.linkedin.com/in/alexander-cash/",
+        "https://github.com/alcash55"
+      ],
+      "email": "alex.e.cash28@gmail.com"
+    }
+    </script>
+    
+    <title>Alex Cash - Software Engineer</title>
   </head>
   <body>
     <div id="root"></div>

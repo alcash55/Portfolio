@@ -54,7 +54,7 @@ const Summary = () => {
             Software Engineer
           </Typography>
 
-          <Box sx={{ display: "flex", justigyContent: "space-evenly" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-evenly" }}>
             <IconButton
               size="large"
               href="https://github.com/alcash55"

@@ -1,8 +1,8 @@
-import React from "react";
 import { ListItemText, ListItem, List } from "@mui/material";
 import Voyix from "../../../assets/icons/Voyix";
 import Ncr from "../../../assets/icons/Ncr";
 import Rmu from "../../../assets/icons/Rmu";
+import SoleaEnergy from "../../../assets/icons/SoleaEnergy";
 
 export const experienceData = [
   {
@@ -82,5 +82,24 @@ export const experienceData = [
       </List>
     ),
     icon: <Voyix />,
+  },
+  {
+    date: "2025",
+    dateRange: "6/2024 - Present",
+    title: "Software Engineer at Solea Energy",
+    description: (
+      <List sx={{ listStyleType: "disc", pl: 3.5 }}>
+        <ListItem sx={{ display: "list-item" }}>
+          <ListItemText primary="" />
+        </ListItem>
+        <ListItem sx={{ display: "list-item" }}>
+          <ListItemText primary="" />
+        </ListItem>
+        <ListItem sx={{ display: "list-item" }}>
+          <ListItemText primary="" />
+        </ListItem>
+      </List>
+    ),
+    icon: <SoleaEnergy />,
   },
 ];

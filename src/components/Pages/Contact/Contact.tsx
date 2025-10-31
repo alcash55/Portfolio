@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import ContactForm from "../../ConnectForm/ConnectForm";
 import LinkIcon from "@mui/icons-material/Link";
-import { text } from "stream/consumers";
 
 const Contact = () => {
   const theme = useTheme();

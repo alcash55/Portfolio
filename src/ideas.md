@@ -1,0 +1,3 @@
+- Dynamically map all projects from github using the github API
+- Use honeypot for contact section to remove any potential bot spam
+- Create workflow so that on click of the send button in the contact me section it triggers the workflow to run so that we can hide discord info (channel id, etc.) is hidden and the values can be stored in the .env file and as github secrets

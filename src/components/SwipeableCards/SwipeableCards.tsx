@@ -1,7 +1,6 @@
 import wkhs_lacrosse from "../../assets/images/wkhs_lacrosse.jpg";
 import rmu_lacrosse from "../../assets/images/rmu_lacrosse.jpg";
 import west_ms_coaching from "../../assets/images/west_ms_coaching.jpg";
-// import white_water_rafting from "../../assets/images/white_water_rafting.jpg";
 import joshua_tree from "../../assets/images/joshua_tree.jpg";
 import troy_leon from "../../assets/images/troy_leon.jpg";
 import {
@@ -11,6 +10,9 @@ import {
   CardContent,
   CardMedia,
   IconButton,
+  useMediaQuery,
+  useTheme,
+  Chip,
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -20,14 +22,32 @@ import { useState } from "react";
  * @see https://mui.com/material-ui/react-stepper/#text-with-carousel-effect
  */
 const SwipeableCards = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
   const images = [
-    { img: wkhs_lacrosse, alt: "Alex's college lacrosse commitment post " },
-    { img: troy_leon, alt: "Alex's two dogs Troy (left) and Leon (right)" },
-    { img: rmu_lacrosse, alt: "Alex playing lacrosse at RMU" },
-    { img: west_ms_coaching, alt: "Alex coaching middle school lacrosse" },
-    { img: joshua_tree, alt: "Alex at Joshua Tree National Park" },
+    {
+      img: troy_leon,
+      alt: "Alex's two dogs Troy (left) and Leon (right)",
+      title: "Family Life",
+    },
+    {
+      img: rmu_lacrosse,
+      alt: "Alex playing lacrosse at RMU",
+      title: "Division I Athletics",
+    },
+    {
+      img: west_ms_coaching,
+      alt: "Alex coaching middle school lacrosse",
+      title: "Coaching & Leadership",
+    },
+    {
+      img: joshua_tree,
+      alt: "Alex at Joshua Tree National Park",
+      title: "Adventure & Travel",
+    },
   ];
 
   const handleLeftClick = () => {
@@ -42,6 +62,16 @@ const SwipeableCards = () => {
     );
   };
 
+  // Calculate responsive dimensions
+  const getDimensions = () => {
+    if (isMobile) {
+      return { width: "100%", height: "250px" };
+    } else if (isTablet) {
+      return { width: "100%", height: "350px" };
+    }
+    return { width: "600px", height: "400px" };
+  };
+
   const ImageCard = (
     <Card
       sx={{
@@ -52,6 +82,7 @@ const SwipeableCards = () => {
         border: "1px solid black",
         borderRadius: "1rem",
         borderWidth: "3px",
+        // overflow: "hidden",
       }}
     >
       <CardContent
@@ -69,51 +100,81 @@ const SwipeableCards = () => {
         <CardMedia
           component="img"
           src={images[activeIndex].img}
-          alt={`${images[activeIndex].alt}`}
+          alt={images[activeIndex].alt}
+          loading="eager"
           sx={{
             width: "100%",
             height: "100%",
-            objectFit: "scale-down",
+            objectFit: "cover",
             position: "absolute",
             top: 0,
             left: 0,
           }}
         />
-        <CardActionArea
-          aria-label="View the previous image"
+        {/* Image overlay for better clickability indication */}
+        <Box
           onClick={handleLeftClick}
+          aria-label="View the previous image"
           sx={{
             position: "absolute",
             top: 0,
             left: 0,
             width: "50%",
             height: "100%",
-            background: "rgba(0,0,0,0.2)", // Optional: semi-transparent overlay
-            zIndex: 1, // Ensures it appears on top of the image
+            cursor: "pointer",
+            zIndex: 1,
+            "&:hover": {
+              background: "rgba(0,0,0,0.1)",
+            },
           }}
         />
-        <CardActionArea
-          aria-label="View the next image"
+        <Box
           onClick={handleRightClick}
+          aria-label="View the next image"
           sx={{
             position: "absolute",
             top: 0,
             right: 0,
             width: "50%",
             height: "100%",
-            background: "rgba(0,0,0,0.2)", // Optional: semi-transparent overlay
-            zIndex: 1, // Ensures it appears on top of the image
+            cursor: "pointer",
+            zIndex: 1,
+            "&:hover": {
+              background: "rgba(0,0,0,0.1)",
+            },
           }}
         />
+        {/* Title overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 2,
+          }}
+        >
+          <Chip
+            label={images[activeIndex].title}
+            sx={{
+              bgcolor: "rgba(0, 0, 0, 0.7)",
+              color: "white",
+              fontWeight: "bold",
+            }}
+          />
+        </Box>
       </CardContent>
     </Card>
   );
 
+  const dimensions = getDimensions();
+
   return (
     <Box
       sx={{
-        width: "800px",
-        height: "400px",
+        width: dimensions.width,
+        height: dimensions.height,
+        maxWidth: "100%",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -130,15 +191,51 @@ const SwipeableCards = () => {
           width: "100%",
           justifyContent: "space-evenly",
           alignItems: "center",
+          mt: 1,
+          gap: 1,
         }}
       >
-        {/* Bottom Navigation */}
-        <IconButton onClick={handleLeftClick} aria-label="left">
+        {/* Dots indicator */}
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          {images.map((_, idx) => (
+            <Box
+              key={idx}
+              onClick={() => setActiveIndex(idx)}
+              sx={{
+                width: activeIndex === idx ? 24 : 8,
+                height: 8,
+                borderRadius: "4px",
+                bgcolor:
+                  activeIndex === idx
+                    ? "primary.main"
+                    : "rgba(255, 255, 255, 0.3)",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  bgcolor:
+                    activeIndex === idx
+                      ? "primary.main"
+                      : "rgba(255, 255, 255, 0.5)",
+                },
+              }}
+            />
+          ))}
+        </Box>
+        {/* Navigation buttons */}
+        {/* <IconButton
+          onClick={handleLeftClick}
+          aria-label="Previous image"
+          sx={{ color: "white" }}
+        >
           <ArrowBackIosIcon />
         </IconButton>
-        <IconButton onClick={handleRightClick} aria-label="right">
+        <IconButton
+          onClick={handleRightClick}
+          aria-label="Next image"
+          sx={{ color: "white" }}
+        >
           <ArrowForwardIosIcon />
-        </IconButton>
+        </IconButton> */}
       </Box>
     </Box>
   );
