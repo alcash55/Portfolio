@@ -10,7 +10,8 @@ export const showNavBar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      if (scrollPosition > 500) {
+      const threshold = window.innerHeight - 14;
+      if (scrollPosition > threshold) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -18,6 +19,9 @@ export const showNavBar = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
+
+    // Set initial visibility based on current scroll position
+    handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);

@@ -3,34 +3,16 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
   Divider,
   Grid,
   IconButton,
   Stack,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import SwipeableCards from "../../SwipeableCards/SwipeableCards";
 import LinkIcon from "@mui/icons-material/Link";
-import CodeIcon from "@mui/icons-material/Code";
-import SchoolIcon from "@mui/icons-material/School";
-import PersonIcon from "@mui/icons-material/Person";
 
 const About = () => {
-  const theme = useTheme();
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  const techStack = [
-    "TypeScript",
-    "React",
-    "Node.js",
-    "Python",
-    "Docker",
-    "Git/GitHub",
-  ];
-
   return (
     <Stack id="about" component={"section"}>
       <Card
@@ -80,107 +62,59 @@ const About = () => {
             {/* Text Content */}
             <Grid item xs={12} md={6}>
               <Stack spacing={3}>
-                {/* Professional Summary */}
                 <Box>
-                  <Typography
-                    variant="h5"
-                    component="h2"
-                    gutterBottom
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                  >
-                    <CodeIcon color="primary" />
-                    Developer & Engineer
+                  <Typography variant="h5" component="h2" gutterBottom>
+                    Hey, I’m Alex Cash — Software Engineer
                   </Typography>
                   <Typography variant="body1" paragraph>
-                    A dedicated software engineer with over four years of
-                    hands-on development experience building scalable web and
-                    mobile applications. I'm committed to crafting clean,
-                    maintainable code and delivering solutions that drive
-                    business value.
+                    I enjoy building clean, scalable, and well-designed systems.
+                    I focus on software that works great under the hood and
+                    delivers a smooth, intuitive experience for users.
                   </Typography>
-                  <Typography variant="body1" paragraph>
-                    My approach combines technical expertise with collaborative
-                    teamwork, always striving to write code that's both
-                    performant and maintainable.
-                  </Typography>
-                </Box>
-
-                <Divider />
-
-                {/* Education */}
-                <Box>
-                  <Typography
-                    variant="h6"
-                    component="h3"
-                    gutterBottom
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                  >
-                    <SchoolIcon color="primary" sx={{ fontSize: 20 }} />
-                    Education & Background
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    Masters in Web & Mobile Information Systems
-                  </Typography>
-                  <Typography variant="body2">
-                    Combined with Division I athletics experience, I bring a
-                    unique blend of technical expertise and the discipline,
-                    teamwork, and resilience needed to thrive in fast-paced
-                    development environments.
+                  <Typography variant="body1">
+                    I work across the stack, but my favorite projects blend
+                    front-end precision with backend performance. I love working
+                    with React, TypeScript, and Go, and I lean on modern tooling
+                    to move fast and keep things maintainable.
                   </Typography>
                 </Box>
 
                 <Divider />
 
-                {/* Tech Stack */}
                 <Box>
-                  <Typography
-                    variant="h6"
-                    component="h3"
-                    gutterBottom
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                  >
-                    <CodeIcon color="primary" sx={{ fontSize: 20 }} />
-                    Tech Stack
+                  <Typography variant="h6" component="h3" gutterBottom>
+                    What Drives Me
                   </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 1,
-                      mt: 1,
-                    }}
-                  >
-                    {techStack.map((tech) => (
-                      <Chip
-                        key={tech}
-                        label={tech}
-                        size={isSmallMobile ? "small" : "medium"}
-                        color="primary"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Box>
+                  <Stack component="ul" sx={{ pl: 3, gap: 1 }}>
+                    <Typography component="li" variant="body2">
+                      Writing code that’s simple, clear, and reliable
+                    </Typography>
+                    <Typography component="li" variant="body2">
+                      Building systems that scale without sacrificing
+                      readability
+                    </Typography>
+                    <Typography component="li" variant="body2">
+                      Collaborating with teams who care about craft and
+                      efficiency
+                    </Typography>
+                    <Typography component="li" variant="body2">
+                      Always learning and refining how I work
+                    </Typography>
+                  </Stack>
                 </Box>
 
                 <Divider />
 
-                {/* Outside of Work */}
                 <Box>
-                  <Typography
-                    variant="h6"
-                    component="h3"
-                    gutterBottom
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                  >
-                    <PersonIcon color="primary" sx={{ fontSize: 20 }} />
-                    Outside of Code
+                  <Typography variant="h6" component="h3" gutterBottom>
+                    Outside of Work
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    When I'm not at my desk, you'll find me coaching youth
-                    lacrosse, exploring national parks with my two dogs Troy and
-                    Leon, or contributing to open-source projects. I believe in
-                    maintaining a healthy work-life balance and bringing diverse
-                    experiences to every project.
+                    When I’m not coding, you’ll probably find me coaching
+                    lacrosse or spending time with my two dogs. Coaching has
+                    taught me a lot about communication, patience, and
+                    leadership — lessons that carry directly into how I approach
+                    software development and teamwork.
                   </Typography>
                 </Box>
               </Stack>

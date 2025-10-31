@@ -32,7 +32,7 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
                 flexWrap: "wrap",
               }}
             >
-              <Button variant="text" sx={{ color: "white" }} href="#summary">
+              <Button variant="text" sx={{ color: "white" }} href="#landing">
                 Home
               </Button>
               <Button variant="text" sx={{ color: "white" }} href="#about">

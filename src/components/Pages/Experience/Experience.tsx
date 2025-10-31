@@ -5,14 +5,26 @@ import {
   IconButton,
   CardContent,
   Typography,
+  Box,
+  Divider,
+  Chip,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
 import ExperienceTimeline from "../../ExperienceTimeline/ExperienceTimeline";
 import { experienceData } from "./experienceData";
 
 const Experience = () => {
+  const skills = {
+    Languages: ["TypeScript", "JavaScript", "Go"],
+    Frameworks: ["React", "Node.js, Bun", "Express", "Next.js"],
+    Tools: ["Docker", "Git", "GitHub"],
+  };
   return (
-    <Stack id="experience" component={"section"}>
+    <Stack
+      id="experience"
+      component={"section"}
+      sx={{ height: "auto", width: "100%" }}
+    >
       <Card
         sx={{
           display: "flex",
@@ -67,6 +79,31 @@ const Experience = () => {
             high-quality results.
           </Typography>
           <ExperienceTimeline experiences={experienceData} />
+          <Divider sx={{ my: 2, width: "100%" }} />
+          <Box sx={{ width: "100%" }}>
+            <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
+              Skills & Tech
+            </Typography>
+            <Stack spacing={2} sx={{ width: "100%" }}>
+              {Object.entries(skills).map(([group, items]) => (
+                <Box key={group}>
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    {group}
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {items.map((label) => (
+                      <Chip
+                        key={label}
+                        label={label}
+                        variant="outlined"
+                        color="primary"
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
         </CardContent>
       </Card>
     </Stack>

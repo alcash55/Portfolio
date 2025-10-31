@@ -82,7 +82,7 @@ const Contact = () => {
   );
 
   return (
-    <Stack id="contact" component={"section"}>
+    <Stack id="contact" component={"section"} sx={{ height: "auto" }}>
       <Card
         sx={{
           display: "flex",

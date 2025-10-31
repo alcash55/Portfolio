@@ -6,6 +6,6 @@ export const Pages = {
   Contact: lazy(() => import("./Contact")),
   Error: lazy(() => import("./Error")),
   Projects: lazy(() => import("./Projects")),
-  Summary: lazy(() => import("./Summary")),
   Experience: lazy(() => import("./Experience")),
+  Landing: lazy(() => import("./Landing")),
 };
