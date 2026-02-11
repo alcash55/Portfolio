@@ -42,6 +42,11 @@ export const Mobile = ({ children }: PropsWithChildren) => {
       icon: <Work />,
     },
     {
+      route: "#skills",
+      name: "Skills & Tech",
+      icon: <Work />,
+    },
+    {
       route: "#projects",
       name: "Projects",
       icon: <Construction />,

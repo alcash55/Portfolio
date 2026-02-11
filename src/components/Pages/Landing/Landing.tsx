@@ -6,7 +6,6 @@ import {
   Grid,
   Stack,
 } from "@mui/material";
-import { useState, useEffect } from "react";
 import rmu_lacrosse from "../../../assets/images/rmu_lacrosse.jpg";
 import west_ms_coaching from "../../../assets/images/west_ms_coaching.jpg";
 import joshua_tree from "../../../assets/images/joshua_tree.jpg";
@@ -117,9 +116,8 @@ const Landing = () => {
                 borderRadius: "50%",
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                animation: `float ${
-                  5 + Math.random() * 10
-                }s ease-in-out infinite`,
+                animation: `float ${5 + Math.random() * 10
+                  }s ease-in-out infinite`,
                 animationDelay: `${Math.random() * 10}s`,
               }}
             />
@@ -163,6 +161,16 @@ const Landing = () => {
           }}
         >
           <Box sx={{ display: "flex", gap: 4, fontSize: 14 }}>
+            <Button
+              onClick={() => scrollToSection("skills")}
+              variant="text"
+              sx={{
+                color: "rgba(255,255,255,0.6)",
+                "&:hover": { color: "#fff" },
+              }}
+            >
+              Skills & Tech
+            </Button>
             <Button
               onClick={() => scrollToSection("experience")}
               variant="text"

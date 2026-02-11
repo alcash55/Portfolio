@@ -10,15 +10,12 @@ import {
   Chip,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
-import ExperienceTimeline from "../../ExperienceTimeline/ExperienceTimeline";
 import { experienceData } from "./experienceData";
 
+import { Timeline, TimelineItem, TimelineOppositeContent, TimelineSeparator, TimelineConnector, TimelineDot, TimelineContent } from "@mui/lab";
+
 const Experience = () => {
-  const skills = {
-    Languages: ["TypeScript", "JavaScript", "Go"],
-    Frameworks: ["React", "Node.js, Bun", "Express", "Next.js"],
-    Tools: ["Docker", "Git", "GitHub"],
-  };
+
   return (
     <Stack
       id="experience"
@@ -61,7 +58,7 @@ const Experience = () => {
             display: "flex",
             gap: 2,
             flexDirection: "column",
-            alignItems: "center",
+            alignItems: "flex-start",
             height: "100%",
             width: "100%",
             px: 4,
@@ -78,32 +75,45 @@ const Experience = () => {
             independently, I leverages my diverse background to deliver
             high-quality results.
           </Typography>
-          <ExperienceTimeline experiences={experienceData} />
-          <Divider sx={{ my: 2, width: "100%" }} />
-          <Box sx={{ width: "100%" }}>
-            <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
-              Skills & Tech
-            </Typography>
-            <Stack spacing={2} sx={{ width: "100%" }}>
-              {Object.entries(skills).map(([group, items]) => (
-                <Box key={group}>
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    {group}
-                  </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {items.map((label) => (
-                      <Chip
-                        key={label}
-                        label={label}
-                        variant="outlined"
-                        color="primary"
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
+
+          <Timeline sx={{ alignItems: 'flex-start' }}>
+            {experienceData.map((experience, idx) => (
+              <TimelineItem key={experience.dateRange}>
+                <TimelineOppositeContent sx={{ width: '175px', textAlign: 'left', flex: '0 0 auto' }}>
+                  {experience.dateRange}
+                </TimelineOppositeContent>
+                <TimelineSeparator>
+                  {idx === (experienceData.length - (experienceData.length - 1)) && (
+                    <TimelineConnector />
+                  )}
+                  <TimelineDot>
+                    {experience.icon}
+                  </TimelineDot>
+                  <TimelineConnector />
+                </TimelineSeparator>
+                <TimelineContent sx={{ py: '12px', px: 2, width: '100%' }}>
+                  <Card sx={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: '#18181b',
+                    border: '2px solid #27272a',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      // border: `2px solid gray`,
+                      boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
+                    },
+                  }}>
+                    <CardHeader
+                      title={experience.title}
+                    />
+                    <CardContent>
+                      {experience.description}
+                    </CardContent>
+                  </Card>
+                </TimelineContent>
+              </TimelineItem>
+            ))}
+          </Timeline>
         </CardContent>
       </Card>
     </Stack>

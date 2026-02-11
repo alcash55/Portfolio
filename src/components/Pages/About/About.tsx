@@ -9,7 +9,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import SwipeableCards from "../../SwipeableCards/SwipeableCards";
 import LinkIcon from "@mui/icons-material/Link";
 
 const About = () => {
@@ -56,7 +55,7 @@ const About = () => {
           <Grid container spacing={4}>
             {/* Photos Section */}
             <Grid item xs={12} md={6}>
-              <SwipeableCards />
+              {/* <SwipeableCards /> */}
             </Grid>
 
             {/* Text Content */}

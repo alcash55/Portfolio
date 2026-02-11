@@ -41,6 +41,9 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
               <Button variant="text" sx={{ color: "white" }} href="#experience">
                 Experience
               </Button>
+              <Button variant="text" sx={{ color: "white" }} href="#skills">
+                Skills & Tech
+              </Button>
               <Button variant="text" sx={{ color: "white" }} href="#projects">
                 Projects
               </Button>

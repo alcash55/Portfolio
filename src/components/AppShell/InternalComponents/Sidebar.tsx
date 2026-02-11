@@ -13,6 +13,7 @@ import {
   Construction,
   EmojiPeople,
   Work,
+  Build,
 } from "@mui/icons-material";
 
 export const Sidebar = ({ children }: PropsWithChildren) => {
@@ -38,19 +39,19 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
   const SideBarItems = () => {
     const navItems = [
       {
-        href: "#summary",
-        name: "Summary",
+        href: "#landing",
+        name: "Home",
         icon: <Home />,
-      },
-      {
-        href: "#about",
-        name: "About",
-        icon: <EmojiPeople />,
       },
       {
         href: "#experience",
         name: "Experience",
         icon: <Work />,
+      },
+      {
+        href: "#skills",
+        name: "Skills & Tech",
+        icon: <Build />,
       },
       {
         href: "#projects",

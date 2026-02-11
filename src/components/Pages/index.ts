@@ -8,4 +8,5 @@ export const Pages = {
   Projects: lazy(() => import("./Projects")),
   Experience: lazy(() => import("./Experience")),
   Landing: lazy(() => import("./Landing")),
+  Skills: lazy(() => import("./Skills")),
 };
