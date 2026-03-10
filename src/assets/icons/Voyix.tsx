@@ -9,7 +9,7 @@ const Voyix = (props: SvgIconProps) => {
       width="1505"
       height="1506"
     >
-      <title>NCR Voyix</title>
+      <title>NCR Voyix Logo</title>
       <g id="Layer">
         <path
           fillRule="evenodd"

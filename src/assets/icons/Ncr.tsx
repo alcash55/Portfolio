@@ -1,5 +1,4 @@
 import { SvgIcon, SvgIconProps } from "@mui/material";
-import React from "react";
 
 const Ncr = (props: SvgIconProps) => {
   const svg = (
@@ -11,7 +10,7 @@ const Ncr = (props: SvgIconProps) => {
       viewBox="140 100 280 200"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>NCR</title>
+      <title>NCR Logo</title>
       <g fillRule="nonzero">
         <path d="m145 65h270v270h-270z" fill="#51b948" />
         <g fill="#fff">

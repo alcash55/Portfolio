@@ -10,7 +10,7 @@ const Rmu = (props: SvgIconProps) => {
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >
-      <title>Robert Morris University</title>
+      <title>Robert Morris University Logo</title>
       <g clipPath="url(#clip0_1053_588)">
         <rect width="48" height="48" rx="24" fill="white" />
         <g filter="url(#filter0_d_1053_588)">
