@@ -1,13 +1,18 @@
 import { CircularProgress, Box } from "@mui/material";
-import React from "react";
-import { ReactNode } from "react";
+import React, { Fragment, ReactNode } from "react";
 
-interface LoadingProps {
+type LoadingProps = {
   loading: boolean;
   children: ReactNode;
-  [key: string]: any;
-}
+} & React.ComponentPropsWithoutRef<typeof Fragment>;
 
+/**
+ * Conditionally renders a full-screen Material-UI spinner or the supplied children
+ * @param props.loading - Controls whether the spinner is shown.
+ * @param props.children - Elements displayed once loading finishes.
+ * @param props - Any additional props are spread to the internal `Fragment`.
+ * @returns A full-screen progress circle when `loading`, otherwise the wrapped children.
+ */
 export const Loading = ({ loading, children, ...props }: LoadingProps) => {
   if (loading) {
     return (
@@ -18,13 +23,12 @@ export const Loading = ({ loading, children, ...props }: LoadingProps) => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          yOverflow: "hidden",
+          overflow: "hidden",
         }}
       >
         <CircularProgress />
       </Box>
     );
-  } else {
-    <React.Fragment {...props}>{children}</React.Fragment>;
   }
+  return <Fragment {...props}>{children}</Fragment>;
 };

@@ -1,15 +1,15 @@
 import { Box, AppBar, Toolbar, Button, IconButton, Fade } from "@mui/material";
 import { Menu } from "@mui/icons-material/";
-import { showNavBar } from "./showNavBar";
+import { useNavBar } from "./showNavBar";
 
 interface NavBarProps {
   setSettingDrawer: (value: boolean) => void;
 }
 
 export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
-  const isVisible = showNavBar();
+  const { showNavBar } = useNavBar();
   return (
-    <Fade in={isVisible} timeout={1000}>
+    <Fade in={showNavBar()} timeout={1000}>
       <Box
         sx={{
           flexGrow: 1,
@@ -18,7 +18,7 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
           zIndex: 1,
           width: "100%",
           transition: "top 1.0s",
-          visibility: isVisible ? "visible" : "hidden",
+          visibility: showNavBar() ? "visible" : "hidden",
         }}
       >
         <AppBar sx={{ bgcolor: "black" }}>
