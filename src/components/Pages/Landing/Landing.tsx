@@ -5,6 +5,7 @@ import {
   IconButton,
   Grid,
   Stack,
+  Icon,
 } from "@mui/material";
 import rmu_lacrosse from "../../../assets/images/rmu_lacrosse.jpg";
 import west_ms_coaching from "../../../assets/images/west_ms_coaching.jpg";
@@ -16,6 +17,8 @@ const Landing = () => {
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
+
+  let isScrolling = false;
 
   const images = [
     {
@@ -31,7 +34,7 @@ const Landing = () => {
     {
       src: west_ms_coaching,
       alt: "Alex coaching middle school lacrosse",
-      title: "Coaching & Leadership",
+      title: "Community Leader",
     },
     {
       src: joshua_tree,
@@ -46,11 +49,12 @@ const Landing = () => {
       id="landing"
       sx={{
         position: "relative",
-        minHeight: "100vh",
-        height: "auto",
+        // minHeight: "100vh",
+        height: "100vh",
         bgcolor: "#000",
         color: "#fff",
         overflow: "hidden",
+        scrollBehavior: "smooth",
       }}
     >
       {/* Animated Background */}
@@ -105,7 +109,7 @@ const Landing = () => {
 
         {/* Floating Particles */}
         <Box sx={{ position: "absolute", inset: 0 }}>
-          {[...Array(20)].map((_, i) => (
+          {[...Array(30)].map((_, i) => (
             <Box
               key={i}
               sx={{
@@ -116,8 +120,9 @@ const Landing = () => {
                 borderRadius: "50%",
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                animation: `float ${5 + Math.random() * 10
-                  }s ease-in-out infinite`,
+                animation: `float ${
+                  5 + Math.random() * 10
+                }s ease-in-out infinite`,
                 animationDelay: `${Math.random() * 10}s`,
               }}
             />
@@ -265,7 +270,8 @@ const Landing = () => {
                 }}
               >
                 <IconButton
-                  href="#"
+                  href="https://github.com/alcash55"
+                  target="_blank"
                   sx={{
                     width: 48,
                     height: 48,
@@ -279,7 +285,8 @@ const Landing = () => {
                   <GitHub fontSize="small" />
                 </IconButton>
                 <IconButton
-                  href="#"
+                  href="https://www.linkedin.com/in/alexander-cash"
+                  target="_blank"
                   sx={{
                     width: 48,
                     height: 48,
@@ -293,7 +300,7 @@ const Landing = () => {
                   <LinkedIn fontSize="small" />
                 </IconButton>
                 <IconButton
-                  href="#"
+                  href="mailto:alex.e.cash28@gmail.com"
                   sx={{
                     width: 48,
                     height: 48,
@@ -384,23 +391,19 @@ const Landing = () => {
             gap: 1.5,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: 12,
-              letterSpacing: 4,
-              color: "rgba(255,255,255,0.5)",
-            }}
+          <IconButton
+            size={"large"}
+            onClick={() => scrollToSection("experience")}
           >
-            SCROLL
-          </Typography>
-          <ArrowDownward
-            sx={{
-              width: 16,
-              height: 16,
-              color: "rgba(255,255,255,0.5)",
-              animation: "bounce 1.5s infinite",
-            }}
-          />
+            <ArrowDownward
+              sx={{
+                width: 18,
+                height: 18,
+                color: "rgba(255,255,255,0.5)",
+                animation: "bounce 1.5s infinite",
+              }}
+            />
+          </IconButton>
         </Stack>
       </Box>
 

@@ -11,7 +11,6 @@ import {
   Home,
   ConnectWithoutContact,
   Construction,
-  EmojiPeople,
   Work,
   Build,
 } from "@mui/icons-material";

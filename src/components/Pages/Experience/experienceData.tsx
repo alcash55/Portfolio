@@ -52,7 +52,7 @@ export const experienceData = [
           <ListItemText primary="Architected the design and development of the Store Health project for Starbucks UK, aligning technical solutions with business objectives and user needs" />
         </ListItem>
         <ListItem sx={{ display: "list-item", py: 0 }}>
-          <ListItemText primary="Contributed to the integration of the NCR Design System with product teams, resolving issues and enriching functionality by crafting custom React components- Mitigated legal risks by implementing an automated framework to scan NCR products for accessibility scores, facilitating compliance and enhancing inclusivity" />
+          <ListItemText primary="Contributed to the integration of the NCR Design System with product teams, resolving issues and enriching functionality by crafting custom React components Mitigated legal risks by implementing an automated framework to scan NCR products for accessibility scores, facilitating compliance and enhancing inclusivity" />
         </ListItem>
         <ListItem sx={{ display: "list-item", py: 0 }}>
           <ListItemText primary="Implemented Google Tag Manager and FullStory across digital connected services products, providing valuable analytics insights and facilitating efficient troubleshooting for future enhancements" />
