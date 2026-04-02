@@ -5,9 +5,6 @@ import {
   IconButton,
   CardContent,
   Typography,
-  Box,
-  Divider,
-  Chip,
 } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
 import { experienceData } from "./experienceData";

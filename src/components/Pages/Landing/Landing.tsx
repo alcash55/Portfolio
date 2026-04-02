@@ -5,7 +5,6 @@ import {
   IconButton,
   Grid,
   Stack,
-  Icon,
 } from "@mui/material";
 import rmu_lacrosse from "../../../assets/images/rmu_lacrosse.jpg";
 import west_ms_coaching from "../../../assets/images/west_ms_coaching.jpg";
@@ -17,8 +16,6 @@ const Landing = () => {
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
-
-  let isScrolling = false;
 
   const images = [
     {
@@ -49,7 +46,6 @@ const Landing = () => {
       id="landing"
       sx={{
         position: "relative",
-        // minHeight: "100vh",
         height: "100vh",
         bgcolor: "#000",
         color: "#fff",
