@@ -1,124 +1,115 @@
-import {
-  Box,
-  Typography,
-  Button,
-  IconButton,
-  Grid,
-  Stack,
-} from "@mui/material";
-import rmu_lacrosse from "../../../assets/images/rmu_lacrosse.jpg";
-import west_ms_coaching from "../../../assets/images/west_ms_coaching.jpg";
-import joshua_tree from "../../../assets/images/joshua_tree.jpg";
-import troy_leon from "../../../assets/images/troy_leon.jpg";
-import { ArrowDownward, GitHub, LinkedIn, Mail } from "@mui/icons-material";
+import { Box, Typography, Button, IconButton, Grid, Stack } from '@mui/material';
+import rmu_lacrosse from '../../../assets/images/rmu_lacrosse.jpg';
+import west_ms_coaching from '../../../assets/images/west_ms_coaching.jpg';
+import joshua_tree from '../../../assets/images/joshua_tree.jpg';
+import troy_leon from '../../../assets/images/troy_leon.jpg';
+import { ArrowDownward, GitHub, LinkedIn, Mail } from '@mui/icons-material';
 
 const Landing = () => {
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const images = [
     {
       src: troy_leon,
       alt: "Alex's two dogs Troy (left) and Leon (right)",
-      title: "Dog Person",
+      title: 'Dog Person',
     },
     {
       src: rmu_lacrosse,
-      alt: "Alex playing lacrosse at RMU",
-      title: "Division I Athlete",
+      alt: 'Alex playing lacrosse at RMU',
+      title: 'Division I Athlete',
     },
     {
       src: west_ms_coaching,
-      alt: "Alex coaching middle school lacrosse",
-      title: "Community Leader",
+      alt: 'Alex coaching middle school lacrosse',
+      title: 'Community Leader',
     },
     {
       src: joshua_tree,
-      alt: "Alex at Joshua Tree National Park",
-      title: "Adventure & Travel",
+      alt: 'Alex at Joshua Tree National Park',
+      title: 'Adventure & Travel',
     },
   ];
 
   return (
     <Box
-      component={"section"}
+      component={'section'}
       id="landing"
       sx={{
-        position: "relative",
-        height: "100vh",
-        bgcolor: "#000",
-        color: "#fff",
-        overflow: "hidden",
-        scrollBehavior: "smooth",
+        position: 'relative',
+        height: '100vh',
+        bgcolor: '#000',
+        color: '#fff',
+        overflow: 'hidden',
+        scrollBehavior: 'smooth',
       }}
     >
       {/* Animated Background */}
-      <Box sx={{ position: "absolute", inset: 0 }}>
+      <Box sx={{ position: 'absolute', inset: 0 }}>
         {/* Animated Gradient Mesh */}
-        <Box sx={{ position: "absolute", inset: 0, opacity: 0.3 }}>
+        <Box sx={{ position: 'absolute', inset: 0, opacity: 0.3 }}>
           <Box
             sx={{
-              position: "absolute",
+              position: 'absolute',
               top: 0,
-              left: "25%",
+              left: '25%',
               width: 384,
               height: 384,
-              bgcolor: "primary.main",
-              borderRadius: "50%",
-              filter: "blur(48px)",
-              mixBlendMode: "multiply",
-              animation: "pulse 4s ease-in-out infinite",
+              bgcolor: 'primary.main',
+              borderRadius: '50%',
+              filter: 'blur(48px)',
+              mixBlendMode: 'multiply',
+              animation: 'pulse 4s ease-in-out infinite',
             }}
           />
           <Box
             sx={{
-              position: "absolute",
-              top: "33%",
-              right: "25%",
+              position: 'absolute',
+              top: '33%',
+              right: '25%',
               width: 384,
               height: 384,
-              bgcolor: "secondary.main",
-              borderRadius: "50%",
-              filter: "blur(48px)",
-              mixBlendMode: "multiply",
-              animation: "pulse 6s ease-in-out infinite",
-              animationDelay: "1s",
+              bgcolor: 'secondary.main',
+              borderRadius: '50%',
+              filter: 'blur(48px)',
+              mixBlendMode: 'multiply',
+              animation: 'pulse 6s ease-in-out infinite',
+              animationDelay: '1s',
             }}
           />
           <Box
             sx={{
-              position: "absolute",
-              bottom: "25%",
-              left: "33%",
+              position: 'absolute',
+              bottom: '25%',
+              left: '33%',
               width: 384,
               height: 384,
-              bgcolor: "info.main",
-              borderRadius: "50%",
-              filter: "blur(48px)",
-              mixBlendMode: "multiply",
-              animation: "pulse 5s ease-in-out infinite",
-              animationDelay: "2s",
+              bgcolor: 'info.main',
+              borderRadius: '50%',
+              filter: 'blur(48px)',
+              mixBlendMode: 'multiply',
+              animation: 'pulse 5s ease-in-out infinite',
+              animationDelay: '2s',
             }}
           />
         </Box>
 
         {/* Floating Particles */}
-        <Box sx={{ position: "absolute", inset: 0 }}>
+        <Box sx={{ position: 'absolute', inset: 0 }}>
           {[...Array(30)].map((_, i) => (
             <Box
               key={i}
               sx={{
-                position: "absolute",
+                position: 'absolute',
                 width: 4,
                 height: 4,
-                bgcolor: "rgba(255,255,255,0.2)",
-                borderRadius: "50%",
+                bgcolor: 'rgba(255,255,255,0.2)',
+                borderRadius: '50%',
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                animation: `float ${
-                  5 + Math.random() * 10
-                }s ease-in-out infinite`,
+                animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
                 animationDelay: `${Math.random() * 10}s`,
               }}
             />
@@ -128,26 +119,26 @@ const Landing = () => {
         {/* Mouse-following gradient */}
         <Box
           sx={{
-            position: "absolute",
+            position: 'absolute',
             width: 600,
             height: 600,
-            bgcolor: "primary.main",
+            bgcolor: 'primary.main',
             opacity: 0.1,
-            borderRadius: "50%",
-            filter: "blur(48px)",
-            pointerEvents: "none",
-            transition: "all 1s ease",
+            borderRadius: '50%',
+            filter: 'blur(48px)',
+            pointerEvents: 'none',
+            transition: 'all 1s ease',
           }}
         />
       </Box>
 
       <Box
         sx={{
-          position: "relative",
+          position: 'relative',
           zIndex: 10,
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {/* Navigation */}
@@ -156,48 +147,48 @@ const Landing = () => {
           sx={{
             px: 4,
             py: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
           }}
         >
-          <Box sx={{ display: "flex", gap: 4, fontSize: 14 }}>
+          <Box sx={{ display: 'flex', gap: 4, fontSize: 14 }}>
             <Button
-              onClick={() => scrollToSection("skills")}
+              onClick={() => scrollToSection('skills')}
               variant="text"
               sx={{
-                color: "rgba(255,255,255,0.6)",
-                "&:hover": { color: "#fff" },
+                color: 'rgba(255,255,255,0.6)',
+                '&:hover': { color: '#fff' },
               }}
             >
               Skills & Tech
             </Button>
             <Button
-              onClick={() => scrollToSection("experience")}
+              onClick={() => scrollToSection('experience')}
               variant="text"
               sx={{
-                color: "rgba(255,255,255,0.6)",
-                "&:hover": { color: "#fff" },
+                color: 'rgba(255,255,255,0.6)',
+                '&:hover': { color: '#fff' },
               }}
             >
               Experience
             </Button>
             <Button
-              onClick={() => scrollToSection("projects")}
+              onClick={() => scrollToSection('projects')}
               variant="text"
               sx={{
-                color: "rgba(255,255,255,0.6)",
-                "&:hover": { color: "#fff" },
+                color: 'rgba(255,255,255,0.6)',
+                '&:hover': { color: '#fff' },
               }}
             >
               Projects
             </Button>
             <Button
-              onClick={() => scrollToSection("contact")}
+              onClick={() => scrollToSection('contact')}
               variant="text"
               sx={{
-                color: "rgba(255,255,255,0.6)",
-                "&:hover": { color: "#fff" },
+                color: 'rgba(255,255,255,0.6)',
+                '&:hover': { color: '#fff' },
               }}
             >
               Contact
@@ -209,24 +200,24 @@ const Landing = () => {
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             px: 4,
           }}
         >
-          <Box sx={{ maxWidth: 960, width: "100%" }}>
+          <Box sx={{ maxWidth: 960, width: '100%' }}>
             {/* Hero Text */}
-            <Box sx={{ textAlign: "center", mb: 10 }}>
+            <Box sx={{ textAlign: 'center', mb: 10 }}>
               <Box sx={{ mb: 4 }}>
                 <Typography
                   variant="caption"
                   sx={{
-                    display: "inline-block",
+                    display: 'inline-block',
                     mb: 1,
                     letterSpacing: 4,
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
+                    textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.5)',
                   }}
                 >
                   Software Engineer
@@ -245,22 +236,22 @@ const Landing = () => {
                   variant="body1"
                   sx={{
                     fontSize: { xs: 18, md: 22 },
-                    color: "rgba(255,255,255,0.6)",
+                    color: 'rgba(255,255,255,0.6)',
                     maxWidth: 680,
-                    mx: "auto",
+                    mx: 'auto',
                     lineHeight: 1.7,
                   }}
                 >
-                  Crafting elegant solutions with React, TypeScript, and Go.
-                  Building systems that are both powerful and maintainable.
+                  Crafting elegant solutions with React, TypeScript, and Go. Building systems that
+                  are both powerful and maintainable.
                 </Typography>
               </Box>
 
               {/* Social Links - Horizontal */}
               <Box
                 sx={{
-                  display: "flex",
-                  justifyContent: "center",
+                  display: 'flex',
+                  justifyContent: 'center',
                   gap: 2,
                   mb: 6,
                 }}
@@ -271,10 +262,10 @@ const Landing = () => {
                   sx={{
                     width: 48,
                     height: 48,
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    "&:hover": {
-                      borderColor: "rgba(255,255,255,0.4)",
-                      bgcolor: "rgba(255,255,255,0.05)",
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    '&:hover': {
+                      borderColor: 'rgba(255,255,255,0.4)',
+                      bgcolor: 'rgba(255,255,255,0.05)',
                     },
                   }}
                 >
@@ -286,10 +277,10 @@ const Landing = () => {
                   sx={{
                     width: 48,
                     height: 48,
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    "&:hover": {
-                      borderColor: "rgba(255,255,255,0.4)",
-                      bgcolor: "rgba(255,255,255,0.05)",
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    '&:hover': {
+                      borderColor: 'rgba(255,255,255,0.4)',
+                      bgcolor: 'rgba(255,255,255,0.05)',
                     },
                   }}
                 >
@@ -300,10 +291,10 @@ const Landing = () => {
                   sx={{
                     width: 48,
                     height: 48,
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    "&:hover": {
-                      borderColor: "rgba(255,255,255,0.4)",
-                      bgcolor: "rgba(255,255,255,0.05)",
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    '&:hover': {
+                      borderColor: 'rgba(255,255,255,0.4)',
+                      bgcolor: 'rgba(255,255,255,0.05)',
                     },
                   }}
                 >
@@ -313,24 +304,23 @@ const Landing = () => {
             </Box>
 
             {/* Bento Grid Images */}
-            <Box sx={{ maxWidth: 896, mx: "auto", mb: 6 }}>
+            <Box sx={{ maxWidth: 896, mx: 'auto', mb: 6 }}>
               <Grid container spacing={2}>
                 {images.map((image, index) => (
                   <Grid key={index} item xs={3}>
                     <Box
                       sx={{
-                        position: "relative",
-                        overflow: "hidden",
-                        aspectRatio: "1 / 1",
-                        transform:
-                          index % 2 === 1 ? "translateY(2rem)" : "none",
-                        cursor: "pointer",
-                        "&:hover .image": {
-                          filter: "grayscale(0)",
-                          transform: "scale(1.03)",
+                        position: 'relative',
+                        overflow: 'hidden',
+                        aspectRatio: '1 / 1',
+                        transform: index % 2 === 1 ? 'translateY(2rem)' : 'none',
+                        cursor: 'pointer',
+                        '&:hover .image': {
+                          filter: 'grayscale(0)',
+                          transform: 'scale(1.03)',
                         },
-                        "&:hover .overlay": {
-                          bgcolor: "rgba(0,0,0,0.2)",
+                        '&:hover .overlay': {
+                          bgcolor: 'rgba(0,0,0,0.2)',
                           opacity: 1,
                         },
                       }}
@@ -341,30 +331,30 @@ const Landing = () => {
                         alt={image.alt}
                         className="image"
                         sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          filter: "grayscale(1)",
-                          transition: "all 0.5s ease",
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          filter: 'grayscale(1)',
+                          transition: 'all 0.5s ease',
                         }}
                       />
                       <Box
                         className="overlay"
                         sx={{
-                          position: "absolute",
+                          position: 'absolute',
                           inset: 0,
-                          bgcolor: "rgba(0,0,0,0.5)",
-                          transition: "background-color 0.3s ease",
+                          bgcolor: 'rgba(0,0,0,0.5)',
+                          transition: 'background-color 0.3s ease',
                         }}
                       />
                       <Typography
                         sx={{
-                          position: "absolute",
+                          position: 'absolute',
                           bottom: 16,
                           left: 16,
                           fontSize: 14,
                           opacity: 0,
-                          transition: "opacity 0.3s ease",
+                          transition: 'opacity 0.3s ease',
                         }}
                         className="overlay"
                       >
@@ -382,21 +372,18 @@ const Landing = () => {
         <Stack
           sx={{
             pb: 3,
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             gap: 1.5,
           }}
         >
-          <IconButton
-            size={"large"}
-            onClick={() => scrollToSection("experience")}
-          >
+          <IconButton size={'large'} onClick={() => scrollToSection('experience')}>
             <ArrowDownward
               sx={{
                 width: 18,
                 height: 18,
-                color: "rgba(255,255,255,0.5)",
-                animation: "bounce 1.5s infinite",
+                color: 'rgba(255,255,255,0.5)',
+                animation: 'bounce 1.5s infinite',
               }}
             />
           </IconButton>

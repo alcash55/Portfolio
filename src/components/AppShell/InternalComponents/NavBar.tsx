@@ -1,6 +1,6 @@
-import { Box, AppBar, Toolbar, Button, IconButton, Fade } from "@mui/material";
-import { Menu } from "@mui/icons-material/";
-import { useNavBar } from "./showNavBar";
+import { Box, AppBar, Toolbar, Button, IconButton, Fade } from '@mui/material';
+import { Menu } from '@mui/icons-material/';
+import { useNavBar } from './showNavBar';
 
 interface NavBarProps {
   setSettingDrawer: (value: boolean) => void;
@@ -14,45 +14,42 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
         sx={{
           flexGrow: 1,
           top: 0,
-          position: "sticky",
+          position: 'sticky',
           zIndex: 1,
-          width: "100%",
-          transition: "top 1.0s",
-          visibility: showNavBar() ? "visible" : "hidden",
+          width: '100%',
+          transition: 'top 1.0s',
+          visibility: showNavBar() ? 'visible' : 'hidden',
         }}
       >
-        <AppBar sx={{ bgcolor: "black" }}>
+        <AppBar sx={{ bgcolor: 'black' }}>
           <Toolbar>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-evenly",
-                width: "100%",
-                flexWrap: "wrap",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-evenly',
+                width: '100%',
+                flexWrap: 'wrap',
               }}
             >
-              <Button variant="text" sx={{ color: "white" }} href="#landing">
+              <Button variant="text" sx={{ color: 'white' }} href="#landing">
                 Home
               </Button>
-              <Button variant="text" sx={{ color: "white" }} href="#experience">
+              <Button variant="text" sx={{ color: 'white' }} href="#experience">
                 Experience
               </Button>
-              <Button variant="text" sx={{ color: "white" }} href="#skills">
+              <Button variant="text" sx={{ color: 'white' }} href="#skills">
                 Skills & Tech
               </Button>
-              <Button variant="text" sx={{ color: "white" }} href="#projects">
+              <Button variant="text" sx={{ color: 'white' }} href="#projects">
                 Projects
               </Button>
-              <Button variant="text" sx={{ color: "white" }} href="#contact">
+              <Button variant="text" sx={{ color: 'white' }} href="#contact">
                 Contact
               </Button>
             </Box>
-            <IconButton
-              aria-label="Open Settings Drawer"
-              onClick={() => setSettingDrawer(true)}
-            >
-              <Menu sx={{ color: "white" }} />
+            <IconButton aria-label="Open Settings Drawer" onClick={() => setSettingDrawer(true)}>
+              <Menu sx={{ color: 'white' }} />
             </IconButton>
           </Toolbar>
         </AppBar>

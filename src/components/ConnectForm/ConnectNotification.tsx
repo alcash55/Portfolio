@@ -1,4 +1,4 @@
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Snackbar } from '@mui/material';
 
 interface ConnectNotificationProps {
   open: boolean;
@@ -6,14 +6,10 @@ interface ConnectNotificationProps {
   messageSent: boolean;
 }
 
-const ConnectNotification = ({
-  open,
-  setClose,
-  messageSent,
-}: ConnectNotificationProps) => {
+const ConnectNotification = ({ open, setClose, messageSent }: ConnectNotificationProps) => {
   return (
     <Snackbar
-      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       open={open}
       autoHideDuration={6000}
       onClose={setClose}
@@ -23,16 +19,16 @@ const ConnectNotification = ({
         variant="filled"
         onClose={setClose}
         sx={{
-          display: "flex",
-          alignItems: "center",
-          bgcolor: messageSent ? "rgb(56, 142, 60)" : "rgb(211, 47, 47)",
+          display: 'flex',
+          alignItems: 'center',
+          bgcolor: messageSent ? 'rgb(56, 142, 60)' : 'rgb(211, 47, 47)',
           fontSize: 18,
           fontWeight: 600,
         }}
       >
         {messageSent
-          ? "Message sent successfully!"
-          : "Unable to send message, please try again later"}
+          ? 'Message sent successfully!'
+          : 'Unable to send message, please try again later'}
       </Alert>
     </Snackbar>
   );

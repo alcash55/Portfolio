@@ -5,7 +5,7 @@ import {
   Home,
   Menu,
   Work,
-} from "@mui/icons-material";
+} from '@mui/icons-material';
 import {
   Stack,
   BottomNavigation,
@@ -13,13 +13,13 @@ import {
   Fab,
   useMediaQuery,
   useTheme,
-} from "@mui/material";
-import { PropsWithChildren, SyntheticEvent, useState } from "react";
-import { useSettingDrawer } from "../useSettingsDrawer";
-import { SettingsDrawer } from "../SettingsDrawer";
+} from '@mui/material';
+import { PropsWithChildren, SyntheticEvent, useState } from 'react';
+import { useSettingDrawer } from '../useSettingsDrawer';
+import { SettingsDrawer } from '../SettingsDrawer';
 
 export const Mobile = ({ children }: PropsWithChildren) => {
-  const [value, setValue] = useState("summary");
+  const [value, setValue] = useState('summary');
   const { settingDrawer, setSettingDrawer } = useSettingDrawer();
 
   const theme = useTheme();
@@ -27,33 +27,33 @@ export const Mobile = ({ children }: PropsWithChildren) => {
 
   const navItems = [
     {
-      route: "#summary",
-      name: "Home",
+      route: '#summary',
+      name: 'Home',
       icon: <Home />,
     },
     {
-      route: "#about",
-      name: "About",
+      route: '#about',
+      name: 'About',
       icon: <EmojiPeople />,
     },
     {
-      route: "#experience",
-      name: "Experience",
+      route: '#experience',
+      name: 'Experience',
       icon: <Work />,
     },
     {
-      route: "#skills",
-      name: "Skills & Tech",
+      route: '#skills',
+      name: 'Skills & Tech',
       icon: <Work />,
     },
     {
-      route: "#projects",
-      name: "Projects",
+      route: '#projects',
+      name: 'Projects',
       icon: <Construction />,
     },
     {
-      route: "#contact",
-      name: "Contact",
+      route: '#contact',
+      name: 'Contact',
       icon: <ConnectWithoutContact />,
     },
   ];
@@ -70,23 +70,20 @@ export const Mobile = ({ children }: PropsWithChildren) => {
         color="secondary"
         aria-label="open settings drawer"
         onClick={() => setSettingDrawer(true)}
-        sx={{ position: "fixed", bottom: 65, right: 30 }}
+        sx={{ position: 'fixed', bottom: 65, right: 30 }}
       >
         <Menu />
       </Fab>
-      <SettingsDrawer
-        settingDrawer={settingDrawer}
-        setSettingDrawer={setSettingDrawer}
-      />
+      <SettingsDrawer settingDrawer={settingDrawer} setSettingDrawer={setSettingDrawer} />
       <BottomNavigation
-        sx={{ width: "100%", position: "fixed", bottom: 0 }}
+        sx={{ width: '100%', position: 'fixed', bottom: 0 }}
         value={value}
         onChange={handleChange}
       >
         {navItems.map((item) => (
           <BottomNavigationAction
             sx={{
-              minWidth: isLargeMobile ? "65px" : "auto",
+              minWidth: isLargeMobile ? '65px' : 'auto',
             }}
             key={item.route}
             label={item.name}

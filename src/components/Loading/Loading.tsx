@@ -1,5 +1,5 @@
-import { CircularProgress, Box } from "@mui/material";
-import React, { Fragment, ReactNode } from "react";
+import { CircularProgress, Box } from '@mui/material';
+import React, { Fragment, ReactNode } from 'react';
 
 type LoadingProps = {
   loading: boolean;
@@ -18,12 +18,12 @@ export const Loading = ({ loading, children, ...props }: LoadingProps) => {
     return (
       <Box
         sx={{
-          width: "100%",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          overflow: "hidden",
+          width: '100%',
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden',
         }}
       >
         <CircularProgress />

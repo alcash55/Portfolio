@@ -1,8 +1,8 @@
-import { Suspense } from "react";
-import { Providers } from "./layout/Providers";
-import { RouterProvider } from "react-router-dom";
-import { Router } from "./components/Router/Router";
-import { Loading } from "./components/Loading/Loading";
+import { Suspense } from 'react';
+import { Providers } from './layout/Providers';
+import { RouterProvider } from 'react-router-dom';
+import { Router } from './components/Router/Router';
+import { Loading } from './components/Loading/Loading';
 
 function App() {
   const loading = (

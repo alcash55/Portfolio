@@ -1,14 +1,10 @@
-import { Stack } from "@mui/material";
-import { Pages } from "../../Pages";
-import { Footer } from "../../AppShell/InternalComponents/Footer";
+import { Stack } from '@mui/material';
+import { Pages } from '../../Pages';
+import { Footer } from '../../AppShell/InternalComponents/Footer';
 
 const Home = () => {
   return (
-    <Stack
-      component={"article"}
-      spacing={2}
-      sx={{ px: 3, py: 2, width: "100%", height: "100%" }}
-    >
+    <Stack component={'article'} spacing={2} sx={{ px: 3, py: 2, width: '100%', height: '100%' }}>
       <Pages.Landing />
       <Pages.Experience />
       <Pages.Skills />

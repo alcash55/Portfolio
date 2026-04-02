@@ -1,33 +1,25 @@
-import { Stack, Button } from "@mui/material";
-import { useAppShellLayout } from "../AppShell";
+import { Stack, Button } from '@mui/material';
+import { useAppShellLayout } from '../AppShell';
 
 export const LayoutButton = () => {
   const { toggleLayout } = useAppShellLayout();
 
   return (
     <Stack
-      direction={"row"}
-      justifyContent={"space-evenly"}
-      alignItems={"center"}
-      sx={{ flexWrap: "wrap" }}
+      direction={'row'}
+      justifyContent={'space-evenly'}
+      alignItems={'center'}
+      sx={{ flexWrap: 'wrap' }}
     >
       <Button
-        variant={
-          localStorage.getItem("layout") === "default"
-            ? "contained"
-            : "outlined"
-        }
-        onClick={() => toggleLayout("default")}
+        variant={localStorage.getItem('layout') === 'default' ? 'contained' : 'outlined'}
+        onClick={() => toggleLayout('default')}
       >
         Top Nav
       </Button>
       <Button
-        variant={
-          localStorage.getItem("layout") === "sideNav"
-            ? "contained"
-            : "outlined"
-        }
-        onClick={() => toggleLayout("sideNav")}
+        variant={localStorage.getItem('layout') === 'sideNav' ? 'contained' : 'outlined'}
+        onClick={() => toggleLayout('sideNav')}
       >
         Side Nav
       </Button>

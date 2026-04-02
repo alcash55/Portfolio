@@ -1,4 +1,4 @@
-import { SvgIcon, SvgIconProps } from "@mui/material";
+import { SvgIcon, SvgIconProps } from '@mui/material';
 
 const Rmu = (props: SvgIconProps) => {
   const svg = (
@@ -42,15 +42,8 @@ const Rmu = (props: SvgIconProps) => {
           <feOffset dy="4" />
           <feGaussianBlur stdDeviation="2" />
           <feComposite in2="hardAlpha" operator="out" />
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
-          />
-          <feBlend
-            mode="normal"
-            in2="BackgroundImageFix"
-            result="effect1_dropShadow_1053_588"
-          />
+          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1053_588" />
           <feBlend
             mode="normal"
             in="SourceGraphic"

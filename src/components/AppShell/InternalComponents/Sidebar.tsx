@@ -1,19 +1,6 @@
-import { PropsWithChildren } from "react";
-import {
-  Box,
-  Button,
-  Toolbar,
-  Typography,
-  Divider,
-  Stack,
-} from "@mui/material";
-import {
-  Home,
-  ConnectWithoutContact,
-  Construction,
-  Work,
-  Build,
-} from "@mui/icons-material";
+import { PropsWithChildren } from 'react';
+import { Box, Button, Toolbar, Typography, Divider, Stack } from '@mui/material';
+import { Home, ConnectWithoutContact, Construction, Work, Build } from '@mui/icons-material';
 
 export const Sidebar = ({ children }: PropsWithChildren) => {
   const SideBarTopItem = () => {
@@ -21,12 +8,12 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
       <>
         <Toolbar
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          <Typography variant={"h1"} fontSize={24} sx={{ color: "white" }}>
+          <Typography variant={'h1'} fontSize={24} sx={{ color: 'white' }}>
             Alex Cash
           </Typography>
         </Toolbar>
@@ -38,28 +25,28 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
   const SideBarItems = () => {
     const navItems = [
       {
-        href: "#landing",
-        name: "Home",
+        href: '#landing',
+        name: 'Home',
         icon: <Home />,
       },
       {
-        href: "#experience",
-        name: "Experience",
+        href: '#experience',
+        name: 'Experience',
         icon: <Work />,
       },
       {
-        href: "#skills",
-        name: "Skills & Tech",
+        href: '#skills',
+        name: 'Skills & Tech',
         icon: <Build />,
       },
       {
-        href: "#projects",
-        name: "Projects",
+        href: '#projects',
+        name: 'Projects',
         icon: <Construction />,
       },
       {
-        href: "#contact",
-        name: "Contact",
+        href: '#contact',
+        name: 'Contact',
         icon: <ConnectWithoutContact />,
       },
     ];
@@ -67,9 +54,9 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
       <Stack
         spacing={2}
         sx={{
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
           py: 2,
         }}
       >
@@ -81,8 +68,8 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
             key={item.name}
             sx={{
               minWidth: 150,
-              display: "flex",
-              justifyContent: "space-evenly",
+              display: 'flex',
+              justifyContent: 'space-evenly',
             }}
           >
             {item.name}
@@ -93,13 +80,13 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <Stack direction={"row"}>
+    <Stack direction={'row'}>
       <Box
         component="nav"
-        position={"sticky"}
+        position={'sticky'}
         sx={{
           width: 240,
-          height: "100%",
+          height: '100%',
           px: 1,
           py: 2,
           top: 0,
@@ -108,7 +95,7 @@ export const Sidebar = ({ children }: PropsWithChildren) => {
         <SideBarTopItem />
         <SideBarItems />
       </Box>
-      <Box width={"100%"}>{children}</Box>
+      <Box width={'100%'}>{children}</Box>
     </Stack>
   );
 };

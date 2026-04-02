@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 /**
  * Hook to manage the state of the connectnotification

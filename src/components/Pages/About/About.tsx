@@ -8,38 +8,34 @@ import {
   IconButton,
   Stack,
   Typography,
-} from "@mui/material";
-import LinkIcon from "@mui/icons-material/Link";
+} from '@mui/material';
+import LinkIcon from '@mui/icons-material/Link';
 
 const About = () => {
   return (
-    <Stack id="about" component={"section"}>
+    <Stack id="about" component={'section'}>
       <Card
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          height: "100%",
-          width: "100%",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          height: '100%',
+          width: '100%',
           p: 0,
           m: 0,
         }}
       >
         <CardHeader
           sx={{
-            width: "100%",
+            width: '100%',
           }}
           titleTypographyProps={{
-            textAlign: "start",
-            variant: "h4",
-            component: "h1",
+            textAlign: 'start',
+            variant: 'h4',
+            component: 'h1',
           }}
           avatar={
-            <IconButton
-              aria-label="navigate to about"
-              href="#about"
-              sx={{ zIndex: 0 }}
-            >
+            <IconButton aria-label="navigate to about" href="#about" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
@@ -47,8 +43,8 @@ const About = () => {
         />
         <CardContent
           sx={{
-            width: "100%",
-            height: "100%",
+            width: '100%',
+            height: '100%',
             p: { xs: 2, md: 4 },
           }}
         >
@@ -66,15 +62,14 @@ const About = () => {
                     Hey, I’m Alex Cash — Software Engineer
                   </Typography>
                   <Typography variant="body1" paragraph>
-                    I enjoy building clean, scalable, and well-designed systems.
-                    I focus on software that works great under the hood and
-                    delivers a smooth, intuitive experience for users.
+                    I enjoy building clean, scalable, and well-designed systems. I focus on software
+                    that works great under the hood and delivers a smooth, intuitive experience for
+                    users.
                   </Typography>
                   <Typography variant="body1">
-                    I work across the stack, but my favorite projects blend
-                    front-end precision with backend performance. I love working
-                    with React, TypeScript, and Go, and I lean on modern tooling
-                    to move fast and keep things maintainable.
+                    I work across the stack, but my favorite projects blend front-end precision with
+                    backend performance. I love working with React, TypeScript, and Go, and I lean
+                    on modern tooling to move fast and keep things maintainable.
                   </Typography>
                 </Box>
 
@@ -89,12 +84,10 @@ const About = () => {
                       Writing code that’s simple, clear, and reliable
                     </Typography>
                     <Typography component="li" variant="body2">
-                      Building systems that scale without sacrificing
-                      readability
+                      Building systems that scale without sacrificing readability
                     </Typography>
                     <Typography component="li" variant="body2">
-                      Collaborating with teams who care about craft and
-                      efficiency
+                      Collaborating with teams who care about craft and efficiency
                     </Typography>
                     <Typography component="li" variant="body2">
                       Always learning and refining how I work
@@ -109,11 +102,10 @@ const About = () => {
                     Outside of Work
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    When I’m not coding, you’ll probably find me coaching
-                    lacrosse or spending time with my two dogs. Coaching has
-                    taught me a lot about communication, patience, and
-                    leadership — lessons that carry directly into how I approach
-                    software development and teamwork.
+                    When I’m not coding, you’ll probably find me coaching lacrosse or spending time
+                    with my two dogs. Coaching has taught me a lot about communication, patience,
+                    and leadership — lessons that carry directly into how I approach software
+                    development and teamwork.
                   </Typography>
                 </Box>
               </Stack>

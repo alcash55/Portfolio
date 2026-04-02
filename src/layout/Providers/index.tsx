@@ -1,5 +1,5 @@
-import { ThemeProvider } from "../Theme";
-import AppShellProvider from "../../components/AppShell/AppShell";
+import { ThemeProvider } from '../Theme';
+import AppShellProvider from '../../components/AppShell/AppShell';
 interface ProvidersProps {
   children: JSX.Element;
 }

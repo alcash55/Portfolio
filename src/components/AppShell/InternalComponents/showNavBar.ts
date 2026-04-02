@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 /**
  * Hook to show/hide the nav bar based on scroll position
@@ -19,13 +19,13 @@ export const useNavBar = () => {
         }
       };
 
-      window.addEventListener("scroll", handleScroll);
+      window.addEventListener('scroll', handleScroll);
 
       // Set initial visibility based on current scroll position
       handleScroll();
 
       return () => {
-        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener('scroll', handleScroll);
       };
     }, []);
 

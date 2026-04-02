@@ -1,14 +1,8 @@
-import {
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { useMediaQuery, useTheme } from "@mui/material";
-import { Default } from "./InternalComponents/Layouts/Default";
-import { SideNav } from "./InternalComponents/Layouts/SideNav";
-import { Mobile } from "./InternalComponents/Layouts/Mobile";
+import { PropsWithChildren, createContext, useContext, useEffect, useState } from 'react';
+import { useMediaQuery, useTheme } from '@mui/material';
+import { Default } from './InternalComponents/Layouts/Default';
+import { SideNav } from './InternalComponents/Layouts/SideNav';
+import { Mobile } from './InternalComponents/Layouts/Mobile';
 
 /**
  * AppShellLayoutContext context that provides the layout and a function to toggle the layout
@@ -39,13 +33,13 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     //set initial layout
-    let layout = "default";
+    let layout = 'default';
 
     //check window size for mobile bp if not mobile get layout from local storage
     if (isMobile) {
-      layout = "mobile";
-    } else if (localStorage.getItem("layout") === "sideNav") {
-      layout = "sideNav";
+      layout = 'mobile';
+    } else if (localStorage.getItem('layout') === 'sideNav') {
+      layout = 'sideNav';
     }
 
     toggleLayout(layout);
@@ -58,15 +52,15 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
   const toggleLayout = (newLayout: string) => {
     if (isMobile) {
       setLayout(<Mobile children={children} />);
-    } else if (newLayout === "default") {
+    } else if (newLayout === 'default') {
       setLayout(<Default children={children} />);
-    } else if (newLayout === "sideNav") {
+    } else if (newLayout === 'sideNav') {
       setLayout(<SideNav children={children} />);
     } else {
       setLayout(<Default children={children} />);
     }
 
-    localStorage.setItem("layout", newLayout); // update local storage
+    localStorage.setItem('layout', newLayout); // update local storage
   };
 
   const contextValue = {
@@ -74,8 +68,6 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
     toggleLayout,
   };
   return (
-    <AppShellLayoutContext.Provider value={contextValue}>
-      {layout}
-    </AppShellLayoutContext.Provider>
+    <AppShellLayoutContext.Provider value={contextValue}>{layout}</AppShellLayoutContext.Provider>
   );
 }

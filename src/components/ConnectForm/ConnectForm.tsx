@@ -1,34 +1,17 @@
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import useConnectForm from "./useConnectForm";
-import ConnectNotification from "./ConnectNotification";
-import useConnectNotification from "./useConnectNotification";
+import { Box, Button, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import useConnectForm from './useConnectForm';
+import ConnectNotification from './ConnectNotification';
+import useConnectNotification from './useConnectNotification';
 
 /**
  * Form in the connect section
  * @returns {JSX.Element}
  */
 const ConnectForm = () => {
-  const {
-    setName,
-    setEmail,
-    setMessage,
-    sendMessage,
-    name,
-    email,
-    message,
-    validateForm,
-  } = useConnectForm();
+  const { setName, setEmail, setMessage, sendMessage, name, email, message, validateForm } =
+    useConnectForm();
 
-  const { open, setOpen, setClose, messageSent, setMessageSent } =
-    useConnectNotification();
+  const { open, setOpen, setClose, messageSent, setMessageSent } = useConnectNotification();
   const formErrors = validateForm(name, email, message);
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(425));
@@ -46,25 +29,25 @@ const ConnectForm = () => {
 
   return (
     <>
-      <Stack spacing={1} width={"100%"}>
+      <Stack spacing={1} width={'100%'}>
         <Typography
           variant="h3"
           component="h2"
           sx={{
-            fontSize: largeMobile ? "1.5rem" : "2rem",
-            textAlign: "start",
-            width: "100%",
-            flexWrap: "nowrap",
+            fontSize: largeMobile ? '1.5rem' : '2rem',
+            textAlign: 'start',
+            width: '100%',
+            flexWrap: 'nowrap',
           }}
         >
           Leave a message!
         </Typography>
         {formErrors && (
-          <Typography variant="body1" component="h3" color={"rgb(244, 67, 54)"}>
+          <Typography variant="body1" component="h3" color={'rgb(244, 67, 54)'}>
             {formErrors}*
           </Typography>
         )}
-        <Box sx={{ width: "100%", display: "flex", gap: 1 }}>
+        <Box sx={{ width: '100%', display: 'flex', gap: 1 }}>
           <TextField
             id="name"
             label="Name"
@@ -99,11 +82,7 @@ const ConnectForm = () => {
           Send
         </Button>
       </Stack>
-      <ConnectNotification
-        open={open}
-        setClose={setClose}
-        messageSent={messageSent}
-      />
+      <ConnectNotification open={open} setClose={setClose} messageSent={messageSent} />
     </>
   );
 };

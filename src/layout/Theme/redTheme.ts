@@ -1,16 +1,16 @@
-import { ThemeOptions, createTheme } from "@mui/material/styles";
+import { ThemeOptions, createTheme } from '@mui/material/styles';
 
 export const redTheme: ThemeOptions = createTheme({
   palette: {
     primary: {
-      main: "#ff8f00",
+      main: '#ff8f00',
     },
     secondary: {
-      main: "#f50057",
+      main: '#f50057',
     },
     background: {
-      default: "#310000",
-      paper: "#731010",
+      default: '#310000',
+      paper: '#731010',
     },
   },
   components: {
@@ -18,8 +18,8 @@ export const redTheme: ThemeOptions = createTheme({
       styleOverrides: {
         paper: {
           elevation: 5,
-          backgroundColor: "#310000",
-          color: "white",
+          backgroundColor: '#310000',
+          color: 'white',
           //   backgroundImage:
           //     "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15))",
         },
@@ -28,25 +28,24 @@ export const redTheme: ThemeOptions = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          color: "white",
+          color: 'white',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: "paper",
-          backgroundImage:
-            "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15))",
+          backgroundColor: 'paper',
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15))',
           boxShadow:
-            "rgba(0, 0, 0, 0.2) 0px 8px 10px -5px, rgba(0, 0, 0, 0.14) 0px 16px 24px 2px, rgba(0, 0, 0, 0.12) 0px 6px 30px 5px",
+            'rgba(0, 0, 0, 0.2) 0px 8px 10px -5px, rgba(0, 0, 0, 0.14) 0px 16px 24px 2px, rgba(0, 0, 0, 0.12) 0px 6px 30px 5px',
         },
       },
     },
     MuiDivider: {
       styleOverrides: {
         root: {
-          backgroundColor: "white",
+          backgroundColor: 'white',
         },
       },
     },
@@ -56,7 +55,7 @@ export const redTheme: ThemeOptions = createTheme({
       fontSize: 12,
       fontWeight: 400,
       letterSpacing: 0.499,
-      textCase: "uppercase",
+      textCase: 'uppercase',
     },
     h1: {
       fontSize: 96,
@@ -116,7 +115,7 @@ export const redTheme: ThemeOptions = createTheme({
     button: {
       fontSize: 14,
       lineHeight: 1.75,
-      textTransform: "none",
+      textTransform: 'none',
     },
   },
 });

@@ -1,26 +1,26 @@
-import { ThemeOptions, createTheme } from "@mui/material/styles";
-import "@fontsource/public-sans";
+import { ThemeOptions, createTheme } from '@mui/material/styles';
+import '@fontsource/public-sans';
 export const blueTheme: ThemeOptions = createTheme({
   palette: {
-    mode: "dark",
+    mode: 'dark',
     primary: {
-      main: "#5893df",
+      main: '#5893df',
     },
     secondary: {
-      main: "#2ec5d3",
+      main: '#2ec5d3',
     },
     background: {
-      default: "#192231",
-      paper: "#24344d",
+      default: '#192231',
+      paper: '#24344d',
     },
   },
   typography: {
-    fontFamily: "public-sans, sans-serif",
+    fontFamily: 'public-sans, sans-serif',
     overline: {
       fontSize: 12,
       fontWeight: 400,
       letterSpacing: 0.499,
-      textCase: "uppercase",
+      textCase: 'uppercase',
     },
     h1: {
       fontSize: 96,
@@ -81,7 +81,7 @@ export const blueTheme: ThemeOptions = createTheme({
       fontSize: 14,
       fontWeight: 700,
       lineHeight: 1.75,
-      textTransform: "none",
+      textTransform: 'none',
     },
   },
 });

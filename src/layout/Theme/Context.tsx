@@ -1,14 +1,8 @@
-import {
-  createContext,
-  PropsWithChildren,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { ThemeProvider } from "@mui/material";
-import { redTheme } from "./redTheme";
-import { darkTheme } from "./darkTheme";
-import { blueTheme } from "./blueTheme";
+import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
+import { ThemeProvider } from '@mui/material';
+import { redTheme } from './redTheme';
+import { darkTheme } from './darkTheme';
+import { blueTheme } from './blueTheme';
 
 /**
  * ColorModeContext context that provides the color mode and a function to toggle the color mode
@@ -36,16 +30,16 @@ export default function ToggleColorMode({ children }: PropsWithChildren) {
   const [mode, setMode] = useState(darkTheme);
 
   useEffect(() => {
-    const initialTheme = localStorage.getItem("theme") || "dark";
+    const initialTheme = localStorage.getItem('theme') || 'dark';
     toggleColorMode(initialTheme);
   }, []); // Run only once on mount to set initial layout
 
   const toggleColorMode = (color: string) => {
-    if (color === "red") setMode(redTheme);
-    else if (color === "dark") setMode(darkTheme);
-    else if (color === "blue") setMode(blueTheme);
+    if (color === 'red') setMode(redTheme);
+    else if (color === 'dark') setMode(darkTheme);
+    else if (color === 'blue') setMode(blueTheme);
 
-    localStorage.setItem("theme", color); //update local storage
+    localStorage.setItem('theme', color); //update local storage
   };
 
   const contextValue = {

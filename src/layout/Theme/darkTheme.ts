@@ -1,63 +1,63 @@
-import { ThemeOptions, createTheme } from "@mui/material/styles";
-import "@fontsource/oxygen";
+import { ThemeOptions, createTheme } from '@mui/material/styles';
+import '@fontsource/oxygen';
 
 export const darkTheme: ThemeOptions = createTheme({
   palette: {
-    mode: "dark",
+    mode: 'dark',
     primary: {
-      main: "#379dee",
+      main: '#379dee',
     },
     secondary: {
-      main: "#989798",
+      main: '#989798',
     },
     error: {
-      main: "#ff6459",
+      main: '#ff6459',
     },
     success: {
-      main: "#59a94f",
+      main: '#59a94f',
     },
     warning: {
-      main: "#dc8126",
+      main: '#dc8126',
     },
     info: {
-      main: "#7b8fff",
+      main: '#7b8fff',
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#a3a4a6",
-      disabled: "#6b696d",
+      primary: '#ffffff',
+      secondary: '#a3a4a6',
+      disabled: '#6b696d',
     },
     action: {
-      active: "#a3a2a7",
-      hover: "#2e2e31",
-      selected: "#363536",
-      disabled: "#666569",
-      focus: "#414145",
+      active: '#a3a2a7',
+      hover: '#2e2e31',
+      selected: '#363536',
+      disabled: '#666569',
+      focus: '#414145',
     },
     background: {
-      paper: "#292929",
-      default: "#202020",
+      paper: '#292929',
+      default: '#202020',
     },
     grey: {
-      "50": "#262626",
-      "100": "#302f30",
-      "200": "#343334",
-      "300": "#3c3c3c",
-      "400": "#515353",
-      "500": "#6a6a68",
-      "600": "#919190",
-      "700": "#a9a9a9",
-      "800": "#d7d6d9",
-      "900": "#fafafa",
+      '50': '#262626',
+      '100': '#302f30',
+      '200': '#343334',
+      '300': '#3c3c3c',
+      '400': '#515353',
+      '500': '#6a6a68',
+      '600': '#919190',
+      '700': '#a9a9a9',
+      '800': '#d7d6d9',
+      '900': '#fafafa',
     },
   },
   typography: {
-    fontFamily: "Oxygen, Arial, sans-serif",
+    fontFamily: 'Oxygen, Arial, sans-serif',
     overline: {
       fontSize: 12,
       fontWeight: 400,
       letterSpacing: 0.499,
-      textCase: "uppercase",
+      textCase: 'uppercase',
     },
     h1: {
       fontSize: 96,
@@ -118,7 +118,7 @@ export const darkTheme: ThemeOptions = createTheme({
       fontSize: 14,
       fontWeight: 700,
       lineHeight: 1.75,
-      textTransform: "none",
+      textTransform: 'none',
     },
   },
 });
