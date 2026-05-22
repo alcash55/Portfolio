@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { Fab, Stack } from '@mui/material';
-import { Menu } from '@mui/icons-material';
+import Menu from '@mui/icons-material/Menu';
 import { useSettingDrawer } from '../useSettingsDrawer';
 import { SettingsDrawer } from '../SettingsDrawer';
 import { Sidebar } from '../Sidebar';

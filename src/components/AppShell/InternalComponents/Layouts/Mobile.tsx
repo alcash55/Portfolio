@@ -1,11 +1,9 @@
-import {
-  ConnectWithoutContact,
-  Construction,
-  EmojiPeople,
-  Home,
-  Menu,
-  Work,
-} from '@mui/icons-material';
+import ConnectWithoutContact from '@mui/icons-material/ConnectWithoutContact';
+import Construction from '@mui/icons-material/Construction';
+import EmojiPeople from '@mui/icons-material/EmojiPeople';
+import Home from '@mui/icons-material/Home';
+import Work from '@mui/icons-material/Work';
+import Menu from '@mui/icons-material/Menu';
 import {
   Stack,
   BottomNavigation,

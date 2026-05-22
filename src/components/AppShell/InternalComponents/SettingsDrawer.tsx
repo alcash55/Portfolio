@@ -10,7 +10,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import Close from '@mui/icons-material/Close';
 import { ThemeButton } from './ThemeButton';
 import { LayoutButton } from './LayoutButton';
 

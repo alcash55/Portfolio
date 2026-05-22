@@ -3,7 +3,10 @@ import rmu_lacrosse from '../../../assets/images/rmu_lacrosse.jpg';
 import west_ms_coaching from '../../../assets/images/west_ms_coaching.jpg';
 import joshua_tree from '../../../assets/images/joshua_tree.jpg';
 import troy_leon from '../../../assets/images/troy_leon.jpg';
-import { ArrowDownward, GitHub, LinkedIn, Mail } from '@mui/icons-material';
+import ArrowDownward from '@mui/icons-material/ArrowDownward';
+import GitHub from '@mui/icons-material/GitHub';
+import LinkedIn from '@mui/icons-material/LinkedIn';
+import Mail from '@mui/icons-material/Mail';
 
 const Landing = () => {
   const scrollToSection = (id: string) => {

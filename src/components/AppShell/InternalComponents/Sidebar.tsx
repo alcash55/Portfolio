@@ -1,6 +1,10 @@
 import { PropsWithChildren } from 'react';
 import { Box, Button, Toolbar, Typography, Divider, Stack } from '@mui/material';
-import { Home, ConnectWithoutContact, Construction, Work, Build } from '@mui/icons-material';
+import Home from '@mui/icons-material/Home';
+import ConnectWithoutContact from '@mui/icons-material/ConnectWithoutContact';
+import Construction from '@mui/icons-material/Construction';
+import Work from '@mui/icons-material/Work';
+import Build from '@mui/icons-material/Build';
 
 export const Sidebar = ({ children }: PropsWithChildren) => {
   const SideBarTopItem = () => {
