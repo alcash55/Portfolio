@@ -21,6 +21,7 @@ jobs:
         uses: alcash55/ac-composite-actions/ats-check@main
         with:
           RESUME: ./src/assets/AlexResume.pdf
+          APILAYER_API_KEY: ${{ secrets.APILAYER_API_KEY }}
 
       - name: Output ATS Check Results
         run: |
