@@ -24,8 +24,6 @@ jobs:
 
       - name: Output ATS Check Results
         run: |
-          echo "ATS Check Results: ${{ steps.ats_check.outputs.summary }}"
-          echo "ATS Check Details: ${{ steps.ats_check.outputs.details }}"
-          echo "ATS Check Score: ${{ steps.ats_check.outputs.score }}"
-          echo "ATS Check Feedback: ${{ steps.ats_check.outputs.feedback }}"
-          echo "ATS Check Score: ${{ steps.ats_check.outputs.score }}"
+          echo "ATS Check Report: ${{ steps.ats_check.outputs.ATS_REPORT }}"
+          echo "ATS Check Score: ${{ steps.ats_check.outputs.ATS_SCORE }}"
+          echo "ATS Check Passed: ${{ steps.ats_check.outputs.ATS_PASSED }}"
