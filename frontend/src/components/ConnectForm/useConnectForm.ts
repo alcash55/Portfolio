@@ -8,32 +8,27 @@ const useConnectForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL ?? '';
+  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
   /**
-   * Sends the message discord channel using a webhook
-   * @see https://github.com/alcash55/ac-composite-actions/tree/main/notifications/discord-messages
+   * Sends the message to the Portfolio backend, which validates it and forwards
+   * it to Discord. The webhook URL is held server-side and never reaches the
+   * browser bundle.
    * @returns {Promise<boolean>}
    */
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<boolean> => {
     try {
-      const response = await fetch(WEBHOOK_URL, {
+      const response = await fetch(`${API_URL}/api/v1/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          avatar_url: '',
-          username: 'Portfolio Bot',
-          content: `${name} has sent you a message\n email: ${email}\n message:${message}`,
-        }),
+        body: JSON.stringify({ name, email, message }),
       });
 
-      if (response.ok) {
-        return true;
-      }
+      return response.ok;
     } catch (e) {
-      console.log(`Error: ${e}`);
+      console.error('Failed to send message', e);
       return false;
     }
   };

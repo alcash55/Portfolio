@@ -35,10 +35,14 @@ jobs:
       - name: Install dependencies & build
         id: build
         run: |
+          cd frontend
           bun install
           bun run build
         env:
-          VITE_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
+          # Public backend base URL. Anything VITE_-prefixed is inlined into the
+          # client bundle, so only non-secret values belong here. The Discord
+          # webhook now lives in the backend's WEBHOOK_URL, server-side.
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Setup Pages
         id: setup_pages
@@ -48,8 +52,8 @@ jobs:
         id: artifact_upload
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload dist repository
-          path: './dist'
+          # Vite's outDir is relative to frontend/, where the build runs
+          path: './frontend/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment

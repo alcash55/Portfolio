@@ -1,0 +1,11 @@
+# Never bake secrets into an image layer
+.env
+.env.*
+!.env.example
+
+# Local build output
+app
+dist/
+
+.git
+.gitignore

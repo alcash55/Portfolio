@@ -14,13 +14,15 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: bun install
+        run: |
+          cd frontend
+          bun install
 
       - name: ATS Check
         id: ats_check
         uses: alcash55/ac-composite-actions/ats-check@main
         with:
-          RESUME: ./src/assets/AlexResume.pdf
+          RESUME: ./frontend/src/assets/AlexResume.pdf
           APILAYER_API_KEY: ${{ secrets.APILAYER_API_KEY }}
 
       - name: Output ATS Check Results
