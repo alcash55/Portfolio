@@ -14,7 +14,5 @@ services:
       # PORT is injected by Render - do not set it here.
       - key: WEBHOOK_URL
         sync: false # secret, set in the Render dashboard
-      - key: GH_TOKEN
-        sync: false # optional, unused today
       - key: ALLOWED_ORIGINS
         value: https://alcash55.github.io
