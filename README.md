@@ -113,10 +113,10 @@ bun run dev     # http://localhost:3000
 
 The two halves deploy independently:
 
-| Part | Host | Trigger |
-| --- | --- | --- |
-| `frontend/` | GitHub Pages | Push to `main` → `.github/workflows/deploy.yml` |
-| `backend/` | [Render](https://render.com) | Push to `main` → `render.yaml` blueprint |
+| Part | Host | URL | Trigger |
+| --- | --- | --- | --- |
+| `frontend/` | GitHub Pages | <https://alcash55.github.io/Portfolio/> | Push to `main` → `.github/workflows/deploy.yml` |
+| `backend/` | [Render](https://render.com) | <https://portfolio-api-0mta.onrender.com> | Push to `main` → `render.yaml` blueprint |
 
 ### Backend on Render
 
@@ -141,9 +141,11 @@ Two things Render handles that the app relies on:
 > appear to hang. Upgrading off the free plan, or pinging `/healthz` on a
 > schedule, avoids this.
 
-Once deployed, set the repository **variable** (not secret) `VITE_API_URL` to
-`https://<service>.onrender.com` so the Pages build points at the API. Keep it a
-variable — `VITE_`-prefixed values are inlined into the client bundle.
+The repository **variable** (not secret) `VITE_API_URL` points the Pages build at
+the API; it is currently set to `https://portfolio-api-0mta.onrender.com`. Keep
+it a variable — `VITE_`-prefixed values are inlined into the client bundle, and
+Vite inlines **every** `VITE_` variable present at build time, whether the source
+references it or not.
 
 `ALLOWED_ORIGINS` is set to `https://alcash55.github.io` in the blueprint. That
 **replaces** the local-development defaults rather than adding to them, so the
