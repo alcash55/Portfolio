@@ -12,8 +12,8 @@ import (
 // server (port 3000, see frontend/vite.config.ts), `vite preview`, and the
 // GitHub Pages deployment.
 var defaultAllowedOrigins = []string{
-	"http://localhost:3000",
-	"http://127.0.0.1:3000",
+	"http://localhost:3005",
+	"http://127.0.0.1:3005",
 	"http://localhost:4173",
 	"https://alcash55.github.io",
 }

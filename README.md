@@ -30,12 +30,12 @@ Notable dependencies:
 
 Package layout, one job per package:
 
-| Path | Responsibility |
-| --- | --- |
-| `cmd/app/main.go` | Process lifecycle: load config, start server, graceful shutdown |
-| `internal/routes/` | The whole route tree: middleware, CORS, groups, registration |
-| `internal/handlers/` | Request handlers, one package per domain |
-| `pkg/config/` | Reads and validates environment variables |
+| Path                 | Responsibility                                                  |
+| -------------------- | --------------------------------------------------------------- |
+| `cmd/app/main.go`    | Process lifecycle: load config, start server, graceful shutdown |
+| `internal/routes/`   | The whole route tree: middleware, CORS, groups, registration    |
+| `internal/handlers/` | Request handlers, one package per domain                        |
+| `pkg/config/`        | Reads and validates environment variables                       |
 
 Dependencies are passed as ordinary arguments (`main` → `routes.New(cfg)` →
 `contact.New(cfg)`) rather than stashed in the Gin context, so they are checked
@@ -57,9 +57,9 @@ on the deployed site.
 
 ### API
 
-| Method | Route | Body | Responses |
-| --- | --- | --- | --- |
-| `GET` | `/healthz` | – | `200 {"status":"ok"}` |
+| Method | Route             | Body                         | Responses                                                                        |
+| ------ | ----------------- | ---------------------------- | -------------------------------------------------------------------------------- |
+| `GET`  | `/healthz`        | –                            | `200 {"status":"ok"}`                                                            |
 | `POST` | `/api/v1/contact` | `{"name","email","message"}` | `200` ok · `400` validation · `413` >64 KiB · `502` webhook unreachable/rejected |
 
 Field limits: `name` ≤ 100, `email` ≤ 254 and must parse as an email address,
@@ -72,12 +72,12 @@ Field limits: `name` ≤ 100, `email` ≤ 254 and must parse as an email address
 
 Copy `backend/.env.example` to `backend/.env` and fill it in:
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `PORT` | yes | Port to listen on, e.g. `8080`. Render injects this automatically |
-| `WEBHOOK_URL` | yes | Discord webhook the contact form forwards to |
-| `GH_TOKEN` | no | GitHub token. Loaded for future use; nothing reads it yet |
-| `ALLOWED_ORIGINS` | no | Comma-separated CORS origins. Unset uses the defaults below |
+| Variable          | Required | Purpose                                                           |
+| ----------------- | -------- | ----------------------------------------------------------------- |
+| `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically |
+| `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                      |
+| `GH_TOKEN`        | no       | GitHub token. Loaded for future use; nothing reads it yet         |
+| `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below       |
 
 `.env` is read by [godotenv](https://github.com/joho/godotenv) at startup — Go
 does not read `.env` files on its own, and real environment variables always win,
@@ -109,9 +109,9 @@ Vite is configured with `envDir: './src'`, so frontend env files live in
 `frontend/src/`, not the `frontend/` root. Copy `frontend/src/.env.example` to
 `frontend/src/.env`.
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `VITE_API_URL` | no | Backend base URL. Defaults to `http://localhost:8080` |
+| Variable       | Required | Purpose                                               |
+| -------------- | -------- | ----------------------------------------------------- |
+| `VITE_API_URL` | no       | Backend base URL. Defaults to `http://localhost:8080` |
 
 ```sh
 cd frontend
@@ -123,10 +123,10 @@ bun run dev     # http://localhost:3000
 
 The two halves deploy independently:
 
-| Part | Host | URL | Trigger |
-| --- | --- | --- | --- |
-| `frontend/` | GitHub Pages | <https://alcash55.github.io/Portfolio/> | Push to `main` → `.github/workflows/deploy.yml` |
-| `backend/` | [Render](https://render.com) | <https://portfolio-api-0mta.onrender.com> | Push to `main` → `render.yaml` blueprint |
+| Part        | Host                         | URL                                       | Trigger                                         |
+| ----------- | ---------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| `frontend/` | GitHub Pages                 | <https://alcash55.github.io/Portfolio/>   | Push to `main` → `.github/workflows/deploy.yml` |
+| `backend/`  | [Render](https://render.com) | <https://portfolio-api-0mta.onrender.com> | Push to `main` → `render.yaml` blueprint        |
 
 ### Backend on Render
 

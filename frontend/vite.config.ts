@@ -11,7 +11,7 @@ export default defineConfig(({ command, mode }) => {
     base: '/Portfolio/',
     plugins: [react()],
     server: {
-      port: 3000,
+      port: 3005,
       host: 'localhost',
       open: true,
     },
