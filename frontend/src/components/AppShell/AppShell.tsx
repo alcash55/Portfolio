@@ -1,25 +1,9 @@
-import { PropsWithChildren, createContext, useContext, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { Default } from './InternalComponents/Layouts/Default';
 import { SideNav } from './InternalComponents/Layouts/SideNav';
 import { Mobile } from './InternalComponents/Layouts/Mobile';
-
-/**
- * AppShellLayoutContext context that provides the layout and a function to toggle the layout
- */
-const AppShellLayoutContext = createContext({
-  layout: <Default />,
-  toggleLayout: (newLayout: string) => {},
-});
-
-/**
- * useAppShellLayout hook that returns the current layout and a function to toggle the layout
- * @returns {UseAppShellLayout}
- */
-export const useAppShellLayout = () => {
-  const context = useContext(AppShellLayoutContext);
-  return context;
-};
+import { AppShellLayoutContext } from './AppShellLayoutContext';
 
 /**
  * The AppShellProvider component that provides the layout context
@@ -43,6 +27,10 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
     }
 
     toggleLayout(layout);
+    // toggleLayout closes over `children`/`isMobile` and is redefined on every render;
+    // adding it here would rerun this effect (and rewrite localStorage) on every render
+    // instead of only when `isMobile` changes, a real behavior change out of scope here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, window.innerWidth]);
 
   /**

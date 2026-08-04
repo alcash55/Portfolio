@@ -1,5 +1,5 @@
 import { Button, Stack } from '@mui/material';
-import { useColorMode } from '../../../layout/Theme/Context';
+import { useColorMode } from '../../../layout/Theme/ColorModeContext';
 
 export const ThemeButton = () => {
   const { toggleColorMode, mode } = useColorMode();
