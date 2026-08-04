@@ -9,7 +9,7 @@ import (
 )
 
 // defaultAllowedOrigins is used when ALLOWED_ORIGINS is unset: the Vite dev
-// server (port 3000, see frontend/vite.config.ts), `vite preview`, and the
+// server (port 3005, see frontend/vite.config.ts), `vite preview`, and the
 // GitHub Pages deployment.
 var defaultAllowedOrigins = []string{
 	"http://localhost:3005",
