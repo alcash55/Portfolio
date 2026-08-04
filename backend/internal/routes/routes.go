@@ -50,7 +50,6 @@ func New(cfg config.Config) *gin.Engine {
 	router.Use(cors.New(corsConfig))
 
 	router.GET("/", func(c *gin.Context) {
-		time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, "Welcome the portfolio server")
 	})
 

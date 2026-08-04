@@ -1,9 +1,7 @@
-import { useTheme } from '@emotion/react';
-import { Stack, Card, CardHeader, IconButton, CardContent, Grid, Chip } from '@mui/material';
+import { Stack, Card, CardHeader, IconButton, CardContent, Chip } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 
 const Skills = () => {
-  const theme = useTheme();
   const skills = {
     Languages: ['TypeScript', 'JavaScript', 'Go'],
     Frameworks: ['React', 'Node.js', 'Bun', 'Express', 'Next.js'],
