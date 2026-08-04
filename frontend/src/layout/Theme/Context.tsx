@@ -1,25 +1,9 @@
-import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { ThemeProvider } from '@mui/material';
 import { redTheme } from './redTheme';
 import { darkTheme } from './darkTheme';
 import { blueTheme } from './blueTheme';
-
-/**
- * ColorModeContext context that provides the color mode and a function to toggle the color mode
- */
-const ColorModeContext = createContext({
-  mode: darkTheme,
-  toggleColorMode: (color: string) => {},
-});
-
-/**
- * useColorMode hook that returns the current color mode and a function to toggle the color mode
- * @returns {UseColorMode}
- */
-export const useColorMode = () => {
-  const context = useContext(ColorModeContext);
-  return context;
-};
+import { ColorModeContext } from './ColorModeContext';
 
 /**
  *  ToggleColorMode component that provides the color mode context and a function to toggle the color mode
