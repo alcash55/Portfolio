@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+
+# Reusable workflows do not inherit the caller's permissions automatically —
+# they get whatever the calling job grants, capped by whatever this file asks
+# for. CI only ever needs to read the repo (checkout, install, build, test),
+# so it declares that explicitly rather than relying on inheritance.
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # https://bun.sh/docs/cli/install#ci-cd
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: bun install
+
+      - name: Lint
+        working-directory: frontend
+        run: bun run lint
+
+      - name: Type check
+        working-directory: frontend
+        run: bunx tsc --noEmit
+
+      - name: Test
+        working-directory: frontend
+        run: bun run test
+
+      - name: Build
+        working-directory: frontend
+        run: bun run build
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          # Reads the exact toolchain version from go.mod (currently 1.26.5)
+          # so this stays in sync automatically instead of drifting from a
+          # hardcoded version string.
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Vet
+        working-directory: backend
+        run: go vet ./...
+
+      - name: Test
+        working-directory: backend
+        run: go test ./... -race
+
+      - name: Build
+        working-directory: backend
+        run: go build ./...
