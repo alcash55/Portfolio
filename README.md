@@ -83,10 +83,20 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 does not read `.env` files on its own, and real environment variables always win,
 so deployed environments are unaffected.
 
-When `ALLOWED_ORIGINS` is unset, CORS allows `http://localhost:3000`,
-`http://127.0.0.1:3000`, `http://localhost:4173`, and
-`https://alcash55.github.io`. Setting it **replaces** that list rather than
-adding to it.
+CORS has two modes, chosen by whether `ALLOWED_ORIGINS` is set:
+
+- **Unset (local development)** — any `localhost` / `127.0.0.1` / `::1` origin is
+  allowed **on any port**, plus `https://alcash55.github.io`. Dev servers drift
+  to another port when theirs is taken (Vite does this silently unless
+  `strictPort` is set), and pinning exact ports turns into whack-a-mole.
+- **Set (deployments)** — exact matching against that list only, and localhost is
+  not special. `render.yaml` sets it to `https://alcash55.github.io`.
+
+Setting `ALLOWED_ORIGINS` **replaces** the defaults rather than adding to them.
+
+If a browser request gets a `403` on the preflight, the origin is not in the
+allowlist — check which port your dev server actually bound to, since it may not
+be the one in `vite.config.ts`.
 
 ```sh
 cd backend

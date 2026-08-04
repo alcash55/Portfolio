@@ -23,6 +23,13 @@ type Config struct {
 	Port           int      `env:"PORT"`
 	GHToken        string   `env:"GH_TOKEN"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS"`
+
+	// AllowAnyLocalhost is true when ALLOWED_ORIGINS was not set, which only
+	// happens in local development. Dev servers drift to another port when
+	// theirs is taken (Vite does this silently unless strictPort is set), so
+	// pinning exact localhost ports turns into whack-a-mole. Deployments set
+	// ALLOWED_ORIGINS explicitly and stay on exact matching.
+	AllowAnyLocalhost bool
 }
 
 func Load() (Config, error) {
@@ -31,11 +38,18 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("PORT is required: %w", err)
 	}
 
+	origins := parseOrigins(os.Getenv("ALLOWED_ORIGINS"))
+	usingDefaults := len(origins) == 0
+	if usingDefaults {
+		origins = slices.Clone(defaultAllowedOrigins)
+	}
+
 	cfg := Config{
-		WebhookURL:     os.Getenv("WEBHOOK_URL"),
-		Port:           port,
-		GHToken:        os.Getenv("GH_TOKEN"),
-		AllowedOrigins: parseOrigins(os.Getenv("ALLOWED_ORIGINS")),
+		WebhookURL:        os.Getenv("WEBHOOK_URL"),
+		Port:              port,
+		GHToken:           os.Getenv("GH_TOKEN"),
+		AllowedOrigins:    origins,
+		AllowAnyLocalhost: usingDefaults,
 	}
 
 	// GH_TOKEN is optional: it is loaded for future use but nothing reads it
@@ -49,18 +63,15 @@ func Load() (Config, error) {
 	return cfg, nil
 }
 
-// parseOrigins splits a comma-separated origin list, falling back to the
-// defaults when the value is unset or contains nothing usable.
+// parseOrigins splits a comma-separated origin list. It returns an empty slice
+// when the value is unset or contains nothing usable, leaving the caller to
+// decide whether that means "use the defaults".
 func parseOrigins(raw string) []string {
 	origins := make([]string, 0, len(defaultAllowedOrigins))
 	for _, origin := range strings.Split(raw, ",") {
 		if origin = strings.TrimSpace(origin); origin != "" {
 			origins = append(origins, origin)
 		}
-	}
-
-	if len(origins) == 0 {
-		return slices.Clone(defaultAllowedOrigins)
 	}
 
 	return origins
