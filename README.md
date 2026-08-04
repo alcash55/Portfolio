@@ -116,7 +116,7 @@ Vite is configured with `envDir: './src'`, so frontend env files live in
 ```sh
 cd frontend
 bun install
-bun run dev     # http://localhost:3000
+bun run dev     # http://localhost:3005
 ```
 
 ## Deployment
