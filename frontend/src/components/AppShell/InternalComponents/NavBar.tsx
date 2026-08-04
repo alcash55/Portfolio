@@ -15,7 +15,12 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
           flexGrow: 1,
           top: 0,
           position: 'sticky',
-          zIndex: 1,
+          // `position: sticky` always creates a stacking context, so the
+          // AppBar's own z-index is scoped inside this Box and cannot lift it
+          // above page content. At zIndex 1 the bar tied with MUI's input
+          // labels (also z-index 1) and lost on DOM order, letting the Name and
+          // Email labels show through. Match the theme's appBar layer instead.
+          zIndex: (theme) => theme.zIndex.appBar,
           width: '100%',
           transition: 'top 1.0s',
           visibility: showNavBar() ? 'visible' : 'hidden',
