@@ -32,5 +32,13 @@ jobs:
       # contents. Skipping checkout keeps this job fast and cheap.
       - name: Ping healthz
         run: |
-          curl --fail --silent --show-error --max-time 60 \
+          # 90 s, not the ~50 s documented cold-start figure: that figure is
+          # an estimate, and the runs most likely to hit a genuinely cold
+          # backend (first run after the 60-day schedule auto-disable, first
+          # run after a deploy, any run after the schedule was delayed past
+          # the 15-min spin-down window) are exactly the slowest ones. A
+          # timed-out job here is a false red on the one workflow whose job
+          # is to say the API is reachable, so the timeout is sized for a
+          # cold start with margin, not for a warm response.
+          curl --fail --silent --show-error --max-time 90 \
             https://portfolio-api-0mta.onrender.com/healthz
