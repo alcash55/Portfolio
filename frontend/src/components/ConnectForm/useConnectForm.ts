@@ -36,10 +36,10 @@ const useConnectForm = () => {
   /**
    * Validates the email to check if it's valid
    * @see https://emailregex.com/
-   * @param {string} - email
+   * @param {string} email
    * @returns {boolean}
    */
-  const validateEmail = () => {
+  const validateEmail = (email: string) => {
     if (!email) return false;
 
     const checkEmail =
@@ -64,7 +64,7 @@ const useConnectForm = () => {
         check: message,
         error: 'Please Fill out all required sections (Message)',
       },
-      { check: validateEmail(), error: 'Please enter a valid email address' },
+      { check: validateEmail(email), error: 'Please enter a valid email address' },
     ];
 
     for (const check of checks) {
