@@ -1,9 +1,7 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
-import { Default } from './InternalComponents/Layouts/Default';
-import { SideNav } from './InternalComponents/Layouts/SideNav';
-import { Mobile } from './InternalComponents/Layouts/Mobile';
-import { AppShellLayoutContext } from './AppShellLayoutContext';
+import { AppShellLayout } from './InternalComponents/Layouts/AppShellLayout';
+import { AppShellLayoutContext, AppShellLayoutMode } from './AppShellLayoutContext';
 
 /**
  * The AppShellProvider component that provides the layout context
@@ -11,51 +9,53 @@ import { AppShellLayoutContext } from './AppShellLayoutContext';
  * @returns {JSX.Element}
  */
 export default function AppShellProvider({ children }: PropsWithChildren) {
-  const [layout, setLayout] = useState(<Default children={children} />);
+  const [mode, setMode] = useState<AppShellLayoutMode>('default');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(650));
 
   useEffect(() => {
     //set initial layout
-    let layout = 'default';
+    let newMode: AppShellLayoutMode = 'default';
 
     //check window size for mobile bp if not mobile get layout from local storage
     if (isMobile) {
-      layout = 'mobile';
+      newMode = 'mobile';
     } else if (localStorage.getItem('layout') === 'sideNav') {
-      layout = 'sideNav';
+      newMode = 'sideNav';
     }
 
-    toggleLayout(layout);
-    // toggleLayout closes over `children`/`isMobile` and is redefined on every render;
+    applyMode(newMode);
+    // applyMode closes over `isMobile` and is redefined on every render;
     // adding it here would rerun this effect (and rewrite localStorage) on every render
     // instead of only when `isMobile` changes, a real behavior change out of scope here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, window.innerWidth]);
 
   /**
-   * logic for toggling layout (mobile, default, sideNav)
-   * @param {string} newLayout - new layout to set
+   * logic for applying a layout mode (mobile always wins on small viewports; otherwise
+   * respects the mode requested via `toggleLayout`)
+   * @param {string} newLayout - new layout to apply ('default' | 'sideNav')
    */
-  const toggleLayout = (newLayout: string) => {
+  const applyMode = (newLayout: string) => {
     if (isMobile) {
-      setLayout(<Mobile children={children} />);
-    } else if (newLayout === 'default') {
-      setLayout(<Default children={children} />);
+      setMode('mobile');
     } else if (newLayout === 'sideNav') {
-      setLayout(<SideNav children={children} />);
+      setMode('sideNav');
     } else {
-      setLayout(<Default children={children} />);
+      setMode('default');
     }
 
     localStorage.setItem('layout', newLayout); // update local storage
   };
 
   const contextValue = {
-    layout,
-    toggleLayout,
+    layout: mode,
+    toggleLayout: applyMode,
   };
+
   return (
-    <AppShellLayoutContext.Provider value={contextValue}>{layout}</AppShellLayoutContext.Provider>
+    <AppShellLayoutContext.Provider value={contextValue}>
+      <AppShellLayout mode={mode}>{children}</AppShellLayout>
+    </AppShellLayoutContext.Provider>
   );
 }
