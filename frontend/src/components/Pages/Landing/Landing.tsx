@@ -1,16 +1,20 @@
-import { Box, Typography, Button, IconButton, Grid, Stack } from '@mui/material';
-import rmu_lacrosse from '../../../assets/images/rmu_lacrosse.jpg';
-import west_ms_coaching from '../../../assets/images/west_ms_coaching.jpg';
-import joshua_tree from '../../../assets/images/joshua_tree.jpg';
-import troy_leon from '../../../assets/images/troy_leon.jpg';
+import { Box, Typography, Button, IconButton, Grid, Stack, useMediaQuery } from '@mui/material';
+import rmu_lacrosse from '../../../assets/images/rmu_lacrosse.webp';
+import west_ms_coaching from '../../../assets/images/west_ms_coaching.webp';
+import joshua_tree from '../../../assets/images/joshua_tree.webp';
+import troy_leon from '../../../assets/images/troy_leon.webp';
 import ArrowDownward from '@mui/icons-material/ArrowDownward';
 import GitHub from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
 
 const Landing = () => {
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
   };
 
   const images = [
@@ -43,10 +47,15 @@ const Landing = () => {
       sx={{
         position: 'relative',
         height: '100vh',
-        bgcolor: '#000',
-        color: '#fff',
+        bgcolor: 'background.default',
+        // `text.primary` isn't safe here: redTheme doesn't set palette.mode, so it
+        // defaults to MUI's light-mode text.primary (near-black) and would be
+        // unreadable against this dark hero. common.white is still a theme token
+        // (not a hardcoded hex) and matches how redTheme's own MuiCard override
+        // forces `color: 'white'` for the same reason elsewhere in the app.
+        color: 'common.white',
         overflow: 'hidden',
-        scrollBehavior: 'smooth',
+        scrollBehavior: prefersReducedMotion ? 'auto' : 'smooth',
       }}
     >
       {/* Animated Background */}
@@ -64,7 +73,7 @@ const Landing = () => {
               borderRadius: '50%',
               filter: 'blur(48px)',
               mixBlendMode: 'multiply',
-              animation: 'pulse 4s ease-in-out infinite',
+              animation: prefersReducedMotion ? 'none' : 'pulse 4s ease-in-out infinite',
             }}
           />
           <Box
@@ -78,7 +87,7 @@ const Landing = () => {
               borderRadius: '50%',
               filter: 'blur(48px)',
               mixBlendMode: 'multiply',
-              animation: 'pulse 6s ease-in-out infinite',
+              animation: prefersReducedMotion ? 'none' : 'pulse 6s ease-in-out infinite',
               animationDelay: '1s',
             }}
           />
@@ -93,31 +102,33 @@ const Landing = () => {
               borderRadius: '50%',
               filter: 'blur(48px)',
               mixBlendMode: 'multiply',
-              animation: 'pulse 5s ease-in-out infinite',
+              animation: prefersReducedMotion ? 'none' : 'pulse 5s ease-in-out infinite',
               animationDelay: '2s',
             }}
           />
         </Box>
 
-        {/* Floating Particles */}
-        <Box sx={{ position: 'absolute', inset: 0 }}>
-          {[...Array(30)].map((_, i) => (
-            <Box
-              key={i}
-              sx={{
-                position: 'absolute',
-                width: 4,
-                height: 4,
-                bgcolor: 'rgba(255,255,255,0.2)',
-                borderRadius: '50%',
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 10}s`,
-              }}
-            />
-          ))}
-        </Box>
+        {/* Floating Particles - skipped entirely for prefers-reduced-motion */}
+        {!prefersReducedMotion && (
+          <Box sx={{ position: 'absolute', inset: 0 }}>
+            {[...Array(30)].map((_, i) => (
+              <Box
+                key={i}
+                sx={{
+                  position: 'absolute',
+                  width: 4,
+                  height: 4,
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  borderRadius: '50%',
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
+                  animationDelay: `${Math.random() * 10}s`,
+                }}
+              />
+            ))}
+          </Box>
+        )}
 
         {/* Mouse-following gradient */}
         <Box
@@ -386,7 +397,7 @@ const Landing = () => {
                 width: 18,
                 height: 18,
                 color: 'rgba(255,255,255,0.5)',
-                animation: 'bounce 1.5s infinite',
+                animation: prefersReducedMotion ? 'none' : 'bounce 1.5s infinite',
               }}
             />
           </IconButton>
