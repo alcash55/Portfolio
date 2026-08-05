@@ -94,16 +94,13 @@ func TestLoad_MissingWebhookURL(t *testing.T) {
 	if !strings.Contains(err.Error(), "WEBHOOK_URL") {
 		t.Errorf("Load() with WEBHOOK_URL unset: error = %q, want it to mention WEBHOOK_URL", err.Error())
 	}
-	// Pin the current (inconsistent) behavior: unlike the PORT-missing case,
-	// this path returns a *populated* cfg alongside the error because PORT
-	// parsed successfully before the WEBHOOK_URL check ran. See report: this
-	// asymmetry (zero Config on PORT failure, populated Config on
-	// WEBHOOK_URL failure) is a real inconsistency worth flagging, not fixing.
-	if cfg.Port != 8080 {
-		t.Errorf("Load() with WEBHOOK_URL unset: cfg.Port = %d, want 8080 (cfg is populated despite the error on this path)", cfg.Port)
-	}
-	if isZeroConfig(cfg) {
-		t.Errorf("Load() with WEBHOOK_URL unset: cfg is the zero Config, want a populated Config (this pins the asymmetry with the PORT-missing case)")
+	// Every error path in Load() must return a zero Config{}, matching the
+	// PORT-missing case above. This used to return a populated cfg (PORT had
+	// already parsed successfully before the WEBHOOK_URL check ran), which
+	// was a trap for any future caller that reads the config on a non-nil
+	// error.
+	if !isZeroConfig(cfg) {
+		t.Errorf("Load() with WEBHOOK_URL unset: cfg = %+v, want zero Config{} on error", cfg)
 	}
 }
 

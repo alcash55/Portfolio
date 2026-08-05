@@ -69,7 +69,7 @@ func Load() (Config, error) {
 	// yet, so requiring it would block deploys for no reason.
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
-			return cfg, fmt.Errorf("%s is required", env)
+			return Config{}, fmt.Errorf("%s is required", env)
 		}
 	}
 
