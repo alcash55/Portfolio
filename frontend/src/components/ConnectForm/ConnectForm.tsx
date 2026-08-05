@@ -1,43 +1,113 @@
-import { useState } from 'react';
-import { Box, Button, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import useConnectForm from './useConnectForm';
 import ConnectNotification from './ConnectNotification';
 import useConnectNotification from './useConnectNotification';
+import { CONTACT_SUCCESS_MESSAGE, getContactErrorMessage } from './contactErrors';
+
+// Don't show the "server is waking up" copy for a normal-latency request --
+// it's alarming to see it flash by on a request that resolves in 200ms. Only
+// switch to it once the request has genuinely been hanging for a while.
+const COLD_START_HINT_DELAY_MS = 4000;
 
 /**
  * Form in the connect section
  * @returns {JSX.Element}
  */
 const ConnectForm = () => {
-  const { setName, setEmail, setMessage, sendMessage, name, email, message, validateForm } =
-    useConnectForm();
+  const {
+    setName,
+    setEmail,
+    setMessage,
+    setWebsite,
+    sendMessage,
+    name,
+    email,
+    message,
+    website,
+    validateForm,
+    getFieldErrors,
+  } = useConnectForm();
 
-  const { open, setOpen, setClose, messageSent, setMessageSent } = useConnectNotification();
+  const {
+    open,
+    setOpen,
+    setClose,
+    messageSent,
+    setMessageSent,
+    notificationText,
+    setNotificationText,
+  } = useConnectNotification();
   const formErrors = validateForm(name, email, message);
-  // Tracks whether the user has interacted with any field yet, so the error
-  // banner doesn't render on an untouched form. Send stays disabled from
-  // formErrors regardless — this only controls whether the message is shown.
-  const [touched, setTouched] = useState(false);
+  const fieldErrors = getFieldErrors(name, email, message);
+  // Tracked per-field so a field only shows its own error once the user has
+  // interacted with that specific field -- not the moment any other field
+  // is touched.
+  const [nameTouched, setNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [messageTouched, setMessageTouched] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [showColdStartHint, setShowColdStartHint] = useState(false);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(425));
 
-  const handleClick = async () => {
-    const sent = await sendMessage();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    if (!sent) {
-      setMessageSent(false);
-    } else {
-      setMessageSent(true);
-      setName('');
-      setEmail('');
-      setMessage('');
+    if (sending) return;
+
+    if (formErrors) {
+      // Reveal every field's error on an attempted submit, not just the
+      // ones the user happened to already touch.
+      setNameTouched(true);
+      setEmailTouched(true);
+      setMessageTouched(true);
+      return;
     }
-    setOpen(true);
+
+    setSending(true);
+    setShowColdStartHint(false);
+    hintTimerRef.current = setTimeout(() => setShowColdStartHint(true), COLD_START_HINT_DELAY_MS);
+
+    try {
+      const result = await sendMessage();
+
+      if (result.ok) {
+        setMessageSent(true);
+        setNotificationText(CONTACT_SUCCESS_MESSAGE);
+        setName('');
+        setEmail('');
+        setMessage('');
+        setWebsite('');
+        setNameTouched(false);
+        setEmailTouched(false);
+        setMessageTouched(false);
+      } else {
+        setMessageSent(false);
+        setNotificationText(getContactErrorMessage(result.kind));
+      }
+    } finally {
+      clearTimeout(hintTimerRef.current);
+      setShowColdStartHint(false);
+      setSending(false);
+      setOpen(true);
+    }
   };
 
   return (
     <>
-      <Stack spacing={1} width={'100%'}>
+      <Stack component="form" noValidate onSubmit={handleSubmit} spacing={1} width={'100%'}>
         <Typography
           variant="h3"
           component="h2"
@@ -50,11 +120,6 @@ const ConnectForm = () => {
         >
           Leave a message!
         </Typography>
-        {touched && formErrors && (
-          <Typography variant="body1" component="h3" color={'rgb(244, 67, 54)'}>
-            {formErrors}*
-          </Typography>
-        )}
         <Box sx={{ width: '100%', display: 'flex', gap: 1 }}>
           <TextField
             id="name"
@@ -63,8 +128,10 @@ const ConnectForm = () => {
             autoComplete="name"
             required
             value={name}
+            error={nameTouched && !!fieldErrors.name}
+            helperText={nameTouched && fieldErrors.name ? fieldErrors.name : ' '}
             onChange={(e) => {
-              setTouched(true);
+              setNameTouched(true);
               setName(e.target.value);
             }}
           />
@@ -75,8 +142,10 @@ const ConnectForm = () => {
             autoComplete="email"
             required
             value={email}
+            error={emailTouched && !!fieldErrors.email}
+            helperText={emailTouched && fieldErrors.email ? fieldErrors.email : ' '}
             onChange={(e) => {
-              setTouched(true);
+              setEmailTouched(true);
               setEmail(e.target.value);
             }}
           />
@@ -89,20 +158,55 @@ const ConnectForm = () => {
           rows={4}
           placeholder="Hey Alex, I'm interested in your work. I would love to connect and work together!"
           value={message}
+          error={messageTouched && !!fieldErrors.message}
+          helperText={messageTouched && fieldErrors.message ? fieldErrors.message : ' '}
           onChange={(e) => {
-            setTouched(true);
+            setMessageTouched(true);
             setMessage(e.target.value);
           }}
         />
+        {/* Honeypot (F3): a real bot fills every input it finds; a human never
+            sees or reaches this one. Hidden with off-screen CSS positioning
+            (not display:none/hidden, which some bots skip), and removed from
+            the tab order and the accessibility tree. Always submitted -- left
+            empty, it's a no-op; left non-empty, the backend silently drops
+            the message instead of forwarding it to Discord. */}
+        <input
+          type="text"
+          name="website"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            width: '1px',
+            height: '1px',
+            overflow: 'hidden',
+          }}
+        />
         <Button
+          type="submit"
           variant="contained"
-          disabled={formErrors.length ? true : false}
-          onClick={handleClick}
+          disabled={!!formErrors || sending}
+          startIcon={sending ? <CircularProgress size={16} color="inherit" /> : undefined}
         >
-          Send
+          {sending ? (showColdStartHint ? 'Waking up the server…' : 'Sending…') : 'Send'}
         </Button>
+        {sending && showColdStartHint && (
+          <Typography variant="body2" color="text.secondary">
+            Still waking the server up — this can take up to a minute on the free plan. Hang tight!
+          </Typography>
+        )}
       </Stack>
-      <ConnectNotification open={open} setClose={setClose} messageSent={messageSent} />
+      <ConnectNotification
+        open={open}
+        setClose={setClose}
+        messageSent={messageSent}
+        message={notificationText}
+      />
     </>
   );
 };

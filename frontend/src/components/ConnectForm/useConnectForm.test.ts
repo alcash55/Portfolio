@@ -62,9 +62,10 @@ describe('useConnectForm', () => {
 
       // Only the email format is wrong now.
       const formatOnly = result.current.validateForm('Alex', 'not-an-email', 'hi there');
-      expect(formatOnly, 'expected the invalid-email message once name/email/message are filled').toBe(
-        'Please enter a valid email address',
-      );
+      expect(
+        formatOnly,
+        'expected the invalid-email message once name/email/message are filled',
+      ).toBe('Please enter a valid email address');
     });
 
     it('returns an empty string once every field is valid', () => {
@@ -144,9 +145,10 @@ describe('useConnectForm', () => {
   describe('sendMessage', () => {
     afterEach(() => {
       vi.unstubAllGlobals();
+      vi.useRealTimers();
     });
 
-    it('POSTs to {VITE_API_URL}/api/v1/contact with JSON name/email/message', async () => {
+    it('POSTs to {VITE_API_URL}/api/v1/contact with JSON name/email/message/website', async () => {
       const fetchMock = vi.fn().mockResolvedValue({ ok: true } as Response);
       vi.stubGlobal('fetch', fetchMock);
 
@@ -157,12 +159,14 @@ describe('useConnectForm', () => {
         result.current.setMessage('Hello there');
       });
 
-      let sent = false;
+      let sent: Awaited<ReturnType<typeof result.current.sendMessage>> | undefined;
       await act(async () => {
         sent = await result.current.sendMessage();
       });
 
-      expect(sent, 'sendMessage should resolve true on an ok response').toBe(true);
+      expect(sent, 'sendMessage should resolve { ok: true } on an ok response').toEqual({
+        ok: true,
+      });
       expect(fetchMock, 'fetch should have been called exactly once').toHaveBeenCalledTimes(1);
 
       const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -174,24 +178,51 @@ describe('useConnectForm', () => {
         (options.headers as Record<string, string>)['Content-Type'],
         'expected a JSON content-type header',
       ).toBe('application/json');
+      expect(options.signal, 'expected an AbortSignal so a cold start can time out').toBeInstanceOf(
+        AbortSignal,
+      );
 
       const body = JSON.parse(options.body as string) as {
         name: string;
         email: string;
         message: string;
+        website: string;
       };
       expect(body, `unexpected request body: ${options.body as string}`).toEqual({
         name: 'Alex',
         email: 'alex@example.com',
         message: 'Hello there',
+        // Honeypot (F3): always present, empty for a real submitter.
+        website: '',
       });
     });
 
-    it('resolves to false (does not throw) when fetch rejects', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockRejectedValue(new Error('network down')),
-      );
+    it('sends whatever the website field holds, so a filled honeypot still reaches the backend for it to drop', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true } as Response);
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { result } = renderHook(() => useConnectForm());
+      act(() => {
+        result.current.setName('Alex');
+        result.current.setEmail('alex@example.com');
+        result.current.setMessage('Hello there');
+        result.current.setWebsite('http://spam.example');
+      });
+
+      await act(async () => {
+        await result.current.sendMessage();
+      });
+
+      const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(options.body as string) as { website: string };
+      expect(
+        body.website,
+        'a non-empty honeypot value must still be forwarded so the backend can silently drop it',
+      ).toBe('http://spam.example');
+    });
+
+    it('resolves { ok: false, kind: "server_error" } (does not throw) when fetch rejects', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
       // Silence the expected console.error from the catch block so test output
       // stays readable, without hiding a genuine failure.
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -203,7 +234,7 @@ describe('useConnectForm', () => {
         result.current.setMessage('Hello there');
       });
 
-      let sent: boolean | undefined;
+      let sent: Awaited<ReturnType<typeof result.current.sendMessage>> | undefined;
       let threw = false;
       await act(async () => {
         try {
@@ -216,15 +247,30 @@ describe('useConnectForm', () => {
       expect(threw, 'sendMessage must not throw when fetch rejects; callers rely on this').toBe(
         false,
       );
-      expect(sent, 'expected sendMessage() to resolve to false on a network failure').toBe(false);
+      expect(
+        sent,
+        `expected sendMessage() to resolve to a server_error result on a network failure, got ${JSON.stringify(sent)}`,
+      ).toEqual({ ok: false, kind: 'server_error' });
 
       consoleError.mockRestore();
     });
 
-    it.each([400, 502])('resolves to false on a non-ok %i response', async (status) => {
+    // Status -> kind is the whole point of the error-mapping contract: the UI
+    // branches on `kind`, never on the backend's `error` string.
+    it.each([
+      [400, 'validation'],
+      [413, 'too_large'],
+      [429, 'rate_limited'],
+      [502, 'server_error'],
+      [500, 'server_error'],
+    ] as const)('maps a %i response to kind %j', async (status, expectedKind) => {
       vi.stubGlobal(
         'fetch',
-        vi.fn().mockResolvedValue({ ok: false, status } as Response),
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status,
+          json: () => Promise.resolve({ error: 'backend internals, for logs only' }),
+        } as unknown as Response),
       );
 
       const { result } = renderHook(() => useConnectForm());
@@ -234,15 +280,138 @@ describe('useConnectForm', () => {
         result.current.setMessage('Hello there');
       });
 
-      let sent = true;
+      let sent: Awaited<ReturnType<typeof result.current.sendMessage>> | undefined;
       await act(async () => {
         sent = await result.current.sendMessage();
       });
 
       expect(
         sent,
-        `expected sendMessage() to resolve to false for a ${status} response`,
-      ).toBe(false);
+        `expected a ${status} response to map to kind ${expectedKind}, got ${JSON.stringify(sent)}`,
+      ).toEqual({
+        ok: false,
+        kind: expectedKind,
+        status,
+        error: 'backend internals, for logs only',
+      });
+    });
+
+    it('does not throw when a non-ok response has no JSON body (e.g. a bare mock)', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 502 } as Response));
+
+      const { result } = renderHook(() => useConnectForm());
+      act(() => {
+        result.current.setName('Alex');
+        result.current.setEmail('alex@example.com');
+        result.current.setMessage('Hello there');
+      });
+
+      let sent: Awaited<ReturnType<typeof result.current.sendMessage>> | undefined;
+      await act(async () => {
+        sent = await result.current.sendMessage();
+      });
+
+      expect(
+        sent,
+        `expected a bodyless 502 to still resolve to a server_error result, got ${JSON.stringify(sent)}`,
+      ).toEqual({ ok: false, kind: 'server_error', status: 502, error: undefined });
+    });
+
+    it('aborts and resolves { ok: false, kind: "timeout" } after 60s, covering the Render cold start', async () => {
+      vi.useFakeTimers();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Simulates a real fetch: never resolves on its own, only rejects when
+      // the AbortController's signal fires -- exactly what happens against a
+      // waking Render instance that's still loading when we give up on it.
+      vi.stubGlobal(
+        'fetch',
+        vi.fn((_url: string, options: RequestInit) => {
+          return new Promise((_resolve, reject) => {
+            options.signal?.addEventListener('abort', () => {
+              reject(new DOMException('The operation was aborted.', 'AbortError'));
+            });
+          });
+        }),
+      );
+
+      const { result } = renderHook(() => useConnectForm());
+      act(() => {
+        result.current.setName('Alex');
+        result.current.setEmail('alex@example.com');
+        result.current.setMessage('Hello there');
+      });
+
+      let sent: Awaited<ReturnType<typeof result.current.sendMessage>> | undefined;
+      const pending = act(async () => {
+        sent = await result.current.sendMessage();
+      });
+
+      // A moment before the 60s mark: still waiting, not yet timed out.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(59_999);
+      });
+      expect(sent, 'sendMessage should not have resolved before the 60s timeout').toBeUndefined();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1);
+      });
+      await pending;
+
+      expect(
+        sent,
+        `expected a timed-out cold start to resolve to kind "timeout", got ${JSON.stringify(sent)}`,
+      ).toEqual({ ok: false, kind: 'timeout' });
+
+      consoleError.mockRestore();
+    });
+  });
+
+  describe('getFieldErrors', () => {
+    it('reports each field independently, not just the first failing one (F4)', () => {
+      const { result } = renderHook(() => useConnectForm());
+
+      const errors = result.current.getFieldErrors('', 'not-an-email', '');
+
+      expect(
+        errors.name,
+        `expected a name error when name is blank, got: ${JSON.stringify(errors)}`,
+      ).not.toBe('');
+      expect(
+        errors.email,
+        `expected an email-format error when email is malformed, got: ${JSON.stringify(errors)}`,
+      ).toBe('Please enter a valid email address');
+      expect(
+        errors.message,
+        `expected a message error when message is blank, got: ${JSON.stringify(errors)}`,
+      ).not.toBe('');
+    });
+
+    it('reports empty errors for every field once all three are valid', () => {
+      const { result } = renderHook(() => useConnectForm());
+
+      const errors = result.current.getFieldErrors('Alex', 'alex@example.com', 'Hello there');
+
+      expect(
+        errors,
+        `expected no field errors for a fully valid form, got: ${JSON.stringify(errors)}`,
+      ).toEqual({
+        name: '',
+        email: '',
+        message: '',
+      });
+    });
+
+    it.each([
+      ['', 'blank email reports the required message'],
+      ['not-an-email', 'malformed email reports the format message'],
+    ])('email=%j: %s', (email) => {
+      const { result } = renderHook(() => useConnectForm());
+      const errors = result.current.getFieldErrors('Alex', email, 'Hello there');
+      expect(
+        errors.email,
+        `expected an email error for email=${JSON.stringify(email)}, got: ${JSON.stringify(errors.email)}`,
+      ).not.toBe('');
     });
   });
 });
