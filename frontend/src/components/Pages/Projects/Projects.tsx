@@ -14,10 +14,10 @@ import {
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import CodeIcon from '@mui/icons-material/Code';
-import vsCodeTheme from '../../../assets/images/vsCodeTheme.png';
-import littleTown from '../../../assets/images/littleTown.png';
-import compositeActions from '../../../assets/images/compositeActions.png';
-import portfolio from '../../../assets/images/portfolio.png';
+import vsCodeTheme from '../../../assets/images/vsCodeTheme.webp';
+import littleTown from '../../../assets/images/littleTown.webp';
+import compositeActions from '../../../assets/images/compositeActions.webp';
+import portfolio from '../../../assets/images/portfolio.webp';
 /**
  * @see https://mui-treasury.com/?path=/story/card-solidgame--solid-game
  */
@@ -79,7 +79,7 @@ const Projects = () => {
           titleTypographyProps={{
             textAlign: 'start',
             variant: 'h4',
-            component: 'h1',
+            component: 'h2',
           }}
           avatar={
             <IconButton aria-label="navigate to projects" href="#projects" sx={{ zIndex: 0 }}>
@@ -111,7 +111,7 @@ const Projects = () => {
                 justifyContent={'center'}
                 sx={{ height: largeMobile ? 'auto' : 300 }}
               >
-                <Card sx={{ width: '100%', height: '100%', bgcolor: '#202020' }}>
+                <Card sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
                   <CardActionArea
                     href={project.href}
                     target="_blank"
