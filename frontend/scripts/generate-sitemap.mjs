@@ -1,14 +1,16 @@
-// Regenerates public/sitemap.xml with a fresh <lastmod> on every build so it
-// never goes stale. The site is a single page with client-side section
-// scrolling, so there is exactly one URL entry.
+// Writes dist/sitemap.xml with a fresh <lastmod> on every build so it never
+// goes stale. The site is a single page with client-side section scrolling,
+// so there is exactly one URL entry.
 //
-// Invoked from `bun run build` (see package.json) before `vite build`, which
-// copies everything in `public/` into `dist/` verbatim.
+// Invoked from `bun run build` (see package.json) *after* `vite build`, so
+// it writes straight into the build output rather than a tracked source
+// file - sitemap.xml is a build artifact (its only meaningful content is
+// the build time), not something that belongs in git.
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const SITE_URL = 'https://alcash55.github.io/Portfolio/';
-const OUT_PATH = fileURLToPath(new URL('../public/sitemap.xml', import.meta.url));
+const OUT_PATH = fileURLToPath(new URL('../dist/sitemap.xml', import.meta.url));
 
 const lastmod = new Date().toISOString();
 
