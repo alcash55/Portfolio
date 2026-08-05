@@ -51,6 +51,27 @@ export const darkTheme: ThemeOptions = createTheme({
       '900': '#fafafa',
     },
   },
+  components: {
+    // MUI's ButtonBase (Button, IconButton, Fab, BottomNavigationAction, ...)
+    // sets `outline: 0` unconditionally and expects the app to restore a
+    // focus-visible indicator; none of this project's themes did, so every
+    // button site-wide was keyboard-focusable but invisible while focused
+    // (WCAG 2.4.7). `outlineOffset` puts the ring over the surrounding
+    // page/paper background rather than the button's own surface, and every
+    // theme's background is dark, so a fixed white ring (not `currentColor`,
+    // which for a dark-on-light contained button would render a
+    // low-contrast dark ring on this dark backdrop) stays visible everywhere.
+    MuiButtonBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          '&.Mui-focusVisible': {
+            outline: `2px solid ${theme.palette.common.white}`,
+            outlineOffset: 2,
+          },
+        }),
+      },
+    },
+  },
   typography: {
     fontFamily: 'Oxygen, Arial, sans-serif',
     overline: {

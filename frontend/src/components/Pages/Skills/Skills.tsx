@@ -1,11 +1,30 @@
-import { Stack, Card, CardHeader, IconButton, CardContent, Chip } from '@mui/material';
+import {
+  Stack,
+  Card,
+  CardHeader,
+  IconButton,
+  CardContent,
+  Chip,
+  useTheme,
+} from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 
 const Skills = () => {
+  const theme = useTheme();
   const skills = {
     Languages: ['TypeScript', 'JavaScript', 'Go'],
     Frameworks: ['React', 'Node.js', 'Bun', 'Express', 'Next.js'],
     Tools: ['Docker', 'Git', 'GitHub'],
+  };
+  const skillCardSx = {
+    width: '100%',
+    height: '25%',
+    backgroundColor: theme.palette.background.default,
+    border: `2px solid ${theme.palette.divider}`,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
+    },
   };
 
   return (
@@ -28,7 +47,7 @@ const Skills = () => {
           titleTypographyProps={{
             textAlign: 'start',
             variant: 'h4',
-            component: 'h1',
+            component: 'h2',
           }}
           avatar={
             <IconButton aria-label="navigate to skills & tech" href="#skills" sx={{ zIndex: 0 }}>
@@ -48,18 +67,7 @@ const Skills = () => {
             gap: 3,
           }}
         >
-          <Card
-            sx={{
-              width: '100%',
-              height: '25%',
-              backgroundColor: '#18181b',
-              border: '2px solid #27272a',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
-              },
-            }}
-          >
+          <Card sx={skillCardSx}>
             <CardHeader title="Languages" />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Languages.map((language) => (
@@ -67,18 +75,7 @@ const Skills = () => {
               ))}
             </CardContent>
           </Card>
-          <Card
-            sx={{
-              width: '100%',
-              height: '25%',
-              backgroundColor: '#18181b',
-              border: '2px solid #27272a',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
-              },
-            }}
-          >
+          <Card sx={skillCardSx}>
             <CardHeader title="Frameworks" />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Frameworks.map((framework) => (
@@ -86,18 +83,7 @@ const Skills = () => {
               ))}
             </CardContent>
           </Card>
-          <Card
-            sx={{
-              width: '100%',
-              height: '25%',
-              backgroundColor: '#18181b',
-              border: '2px solid #27272a',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
-              },
-            }}
-          >
+          <Card sx={skillCardSx}>
             <CardHeader title="Tools" />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Tools.map((tool) => (

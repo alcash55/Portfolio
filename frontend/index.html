@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
 
+    <!-- GitHub Pages SPA redirect decode. Pairs with public/404.html: when a
+         direct hit on an unknown path bounces through 404.html, it encodes
+         the original path into a query string and redirects here. This
+         restores it via history.replaceState (no reload) before the app
+         mounts, so React Router sees the real path and can render its own
+         not-found page. https://github.com/rafgraph/spa-github-pages -->
+    <script>
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(null, '', l.pathname.slice(0, -1) + decoded + l.hash);
+        }
+      })(window.location);
+    </script>
+
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -18,6 +39,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1a1a1a" />
     <meta name="color-scheme" content="dark" />
+
+    <!-- Description -->
+    <meta
+      name="description"
+      content="Portfolio of Alex Cash, a software engineer who builds clean, scalable full-stack products with React, TypeScript, and Go."
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Alex Cash - Software Engineer" />
+    <meta
+      property="og:description"
+      content="Software engineer building clean, scalable full-stack products with React, TypeScript, and Go. Explore projects, experience, and skills."
+    />
+    <meta property="og:url" content="https://alcash55.github.io%BASE_URL%" />
+    <meta property="og:image" content="https://alcash55.github.io%BASE_URL%og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Alex Cash - Software Engineer" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Alex Cash - Software Engineer" />
+    <meta
+      name="twitter:description"
+      content="Software engineer building clean, scalable full-stack products with React, TypeScript, and Go. Explore projects, experience, and skills."
+    />
+    <meta name="twitter:image" content="https://alcash55.github.io%BASE_URL%og-image.png" />
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">

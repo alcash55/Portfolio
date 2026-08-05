@@ -14,6 +14,22 @@ export const blueTheme: ThemeOptions = createTheme({
       paper: '#24344d',
     },
   },
+  components: {
+    // See darkTheme.ts for why this exists and why the ring color is fixed
+    // white rather than `currentColor`: MUI's ButtonBase sets `outline: 0`
+    // and expects the theme to restore a focus-visible indicator, which
+    // none of this project's themes did.
+    MuiButtonBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          '&.Mui-focusVisible': {
+            outline: `2px solid ${theme.palette.common.white}`,
+            outlineOffset: 2,
+          },
+        }),
+      },
+    },
+  },
   typography: {
     fontFamily: 'public-sans, sans-serif',
     overline: {
