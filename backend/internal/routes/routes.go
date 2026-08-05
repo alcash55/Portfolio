@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"slices"
@@ -45,24 +44,28 @@ func isLocalhost(origin string) bool {
 func New(cfg config.Config) *gin.Engine {
 	router := gin.Default()
 
-	// Render terminates TLS at its own reverse proxy, so every request this
-	// process sees arrives from that proxy, not the visitor - the direct
-	// peer address (what ClientIP() falls back to) would be Render's IP for
-	// every visitor, putting the whole site in one rate-limit bucket.
+	// No explicit router.SetTrustedProxies() call here, deliberately.
 	//
-	// Trusting all peers here makes gin honor X-Forwarded-For so ClientIP()
-	// returns the visitor's IP instead. Render's own proxy IP isn't a
-	// published, stable range we could pin to instead, so this is as
-	// specific as the trust config can get: the header is spoofable by
-	// anyone willing to set it directly on a request. That's an accepted
-	// tradeoff - it stops casual/naive flooding of the public contact-form
-	// webhook, not a determined attacker forging the header. See
-	// TEAM-BRIEF.md B1.
-	if err := router.SetTrustedProxies([]string{"0.0.0.0/0", "::/0"}); err != nil {
-		// Only returns an error for a malformed CIDR/IP in the literal list
-		// above, so this can only fire if that list is edited incorrectly.
-		log.Fatalf("routes: SetTrustedProxies: %v", err)
-	}
+	// It was added for an earlier version of the B1 rate limiter, which
+	// keyed on gin's c.ClientIP(). That turned out to be a real bypass:
+	// trusting every peer (the only option, since Render's proxy IP isn't a
+	// published, stable range to pin to) also trusts every entry *inside*
+	// X-Forwarded-For, so ClientIP() walks to the LEFTMOST entry - the one
+	// fully under the client's control. Verified empirically: rotating a
+	// forged header defeated the limiter completely (0/40 requests
+	// blocked). The rate limiter (internal/ratelimit) no longer depends on
+	// trusted-proxy config at all - it extracts its own key directly from
+	// the header (see ratelimit.clientKey), taking the rightmost entry,
+	// which a client cannot influence.
+	//
+	// Worth keeping as a note for whoever looks at this next: gin's own
+	// New()/Default() already default trustedCIDRs to 0.0.0.0/0 and ::/0
+	// (confirmed by reading gin.go) - so calling SetTrustedProxies with
+	// those same values, as this code used to, was never actually changing
+	// gin's behavior; it only made an existing default explicit. That
+	// default still applies to any other c.ClientIP() consumer (currently
+	// just gin's own access-log Logger middleware), which is a low-stakes,
+	// informational-only use of a spoofable value.
 
 	corsConfig := cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,
