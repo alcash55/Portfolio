@@ -3,6 +3,27 @@
   <head>
     <meta charset="UTF-8" />
 
+    <!-- GitHub Pages SPA redirect decode. Pairs with public/404.html: when a
+         direct hit on an unknown path bounces through 404.html, it encodes
+         the original path into a query string and redirects here. This
+         restores it via history.replaceState (no reload) before the app
+         mounts, so React Router sees the real path and can render its own
+         not-found page. https://github.com/rafgraph/spa-github-pages -->
+    <script>
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(null, '', l.pathname.slice(0, -1) + decoded + l.hash);
+        }
+      })(window.location);
+    </script>
+
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
