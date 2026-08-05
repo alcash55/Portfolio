@@ -177,10 +177,11 @@ func contactBody(t *testing.T) []byte {
 }
 
 // postContactFrom posts a valid contact submission from remoteAddr (the
-// simulated direct TCP peer). SetTrustedProxies(0.0.0.0/0) in New() makes
-// ClientIP() fall back to this when no X-Forwarded-For header is set, which
-// is exactly what lets these tests simulate distinct visitor IPs without
-// touching that header.
+// simulated direct TCP peer). The rate limiter keys on the rightmost
+// X-Forwarded-For entry and falls back to RemoteAddr's host when that header
+// is absent, which is exactly what lets these tests simulate distinct visitor
+// IPs without touching the header. Note this deliberately does not go through
+// gin's ClientIP(): see internal/ratelimit/middleware.go for why.
 func postContactFrom(router *gin.Engine, remoteAddr string, body []byte) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/contact", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
