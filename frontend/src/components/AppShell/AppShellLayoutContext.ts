@@ -1,19 +1,24 @@
-import { createContext, createElement, Fragment, useContext } from 'react';
+import { createContext, useContext } from 'react';
 
 /**
- * AppShellLayoutContext context that provides the layout and a function to toggle the layout
- *
- * The default `layout` below is only a typing placeholder: `AppShellProvider` always supplies
- * the real layout before any consumer reads it. It intentionally avoids importing a concrete
- * layout component (e.g. `Default`) here — `Default` -> `NavBar` -> `SettingsDrawer` ->
- * `LayoutButton` already imports `useAppShellLayout` from this file, so doing so would create a
- * circular import that throws "Cannot access 'Default' before initialization" at runtime.
+ * The three chrome variants `AppShellProvider` can render. Renamed from a stored
+ * `JSX.Element` (see git history) to a plain string so the shell can render one
+ * stable wrapper component and vary its chrome by prop instead of swapping React
+ * component types — swapping types was unmounting/remounting everything below the
+ * shell (including in-progress form state) on every breakpoint crossing.
+ */
+export type AppShellLayoutMode = 'default' | 'mobile' | 'sideNav';
+
+/**
+ * AppShellLayoutContext context that provides the current layout mode and a function to
+ * change it (used by `LayoutButton` in the settings drawer to switch between top-nav and
+ * side-nav on non-mobile viewports).
  */
 export const AppShellLayoutContext = createContext<{
-  layout: JSX.Element;
+  layout: AppShellLayoutMode;
   toggleLayout: (newLayout: string) => void;
 }>({
-  layout: createElement(Fragment),
+  layout: 'default',
   toggleLayout: () => {},
 });
 
