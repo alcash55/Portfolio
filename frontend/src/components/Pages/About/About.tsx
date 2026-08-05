@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -10,6 +11,8 @@ import {
   Typography,
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
+import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
+import resumePdf from '../../../assets/AlexResume.pdf';
 
 const About = () => {
   return (
@@ -32,7 +35,7 @@ const About = () => {
           titleTypographyProps={{
             textAlign: 'start',
             variant: 'h4',
-            component: 'h1',
+            component: 'h2',
           }}
           avatar={
             <IconButton aria-label="navigate to about" href="#about" sx={{ zIndex: 0 }}>
@@ -58,7 +61,7 @@ const About = () => {
             <Grid item xs={12} md={6}>
               <Stack spacing={3}>
                 <Box>
-                  <Typography variant="h5" component="h2" gutterBottom>
+                  <Typography variant="h5" component="h3" gutterBottom>
                     Hey, I’m Alex Cash — Software Engineer
                   </Typography>
                   <Typography variant="body1" paragraph>
@@ -71,12 +74,27 @@ const About = () => {
                     backend performance. I love working with React, TypeScript, and Go, and I lean
                     on modern tooling to move fast and keep things maintainable.
                   </Typography>
+                  <Button
+                    href={resumePdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outlined"
+                    startIcon={<DescriptionOutlined />}
+                    aria-label="View Alex Cash's resume PDF (opens in a new tab)"
+                    // primary.light, not the outlined-button default of primary.main:
+                    // primary.main only clears WCAG AA body-text contrast (4.5:1)
+                    // against paper in the dark and red themes; in blue it measures
+                    // 3.98:1. primary.light clears AA in all three.
+                    sx={{ mt: 2, color: 'primary.light', borderColor: 'primary.light' }}
+                  >
+                    View Resume
+                  </Button>
                 </Box>
 
                 <Divider />
 
                 <Box>
-                  <Typography variant="h6" component="h3" gutterBottom>
+                  <Typography variant="h6" component="h4" gutterBottom>
                     What Drives Me
                   </Typography>
                   <Stack component="ul" sx={{ pl: 3, gap: 1 }}>
@@ -98,7 +116,7 @@ const About = () => {
                 <Divider />
 
                 <Box>
-                  <Typography variant="h6" component="h3" gutterBottom>
+                  <Typography variant="h6" component="h4" gutterBottom>
                     Outside of Work
                   </Typography>
                   <Typography variant="body2" color="text.secondary">

@@ -1,4 +1,12 @@
-import { Stack, Card, CardHeader, IconButton, CardContent, Typography } from '@mui/material';
+import {
+  Stack,
+  Card,
+  CardHeader,
+  IconButton,
+  CardContent,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import { experienceData } from './experienceData';
 
@@ -13,6 +21,8 @@ import {
 } from '@mui/lab';
 
 const Experience = () => {
+  const theme = useTheme();
+
   return (
     <Stack id="experience" component={'section'} sx={{ height: 'auto', width: '100%' }}>
       <Card
@@ -33,7 +43,7 @@ const Experience = () => {
           titleTypographyProps={{
             textAlign: 'start',
             variant: 'h4',
-            component: 'h1',
+            component: 'h2',
           }}
           avatar={
             <IconButton aria-label="navigate to contact" href="#experience" sx={{ zIndex: 0 }}>
@@ -83,8 +93,8 @@ const Experience = () => {
                     sx={{
                       width: '100%',
                       height: '100%',
-                      backgroundColor: '#18181b',
-                      border: '2px solid #27272a',
+                      backgroundColor: theme.palette.background.default,
+                      border: `2px solid ${theme.palette.divider}`,
                       transition: 'all 0.3s ease',
                       '&:hover': {
                         // border: `2px solid gray`,

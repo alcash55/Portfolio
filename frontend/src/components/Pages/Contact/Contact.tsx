@@ -24,6 +24,10 @@ const Contact = () => {
       textDecoration: 'underline',
     },
   };
+  // primary.light, not the MuiLink/ListItem default of primary.main: primary.main
+  // only clears WCAG AA body-text contrast (4.5:1) against paper in the dark and
+  // red themes; in blue it measures 3.98:1. primary.light clears AA in all three.
+  const listLinkSx = { width: 'fit-content', p: 0, color: 'primary.light' };
   const headerStyles = {
     fontSize: largeMobile ? '1.5rem' : '2rem',
     textAlign: 'start',
@@ -33,17 +37,14 @@ const Contact = () => {
 
   const ConnectList = (
     <Stack spacing={1} width={'100%'}>
-      <Typography variant="h3" component="h2" sx={headerStyles}>
+      <Typography variant="h3" component="h3" sx={headerStyles}>
         Lets Connect!
       </Typography>
       <List sx={{ p: 0, width: '100%' }}>
         <ListItem
           component={Link}
           href="mailto:alex.e.cash28@gmail.com"
-          sx={{
-            width: 'fit-content',
-            p: 0,
-          }}
+          sx={listLinkSx}
         >
           <ListItemText primary="Email" secondary="alex.e.cash28@gmail.com" sx={listItemStyles} />
         </ListItem>
@@ -52,7 +53,8 @@ const Contact = () => {
           component={Link}
           href="https://www.linkedin.com/in/alexander-cash"
           target="_blank"
-          sx={{ width: 'fit-content', p: 0 }}
+          rel="noopener noreferrer"
+          sx={listLinkSx}
         >
           <ListItemText
             primary="LinkedIn"
@@ -65,7 +67,8 @@ const Contact = () => {
           component={Link}
           href="https://github.com/alcash55"
           target="_blank"
-          sx={{ width: 'fit-content', p: 0 }}
+          rel="noopener noreferrer"
+          sx={listLinkSx}
         >
           <ListItemText primary="GitHub" secondary="github.com/alcash55" sx={listItemStyles} />
         </ListItem>
@@ -93,7 +96,7 @@ const Contact = () => {
           titleTypographyProps={{
             textAlign: 'start',
             variant: 'h4',
-            component: 'h1',
+            component: 'h2',
           }}
           avatar={
             <IconButton aria-label="navigate to contact" href="#contact" sx={{ zIndex: 0 }}>
