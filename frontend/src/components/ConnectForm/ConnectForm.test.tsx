@@ -18,32 +18,79 @@ describe('ConnectForm', () => {
     render(<ConnectForm />);
 
     const sendButton = screen.getByRole('button', { name: /send/i });
-    expect(
-      sendButton,
-      'Send should be disabled on an empty, untouched form',
-    ).toBeDisabled();
+    expect(sendButton, 'Send should be disabled on an empty, untouched form').toBeDisabled();
   });
 
-  it('shows no validation error banner on mount, before the user has typed anything (F3)', () => {
+  it('shows no field errors on mount, before the user has typed anything (F4)', () => {
     render(<ConnectForm />);
 
     expect(
       screen.queryByText(/please fill out all required sections/i),
-      'an untouched form should not show a validation error banner',
+      'an untouched form should not show any field error',
     ).not.toBeInTheDocument();
   });
 
-  it('shows the validation error banner once the user types into a field and leaves it invalid (F3)', async () => {
+  it('shows the name field error only once the name field itself has been touched and left invalid (F4)', async () => {
     const user = userEvent.setup();
     render(<ConnectForm />);
 
-    // Type into name only; email and message are still missing, so the form
-    // remains invalid, but the user has now interacted with it.
-    await user.type(screen.getByLabelText(/name/i), 'Alex');
+    // Type into email only; name and message remain untouched and empty.
+    await user.type(screen.getByLabelText(/email/i), 'alex@example.com');
 
     expect(
-      screen.getByText(/please fill out all required sections/i),
-      'expected the error banner to appear once the user has touched an invalid form',
+      screen.queryByText(/please fill out all required sections \(name\)/i),
+      "the name field's own error should stay hidden until the name field is touched",
+    ).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/name/i), 'A');
+    await user.clear(screen.getByLabelText(/name/i));
+
+    expect(
+      screen.getByText(/please fill out all required sections \(name\)/i),
+      'expected the name error once the name field has been touched and left blank',
+    ).toBeInTheDocument();
+  });
+
+  it('shows the email format error on the email field once it is touched with a malformed value (F4)', async () => {
+    const user = userEvent.setup();
+    render(<ConnectForm />);
+
+    await user.type(screen.getByLabelText(/email/i), 'not-an-email');
+
+    expect(
+      screen.getByText(/please enter a valid email address/i),
+      'expected the email-format error to attach to the email field once touched',
+    ).toBeInTheDocument();
+    // The other, still-untouched fields must not show an error.
+    expect(
+      screen.queryByText(/please fill out all required sections \(name\)/i),
+      'the untouched name field must not show an error just because email is invalid',
+    ).not.toBeInTheDocument();
+  });
+
+  it('attempting to submit an invalid form reveals every field error, even untouched ones', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<ConnectForm />);
+
+    // Fill only the name field; email and message stay blank and untouched.
+    await user.type(screen.getByLabelText(/name/i), 'Alex');
+
+    // Send is disabled, so drive the native form submit directly (this is
+    // what a browser does on Enter in a text field; see F5's dedicated
+    // browser verification for the real Enter-key path).
+    const form = container.querySelector('form');
+    expect(form, 'expected the form to render as a real <form> element (F5)').not.toBeNull();
+    form?.requestSubmit
+      ? form.requestSubmit()
+      : form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+
+    expect(
+      await screen.findByText(/please fill out all required sections \(email\)/i),
+      'expected the untouched email field error to appear after an attempted submit',
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/please fill out all required sections \(message\)/i),
+      'expected the untouched message field error to appear after an attempted submit',
     ).toBeInTheDocument();
   });
 
@@ -87,6 +134,50 @@ describe('ConnectForm', () => {
     ).toBeEnabled();
   });
 
+  it('renders a hidden honeypot input named "website" that is not reachable by keyboard or screen reader (F3)', () => {
+    const { container } = render(<ConnectForm />);
+
+    const honeypot = container.querySelector('input[name="website"]');
+    expect(honeypot, 'expected a real input named "website"').not.toBeNull();
+    expect(honeypot, 'the honeypot must be removed from the tab order').toHaveAttribute(
+      'tabindex',
+      '-1',
+    );
+    expect(honeypot, 'the honeypot must be hidden from assistive tech').toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    // The contract explicitly forbids display:none/hidden (bots skip those).
+    expect(honeypot, 'the honeypot must not use display:none').not.toHaveStyle({ display: 'none' });
+  });
+
+  it('shows a loading state on Send while a submit is in flight and disables it against a double-submit (F1)', async () => {
+    let resolveFetch: (value: Response) => void = () => {};
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveFetch = resolve;
+          }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<ConnectForm />);
+
+    await fillValidForm(user);
+    const sendButton = screen.getByRole('button', { name: /send/i });
+    await user.click(sendButton);
+
+    expect(
+      screen.getByRole('button', { name: /sending/i }),
+      'expected the button to switch to a loading label while the request is in flight',
+    ).toBeDisabled();
+
+    resolveFetch({ ok: true } as Response);
+    await waitFor(() => screen.getByRole('alert'));
+  });
+
   it('shows a success notification after a successful submit', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true } as Response));
     const user = userEvent.setup();
@@ -102,20 +193,28 @@ describe('ConnectForm', () => {
     ).toHaveTextContent(/message sent successfully/i);
   });
 
-  it('shows a failure notification after a failed submit', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 502 } as Response));
-    const user = userEvent.setup();
-    render(<ConnectForm />);
+  it.each([
+    [400, /please check your details and try again/i],
+    [413, /that message is too long/i],
+    [429, /too many messages/i],
+    [502, /couldn't send right now/i],
+  ])(
+    'shows the status-specific failure copy for a %i response (F2)',
+    async (status, expectedCopy) => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status } as Response));
+      const user = userEvent.setup();
+      render(<ConnectForm />);
 
-    await fillValidForm(user);
-    await user.click(screen.getByRole('button', { name: /send/i }));
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /send/i }));
 
-    const alert = await screen.findByRole('alert');
-    expect(
-      alert,
-      `expected a failure notification after a non-ok response, got: "${alert.textContent}"`,
-    ).toHaveTextContent(/unable to send message/i);
-  });
+      const alert = await screen.findByRole('alert');
+      expect(
+        alert,
+        `expected the ${status} mapping's copy, got: "${alert.textContent}"`,
+      ).toHaveTextContent(expectedCopy);
+    },
+  );
 
   it('form fields clear after a successful submit (F2)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true } as Response));
@@ -153,17 +252,36 @@ describe('ConnectForm', () => {
 
     // Losing typed text because the API was cold is a worse bug than the one
     // this fix addresses — a failed submit must not clear the form.
-    expect(
-      screen.getByLabelText(/name/i),
-      'name should survive a failed submit',
-    ).toHaveValue('Alex');
-    expect(
-      screen.getByLabelText(/email/i),
-      'email should survive a failed submit',
-    ).toHaveValue('alex@example.com');
-    expect(
-      screen.getByLabelText(/message/i),
-      'message should survive a failed submit',
-    ).toHaveValue('Hello there, this is a test message.');
+    expect(screen.getByLabelText(/name/i), 'name should survive a failed submit').toHaveValue(
+      'Alex',
+    );
+    expect(screen.getByLabelText(/email/i), 'email should survive a failed submit').toHaveValue(
+      'alex@example.com',
+    );
+    expect(screen.getByLabelText(/message/i), 'message should survive a failed submit').toHaveValue(
+      'Hello there, this is a test message.',
+    );
+  });
+
+  it('submits via the form (Enter-equivalent native submit), not just a click handler (F5)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true } as Response));
+    const user = userEvent.setup();
+    const { container } = render(<ConnectForm />);
+
+    await fillValidForm(user);
+
+    const form = container.querySelector('form');
+    expect(form, 'expected a real <form> element wrapping the inputs (F5)').not.toBeNull();
+
+    // jsdom's requestSubmit runs native constraint validation, invokes the
+    // form's submit event, and respects a disabled default submit button --
+    // exactly the mechanism a real Enter key press relies on. Full
+    // Enter-key browser verification is covered separately (see report).
+    form?.requestSubmit();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert, 'expected a native form submit to reach the same success path').toHaveTextContent(
+      /message sent successfully/i,
+    );
   });
 });

@@ -4,21 +4,21 @@ import EmojiPeople from '@mui/icons-material/EmojiPeople';
 import Home from '@mui/icons-material/Home';
 import Work from '@mui/icons-material/Work';
 import Menu from '@mui/icons-material/Menu';
-import {
-  Stack,
-  BottomNavigation,
-  BottomNavigationAction,
-  Fab,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import { PropsWithChildren, SyntheticEvent, useState } from 'react';
-import { useSettingDrawer } from '../useSettingsDrawer';
-import { SettingsDrawer } from '../SettingsDrawer';
+import { Fragment, SyntheticEvent, useState } from 'react';
+import { BottomNavigation, BottomNavigationAction, Fab, useMediaQuery, useTheme } from '@mui/material';
 
-export const Mobile = ({ children }: PropsWithChildren) => {
+interface MobileChromeProps {
+  setSettingDrawer: (value: boolean) => void;
+}
+
+/**
+ * The mobile layout's chrome only (settings FAB + bottom nav) — deliberately does not
+ * wrap `children`. `AppShellLayout` renders this as a sibling of the page content so
+ * content's position in the tree (and therefore its React state) is unaffected by this
+ * chrome mounting or unmounting when the layout mode changes.
+ */
+export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
   const [value, setValue] = useState('summary');
-  const { settingDrawer, setSettingDrawer } = useSettingDrawer();
 
   const theme = useTheme();
   const isLargeMobile = useMediaQuery(theme.breakpoints.down(425));
@@ -61,8 +61,7 @@ export const Mobile = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <Stack>
-      {children}
+    <Fragment>
       <Fab
         size="medium"
         color="secondary"
@@ -72,7 +71,6 @@ export const Mobile = ({ children }: PropsWithChildren) => {
       >
         <Menu />
       </Fab>
-      <SettingsDrawer settingDrawer={settingDrawer} setSettingDrawer={setSettingDrawer} />
       <BottomNavigation
         sx={{ width: '100%', position: 'fixed', bottom: 0 }}
         value={value}
@@ -91,6 +89,6 @@ export const Mobile = ({ children }: PropsWithChildren) => {
           />
         ))}
       </BottomNavigation>
-    </Stack>
+    </Fragment>
   );
 };

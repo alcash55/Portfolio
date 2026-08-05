@@ -4,9 +4,15 @@ interface ConnectNotificationProps {
   open: boolean;
   setClose: () => void;
   messageSent: boolean;
+  message: string;
 }
 
-const ConnectNotification = ({ open, setClose, messageSent }: ConnectNotificationProps) => {
+const ConnectNotification = ({
+  open,
+  setClose,
+  messageSent,
+  message,
+}: ConnectNotificationProps) => {
   return (
     <Snackbar
       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -26,9 +32,7 @@ const ConnectNotification = ({ open, setClose, messageSent }: ConnectNotificatio
           fontWeight: 600,
         }}
       >
-        {messageSent
-          ? 'Message sent successfully!'
-          : 'Unable to send message, please try again later'}
+        {message}
       </Alert>
     </Snackbar>
   );

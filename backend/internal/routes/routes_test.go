@@ -1,8 +1,11 @@
 package routes
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -147,5 +150,152 @@ func TestCORS_AllowAnyLocalhost_RandomPort(t *testing.T) {
 
 	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != origin {
 		t.Errorf("OPTIONS preflight from %s with AllowAnyLocalhost=true: Access-Control-Allow-Origin = %q, want %q", origin, got, origin)
+	}
+}
+
+// --- B1: rate limiting wired onto POST /api/v1/contact ---
+//
+// The token-bucket algorithm itself (refill, per-key independence, stale
+// eviction, concurrency) is unit tested with an injected fake clock in
+// internal/ratelimit. These tests only prove the wiring: New() actually
+// applies the limiter to the contact route, in the right shape, and nowhere
+// else.
+
+// contactBody is a minimal, valid contact payload - these tests care about
+// the rate limiter, not field validation.
+func contactBody(t *testing.T) []byte {
+	t.Helper()
+	body, err := json.Marshal(map[string]string{
+		"name":    "Ada Lovelace",
+		"email":   "ada@example.com",
+		"message": "hello",
+	})
+	if err != nil {
+		t.Fatalf("json.Marshal contact body: %v", err)
+	}
+	return body
+}
+
+// postContactFrom posts a valid contact submission from remoteAddr (the
+// simulated direct TCP peer). The rate limiter keys on the rightmost
+// X-Forwarded-For entry and falls back to RemoteAddr's host when that header
+// is absent, which is exactly what lets these tests simulate distinct visitor
+// IPs without touching the header. Note this deliberately does not go through
+// gin's ClientIP(): see internal/ratelimit/middleware.go for why.
+func postContactFrom(router *gin.Engine, remoteAddr string, body []byte) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/contact", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.RemoteAddr = remoteAddr
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	return rec
+}
+
+// contactRouterWithWebhook builds a router wired to a fake webhook that
+// always succeeds, so a request only fails here if the rate limiter (or
+// something else in front of the handler) rejects it.
+func contactRouterWithWebhook(t *testing.T) *gin.Engine {
+	t.Helper()
+	webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(webhook.Close)
+
+	cfg := testConfig([]string{"https://example.com"}, false)
+	cfg.WebhookURL = webhook.URL
+	return New(cfg)
+}
+
+// TestRateLimit_ContactEndpoint_BurstThenBlocked drives exactly the
+// configured burst (5) of requests from one IP through the real route
+// wiring and confirms they all succeed, then that the very next request is
+// rejected with 429, the contract's error body, and a positive Retry-After
+// header.
+func TestRateLimit_ContactEndpoint_BurstThenBlocked(t *testing.T) {
+	router := contactRouterWithWebhook(t)
+	body := contactBody(t)
+	const ip = "203.0.113.10:1"
+
+	for i := 1; i <= contactRateBurst; i++ {
+		rec := postContactFrom(router, ip, body)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("request #%d of %d (within burst): status = %d, want %d; body: %s", i, contactRateBurst, rec.Code, http.StatusOK, rec.Body.String())
+		}
+	}
+
+	rec := postContactFrom(router, ip, body)
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("request #%d (burst exhausted): status = %d, want %d; body: %s", contactRateBurst+1, rec.Code, http.StatusTooManyRequests, rec.Body.String())
+	}
+
+	const wantBody = `{"error":"too many requests"}`
+	if got := rec.Body.String(); got != wantBody {
+		t.Errorf("429 response body = %q, want %q (see TEAM-BRIEF.md contract table)", got, wantBody)
+	}
+
+	retryAfter := rec.Header().Get("Retry-After")
+	if retryAfter == "" {
+		t.Fatal("429 response: Retry-After header is missing, want it set per the contract")
+	}
+	seconds, err := strconv.Atoi(retryAfter)
+	if err != nil {
+		t.Fatalf("429 response: Retry-After = %q is not an integer number of seconds: %v", retryAfter, err)
+	}
+	if seconds <= 0 {
+		t.Errorf("429 response: Retry-After = %d seconds, want a positive value", seconds)
+	}
+}
+
+// TestRateLimit_PerIPIndependent proves one IP being rate limited does not
+// affect a different IP hitting the same route, using the real ClientIP()
+// resolution path (RemoteAddr, since no X-Forwarded-For is set).
+func TestRateLimit_PerIPIndependent(t *testing.T) {
+	router := contactRouterWithWebhook(t)
+	body := contactBody(t)
+
+	const exhaustedIP = "203.0.113.20:1"
+	for i := 1; i <= contactRateBurst; i++ {
+		if rec := postContactFrom(router, exhaustedIP, body); rec.Code != http.StatusOK {
+			t.Fatalf("priming %s, request #%d: status = %d, want %d", exhaustedIP, i, rec.Code, http.StatusOK)
+		}
+	}
+	if rec := postContactFrom(router, exhaustedIP, body); rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("test setup: %s should now be rate limited, got status %d", exhaustedIP, rec.Code)
+	}
+
+	const freshIP = "203.0.113.21:1"
+	rec := postContactFrom(router, freshIP, body)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("a different IP (%s): status = %d, want %d — one IP's rate limit must not affect another", freshIP, rec.Code, http.StatusOK)
+	}
+}
+
+// TestRateLimit_HealthzNeverLimited is B4's verification: /healthz must not
+// sit behind the contact rate limiter, or devops's ~10-minute keep-alive
+// ping (fine on its own) plus any burst of real contact-form traffic could
+// tip /healthz into 429 - a self-inflicted outage on the endpoint that
+// exists to prove the service is up.
+func TestRateLimit_HealthzNeverLimited(t *testing.T) {
+	router := contactRouterWithWebhook(t)
+	body := contactBody(t)
+	const ip = "203.0.113.30:1"
+
+	// Exhaust the contact limiter for this IP...
+	for i := 1; i <= contactRateBurst; i++ {
+		postContactFrom(router, ip, body)
+	}
+	if rec := postContactFrom(router, ip, body); rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("test setup: contact endpoint should now be rate limited for %s, got status %d", ip, rec.Code)
+	}
+
+	// ...then hit /healthz repeatedly from the very same IP.
+	for i := 1; i <= contactRateBurst*3; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+		req.RemoteAddr = ip
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("GET /healthz call #%d from an IP whose contact-endpoint budget is exhausted: status = %d, want %d (healthz must never be rate limited)", i, rec.Code, http.StatusOK)
+		}
 	}
 }
