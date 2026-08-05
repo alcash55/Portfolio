@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -15,6 +16,13 @@ import (
 // maxBodyBytes caps how much of an inbound contact request we are willing to
 // read, so a large POST can't exhaust memory.
 const maxBodyBytes = 64 << 10 // 64 KiB
+
+// invalidSubmissionMessage is returned to the client for any validation
+// failure. gin's binding errors (e.g. "Key: 'message.Email' Error:Field
+// validation for 'Email' failed on the 'email' tag") are internal detail,
+// not user-presentable text, so they are logged server-side instead of sent
+// to the client. See TEAM-BRIEF.md B3.
+const invalidSubmissionMessage = "please check your details and try again"
 
 // message is the contact-form payload accepted by SendMessage. The field caps
 // keep the rendered Discord message under that API's 2000-character limit.
@@ -60,7 +68,10 @@ func (h *Handler) SendMessage(c *gin.Context) {
 			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "message too large"})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// The binding error (err) is internal detail - field names, tag
+		// names, gin's own message format - so it stays server-side.
+		log.Printf("contact: rejecting submission: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": invalidSubmissionMessage})
 		return
 	}
 
