@@ -24,20 +24,28 @@ describe('ConnectForm', () => {
     ).toBeDisabled();
   });
 
-  it(
-    'KNOWN ISSUE (Sprint 3): validation error text is visible before the user has ' +
-      'typed anything, because formErrors is derived from empty initial state on ' +
-      'first render. Documented here as current behavior, not fixed this sprint.',
-    () => {
-      render(<ConnectForm />);
+  it('shows no validation error banner on mount, before the user has typed anything (F3)', () => {
+    render(<ConnectForm />);
 
-      expect(
-        screen.getByText(/please fill out all required sections/i),
-        'expected the current (undesirable) behavior: an error is shown immediately, ' +
-          'before any user interaction',
-      ).toBeInTheDocument();
-    },
-  );
+    expect(
+      screen.queryByText(/please fill out all required sections/i),
+      'an untouched form should not show a validation error banner',
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the validation error banner once the user types into a field and leaves it invalid (F3)', async () => {
+    const user = userEvent.setup();
+    render(<ConnectForm />);
+
+    // Type into name only; email and message are still missing, so the form
+    // remains invalid, but the user has now interacted with it.
+    await user.type(screen.getByLabelText(/name/i), 'Alex');
+
+    expect(
+      screen.getByText(/please fill out all required sections/i),
+      'expected the error banner to appear once the user has touched an invalid form',
+    ).toBeInTheDocument();
+  });
 
   it('keeps Send disabled while the form is only partially filled', async () => {
     const user = userEvent.setup();
@@ -109,25 +117,53 @@ describe('ConnectForm', () => {
     ).toHaveTextContent(/unable to send message/i);
   });
 
-  // KNOWN ISSUE (Sprint 3): the TextFields are uncontrolled (no `value` prop bound
-  // to the hook's name/email/message state), so nothing ever resets them after a
-  // successful submit. Written against current behavior per Decision 4 — do not fix.
-  it.skip(
-    'KNOWN ISSUE: form fields do NOT clear after a successful submit (uncontrolled inputs)',
-    async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true } as Response));
-      const user = userEvent.setup();
-      render(<ConnectForm />);
+  it('form fields clear after a successful submit (F2)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true } as Response));
+    const user = userEvent.setup();
+    render(<ConnectForm />);
 
-      await fillValidForm(user);
-      await user.click(screen.getByRole('button', { name: /send/i }));
+    await fillValidForm(user);
+    await user.click(screen.getByRole('button', { name: /send/i }));
 
-      await waitFor(() => screen.getByRole('alert'));
+    await waitFor(() => screen.getByRole('alert'));
 
-      // This is what a user would expect and is NOT what happens today — the
-      // inputs are uncontrolled, so their DOM value survives the submit even
-      // though the hook's `name`/`email`/`message` state was never reset either.
-      expect(screen.getByLabelText(/name/i)).toHaveValue('');
-    },
-  );
+    expect(
+      screen.getByLabelText(/name/i),
+      'name should be cleared after a successful submit',
+    ).toHaveValue('');
+    expect(
+      screen.getByLabelText(/email/i),
+      'email should be cleared after a successful submit',
+    ).toHaveValue('');
+    expect(
+      screen.getByLabelText(/message/i),
+      'message should be cleared after a successful submit',
+    ).toHaveValue('');
+  });
+
+  it('form fields retain their values after a failed submit (F2)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 502 } as Response));
+    const user = userEvent.setup();
+    render(<ConnectForm />);
+
+    await fillValidForm(user);
+    await user.click(screen.getByRole('button', { name: /send/i }));
+
+    await waitFor(() => screen.getByRole('alert'));
+
+    // Losing typed text because the API was cold is a worse bug than the one
+    // this fix addresses — a failed submit must not clear the form.
+    expect(
+      screen.getByLabelText(/name/i),
+      'name should survive a failed submit',
+    ).toHaveValue('Alex');
+    expect(
+      screen.getByLabelText(/email/i),
+      'email should survive a failed submit',
+    ).toHaveValue('alex@example.com');
+    expect(
+      screen.getByLabelText(/message/i),
+      'message should survive a failed submit',
+    ).toHaveValue('Hello there, this is a test message.');
+  });
 });

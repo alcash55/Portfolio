@@ -70,9 +70,6 @@ describe('useConnectForm', () => {
     it('returns an empty string once every field is valid', () => {
       const { result } = renderHook(() => useConnectForm());
 
-      // See the "BUG" test below: the email-format check reads the hook's own
-      // `email` state, not the argument passed to validateForm, so the state
-      // must be synced first for this call to reflect the arguments given.
       act(() => {
         result.current.setName('Alex');
         result.current.setEmail('alex@example.com');
@@ -85,37 +82,31 @@ describe('useConnectForm', () => {
     });
 
     it(
-      'BUG: the email-format check validates the hook state, not the "email" argument ' +
-        '(known issue, not fixed this sprint — see report)',
+      'validateForm is a pure function of its arguments: a valid email argument ' +
+        'validates even when hook state holds something different (fixed F1)',
       () => {
         const { result } = renderHook(() => useConnectForm());
 
         // Never call setEmail: the hook's internal `email` state stays ''.
-        // validateForm is documented as validateForm(name, email, message), so a
-        // caller would reasonably expect this call to validate the 'alex@example.com'
-        // argument and return ''. The first three checks (name/email/message
-        // truthiness) do use the arguments and all pass. But the fourth check
-        // calls validateEmail(), which closes over the hook's own `email` state
-        // (still '', never synced) instead of the argument — so it reports
-        // "invalid email format" for an email that was never actually checked.
+        // validateForm is documented as validateForm(name, email, message), and now
+        // threads its `email` argument through to validateEmail instead of reading
+        // stale/unset hook state, so this must validate the argument and return ''.
         const error = result.current.validateForm('Alex', 'alex@example.com', 'Hello there');
 
         expect(
           error,
-          'validateForm ignored its own "email" argument for the format check and used ' +
-            `the (unset) hook state instead; got: ${JSON.stringify(error)}. This means ` +
-            'validateForm is not a pure function of its arguments — only safe to call ' +
-            "with the hook's own current name/email/message state, exactly as ConnectForm.tsx does.",
-        ).toBe('Please enter a valid email address');
+          'validateForm should validate the "email" argument directly, independent of ' +
+            `hook state; got: ${JSON.stringify(error)}`,
+        ).toBe('');
       },
     );
   });
 
-  describe('email validation (via validateForm, with state synced first)', () => {
+  describe('email validation (via validateForm)', () => {
     // validateEmail is not exported directly, so we drive it through validateForm.
-    // Per the BUG test above, validateEmail() reads the hook's *state*, so the
-    // state must be set via setEmail before calling validateForm — mirroring how
-    // ConnectForm.tsx actually uses this hook (state and args always match there).
+    // validateForm validates its own arguments (F1), so syncing hook state via
+    // setEmail first is not required for this call to reflect the given email —
+    // it is still done here to mirror how ConnectForm.tsx actually uses the hook.
     const isValidEmail = (email: string) => {
       const { result } = renderHook(() => useConnectForm());
       act(() => {

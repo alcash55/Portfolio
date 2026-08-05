@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Box, Button, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import useConnectForm from './useConnectForm';
 import ConnectNotification from './ConnectNotification';
@@ -13,16 +14,23 @@ const ConnectForm = () => {
 
   const { open, setOpen, setClose, messageSent, setMessageSent } = useConnectNotification();
   const formErrors = validateForm(name, email, message);
+  // Tracks whether the user has interacted with any field yet, so the error
+  // banner doesn't render on an untouched form. Send stays disabled from
+  // formErrors regardless — this only controls whether the message is shown.
+  const [touched, setTouched] = useState(false);
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(425));
 
   const handleClick = async () => {
-    const message = await sendMessage();
+    const sent = await sendMessage();
 
-    if (!message) {
+    if (!sent) {
       setMessageSent(false);
     } else {
       setMessageSent(true);
+      setName('');
+      setEmail('');
+      setMessage('');
     }
     setOpen(true);
   };
@@ -42,7 +50,7 @@ const ConnectForm = () => {
         >
           Leave a message!
         </Typography>
-        {formErrors && (
+        {touched && formErrors && (
           <Typography variant="body1" component="h3" color={'rgb(244, 67, 54)'}>
             {formErrors}*
           </Typography>
@@ -54,7 +62,11 @@ const ConnectForm = () => {
             placeholder="John Doe"
             autoComplete="name"
             required
-            onChange={(e) => setName(e.target.value)}
+            value={name}
+            onChange={(e) => {
+              setTouched(true);
+              setName(e.target.value);
+            }}
           />
           <TextField
             id="email"
@@ -62,7 +74,11 @@ const ConnectForm = () => {
             placeholder="email@example.com"
             autoComplete="email"
             required
-            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+            onChange={(e) => {
+              setTouched(true);
+              setEmail(e.target.value);
+            }}
           />
         </Box>
         <TextField
@@ -72,7 +88,11 @@ const ConnectForm = () => {
           multiline
           rows={4}
           placeholder="Hey Alex, I'm interested in your work. I would love to connect and work together!"
-          onChange={(e) => setMessage(e.target.value)}
+          value={message}
+          onChange={(e) => {
+            setTouched(true);
+            setMessage(e.target.value);
+          }}
         />
         <Button
           variant="contained"

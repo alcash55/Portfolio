@@ -94,16 +94,13 @@ func TestLoad_MissingWebhookURL(t *testing.T) {
 	if !strings.Contains(err.Error(), "WEBHOOK_URL") {
 		t.Errorf("Load() with WEBHOOK_URL unset: error = %q, want it to mention WEBHOOK_URL", err.Error())
 	}
-	// Pin the current (inconsistent) behavior: unlike the PORT-missing case,
-	// this path returns a *populated* cfg alongside the error because PORT
-	// parsed successfully before the WEBHOOK_URL check ran. See report: this
-	// asymmetry (zero Config on PORT failure, populated Config on
-	// WEBHOOK_URL failure) is a real inconsistency worth flagging, not fixing.
-	if cfg.Port != 8080 {
-		t.Errorf("Load() with WEBHOOK_URL unset: cfg.Port = %d, want 8080 (cfg is populated despite the error on this path)", cfg.Port)
-	}
-	if isZeroConfig(cfg) {
-		t.Errorf("Load() with WEBHOOK_URL unset: cfg is the zero Config, want a populated Config (this pins the asymmetry with the PORT-missing case)")
+	// Every error path in Load() must return a zero Config{}, matching the
+	// PORT-missing case above. This used to return a populated cfg (PORT had
+	// already parsed successfully before the WEBHOOK_URL check ran), which
+	// was a trap for any future caller that reads the config on a non-nil
+	// error.
+	if !isZeroConfig(cfg) {
+		t.Errorf("Load() with WEBHOOK_URL unset: cfg = %+v, want zero Config{} on error", cfg)
 	}
 }
 
@@ -160,29 +157,42 @@ func TestLoad_AllowedOriginsWhitespaceAndEmptyEntries(t *testing.T) {
 	}
 }
 
-// TestLoad_AllowedOriginsOnlyCommasAndWhitespace pins a subtle interaction
-// called out explicitly in the sprint brief: when ALLOWED_ORIGINS is set but
-// contains nothing usable (e.g. " , , "), parseOrigins returns an empty
-// slice, which Load() cannot distinguish from "unset" — so it silently falls
-// back to the package defaults AND flips AllowAnyLocalhost to true, even
-// though an operator explicitly set the variable. This is arguably a footgun
-// (a deployment that sets ALLOWED_ORIGINS=" , , " by mistake would silently
-// get local-dev-permissive CORS instead of an error) but per Decision 4 we
-// pin current behavior rather than changing it. Flagged in the report.
-func TestLoad_AllowedOriginsOnlyCommasAndWhitespace(t *testing.T) {
-	baseEnv(t)
-	raw := " , , "
-	t.Setenv("ALLOWED_ORIGINS", raw)
-
-	cfg, err := Load()
-	if err != nil {
-		t.Fatalf("Load() with ALLOWED_ORIGINS=%q: unexpected error: %v", raw, err)
+// TestLoad_AllowedOriginsSetButUnusable covers the fix for the bug pinned by
+// the previous version of this test: when ALLOWED_ORIGINS is explicitly set
+// but parses to zero usable origins (e.g. " , , "), Load() used to be unable
+// to distinguish that from "unset" and would silently fall back to the
+// package defaults AND flip AllowAnyLocalhost to true — downgrading a
+// misconfigured production deploy to dev-permissive CORS. Load() now uses
+// os.LookupEnv to tell "set" apart from "unset" and returns an error (and a
+// zero Config) whenever the variable is set but useless, including the empty
+// string — see TEAM-BRIEF.md for why "" is deliberately an error rather than
+// falling through to defaults.
+func TestLoad_AllowedOriginsSetButUnusable(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{name: "only commas and whitespace", raw: " , , "},
+		{name: "single comma", raw: ","},
+		{name: "only whitespace", raw: "   "},
+		{name: "empty string", raw: ""},
 	}
 
-	if !slices.Equal(cfg.AllowedOrigins, defaultAllowedOrigins) {
-		t.Errorf("Load() with ALLOWED_ORIGINS=%q: AllowedOrigins = %v, want package defaults %v (empty-after-parsing falls back to defaults)", raw, cfg.AllowedOrigins, defaultAllowedOrigins)
-	}
-	if !cfg.AllowAnyLocalhost {
-		t.Errorf("Load() with ALLOWED_ORIGINS=%q: AllowAnyLocalhost = false, want true (Load cannot distinguish 'set but empty' from 'unset' — see test comment / report)", raw)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseEnv(t)
+			t.Setenv("ALLOWED_ORIGINS", tt.raw)
+
+			cfg, err := Load()
+			if err == nil {
+				t.Fatalf("Load() with ALLOWED_ORIGINS=%q: got nil error, want error mentioning ALLOWED_ORIGINS", tt.raw)
+			}
+			if !strings.Contains(err.Error(), "ALLOWED_ORIGINS") {
+				t.Errorf("Load() with ALLOWED_ORIGINS=%q: error = %q, want it to mention ALLOWED_ORIGINS", tt.raw, err.Error())
+			}
+			if !isZeroConfig(cfg) {
+				t.Errorf("Load() with ALLOWED_ORIGINS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
+			}
+		})
 	}
 }
