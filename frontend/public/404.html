@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Alex Cash - Software Engineer</title>
+    <script>
+      // Single-Page-App redirect for GitHub Pages.
+      // https://github.com/rafgraph/spa-github-pages
+      //
+      // GitHub Pages has no server-side routing, so it serves this file for
+      // any path that isn't a real file in the deployed dist/ (e.g. a direct
+      // hit or refresh on /Portfolio/anything). This encodes the requested
+      // path into a query string and redirects to the app's real entry point
+      // (index.html at the /Portfolio/ base), which decodes it back into a
+      // history entry (see the matching script in index.html) so
+      // React Router can render its own in-app not-found page instead of
+      // GitHub's bare 404.
+      //
+      // pathSegmentsToKeep = 1 keeps the "/Portfolio" repo-name segment of
+      // the path intact, since this is a project site (not a custom domain
+      // or user/org site), so the redirect still resolves to an existing
+      // file (index.html) and does not loop back into another 404.
+      var pathSegmentsToKeep = 1;
+
+      var l = window.location;
+      l.replace(
+        l.protocol +
+          '//' +
+          l.hostname +
+          (l.port ? ':' + l.port : '') +
+          l.pathname
+            .split('/')
+            .slice(0, 1 + pathSegmentsToKeep)
+            .join('/') +
+          '/?/' +
+          l.pathname
+            .slice(1)
+            .split('/')
+            .slice(pathSegmentsToKeep)
+            .join('/')
+            .replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
