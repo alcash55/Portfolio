@@ -1,0 +1,36 @@
+# Pings the Render free-plan API so it doesn't spin down after ~15 min idle,
+# which otherwise turns the contact form's first submit of the day into a
+# ~50 s hang with no feedback. This is a mitigation, not a fix — see the
+# `schedule` trigger note below.
+#
+# Deliberately standalone: no `workflow_call`, not referenced by ci.yml or
+# deploy.yml, and nothing else references this file. A cold or dead backend
+# must never fail CI or block a deploy — those problems are unrelated.
+name: Keep API Warm
+
+on:
+  schedule:
+    # Every 10 minutes. GitHub's minimum schedule interval is 5 minutes, so
+    # this is comfortably above the floor. Note this trigger is best-effort:
+    # GitHub queues scheduled runs and can delay them 10+ minutes under load,
+    # so this reduces the odds of a cold start, it does not eliminate them.
+    # GitHub also disables `schedule` triggers on repos with no commit
+    # activity for 60 days — if pings silently stop, check that first.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+# The job only makes an outbound HTTP request; it never reads or writes
+# repo contents, so it gets no token permissions at all.
+permissions: {}
+
+jobs:
+  ping:
+    name: Ping /healthz
+    runs-on: ubuntu-latest
+    steps:
+      # No checkout: the URL is inlined below, nothing here reads repo
+      # contents. Skipping checkout keeps this job fast and cheap.
+      - name: Ping healthz
+        run: |
+          curl --fail --silent --show-error --max-time 60 \
+            https://portfolio-api-0mta.onrender.com/healthz
