@@ -230,6 +230,79 @@ func TestSendMessage_ValidationErrorDoesNotLeakBindingDetail(t *testing.T) {
 	}
 }
 
+// TestSendMessage_Honeypot covers the honeypot contract from TEAM-BRIEF.md:
+// a non-empty "website" field must look exactly like success from the
+// outside (200 {"status":"ok"}) while silently never reaching the webhook —
+// and an empty or absent "website" must never affect a genuine submission.
+func TestSendMessage_Honeypot(t *testing.T) {
+	t.Run("non-empty website is dropped silently", func(t *testing.T) {
+		webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("fake webhook: should not be called — a tripped honeypot must never be forwarded to Discord")
+		}))
+		defer webhook.Close()
+		router := newTestRouter(webhook.URL)
+
+		msg := validMessage()
+		msg.Website = "http://spam.example"
+		body, _ := json.Marshal(msg)
+
+		rec := postJSON(t, router, body)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("SendMessage with a non-empty website field: status = %d, want %d (must look identical to success); body: %s", rec.Code, http.StatusOK, rec.Body.String())
+		}
+		const wantBody = `{"status":"ok"}`
+		if got := rec.Body.String(); got != wantBody {
+			t.Errorf("SendMessage with a non-empty website field: body = %q, want %q", got, wantBody)
+		}
+	})
+
+	t.Run("absent website still sends normally", func(t *testing.T) {
+		var called bool
+		webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer webhook.Close()
+		router := newTestRouter(webhook.URL)
+
+		// A raw JSON literal, deliberately omitting "website" entirely —
+		// json.Marshal(message{...}) would always include the key (no
+		// omitempty tag), so it can't express the truly-absent case.
+		body := []byte(`{"name":"Ada Lovelace","email":"ada@example.com","message":"Hello from the contact form."}`)
+
+		rec := postJSON(t, router, body)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("SendMessage with website absent: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+		}
+		if !called {
+			t.Error("SendMessage with website absent: fake webhook was never called, want a genuine submission to be forwarded")
+		}
+	})
+
+	t.Run("empty website still sends normally", func(t *testing.T) {
+		var called bool
+		webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer webhook.Close()
+		router := newTestRouter(webhook.URL)
+
+		body := []byte(`{"name":"Ada Lovelace","email":"ada@example.com","message":"Hello from the contact form.","website":""}`)
+
+		rec := postJSON(t, router, body)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("SendMessage with website empty: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+		}
+		if !called {
+			t.Error("SendMessage with website empty: fake webhook was never called, want a genuine submission to be forwarded")
+		}
+	})
+}
+
 // TestSendMessage_WebhookNonOK covers Discord returning a non-2xx status,
 // and separately proves that the webhook's own response body (which could
 // contain internal details) never reaches the client — the entire point of

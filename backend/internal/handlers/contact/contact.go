@@ -30,6 +30,13 @@ type message struct {
 	Name    string `json:"name" binding:"required,max=100"`
 	Email   string `json:"email" binding:"required,email,max=254"`
 	Message string `json:"message" binding:"required,max=1500"`
+
+	// Website is a honeypot: a real form field, hidden from and never filled
+	// in by human users, but visible to unsophisticated bots that fill in
+	// every field they find. No binding tag - it must never be required and
+	// must never block a genuine submission. See TEAM-BRIEF.md's honeypot
+	// contract.
+	Website string `json:"website"`
 }
 
 // discordPayload is the shape Discord's webhook API expects.
@@ -72,6 +79,15 @@ func (h *Handler) SendMessage(c *gin.Context) {
 		// names, gin's own message format - so it stays server-side.
 		log.Printf("contact: rejecting submission: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": invalidSubmissionMessage})
+		return
+	}
+
+	// Honeypot: a human never fills in Website, since it's a real input but
+	// hidden from view. A bot that filled it in gets told it succeeded (the
+	// point is a silent drop indistinguishable from success - a 4xx here
+	// would teach the bot to adapt) and is never forwarded to Discord.
+	if msg.Website != "" {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 		return
 	}
 
