@@ -6,6 +6,7 @@ const Home = () => {
   return (
     <Stack component={'article'} spacing={2} sx={{ px: 3, py: 2, width: '100%', height: '100%' }}>
       <Pages.Landing />
+      <Pages.About />
       <Pages.Experience />
       <Pages.Skills />
       <Pages.Projects />

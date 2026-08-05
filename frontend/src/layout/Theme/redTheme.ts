@@ -2,6 +2,13 @@ import { ThemeOptions, createTheme } from '@mui/material/styles';
 
 export const redTheme: ThemeOptions = createTheme({
   palette: {
+    // Explicit dark mode: without it MUI defaults to 'light', which makes
+    // auto-derived tokens (palette.divider, default text color for any
+    // Typography not wrapped in a Card/Paper override below) resolve to
+    // near-black values that are unreadable against this theme's dark red
+    // background. The Card/Paper/Divider overrides below were compensating
+    // for that per-component instead of fixing the root cause.
+    mode: 'dark',
     primary: {
       main: '#ff8f00',
     },
@@ -47,6 +54,20 @@ export const redTheme: ThemeOptions = createTheme({
         root: {
           backgroundColor: 'white',
         },
+      },
+    },
+    // See darkTheme.ts for why this exists and why the ring color is fixed
+    // white rather than `currentColor`: MUI's ButtonBase sets `outline: 0`
+    // and expects the theme to restore a focus-visible indicator, which
+    // none of this project's themes did.
+    MuiButtonBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          '&.Mui-focusVisible': {
+            outline: `2px solid ${theme.palette.common.white}`,
+            outlineOffset: 2,
+          },
+        }),
       },
     },
   },

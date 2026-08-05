@@ -37,7 +37,7 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
           ml: 4,
         }}
       >
-        <Typography variant="h6" component={'h1'}>
+        <Typography variant="h6" component={'h2'} id="settings-drawer-title">
           Settings
         </Typography>
       </Box>
@@ -82,6 +82,8 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
       anchor={'right'}
       open={settingDrawer}
       onClose={() => setSettingDrawer(false)}
+      role="dialog"
+      aria-labelledby="settings-drawer-title"
       PaperProps={{
         sx: {
           width: isMobile ? '100%' : isTablet ? '50%' : tempSidebar ? 280 : 280,
