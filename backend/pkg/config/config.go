@@ -38,10 +38,23 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("PORT is required: %w", err)
 	}
 
-	origins := parseOrigins(os.Getenv("ALLOWED_ORIGINS"))
-	usingDefaults := len(origins) == 0
-	if usingDefaults {
+	rawOrigins, originsSet := os.LookupEnv("ALLOWED_ORIGINS")
+
+	var origins []string
+	var usingDefaults bool
+	if !originsSet {
+		// Genuinely unset: this is the local-dev path.
 		origins = slices.Clone(defaultAllowedOrigins)
+		usingDefaults = true
+	} else {
+		origins = parseOrigins(rawOrigins)
+		if len(origins) == 0 {
+			// Set but parses to nothing usable (e.g. "", ",", " , , ", "   ").
+			// This is most likely a broken deploy-time template substitution;
+			// falling back to permissive defaults would silently downgrade
+			// production CORS, so treat it as a configuration error instead.
+			return Config{}, fmt.Errorf("ALLOWED_ORIGINS is set but contains no usable origins: %q", rawOrigins)
+		}
 	}
 
 	cfg := Config{
