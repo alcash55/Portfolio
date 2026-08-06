@@ -71,9 +71,11 @@ func Load() (Config, error) {
 
 	// GH_TOKEN is optional: the /api/v1/projects handler (internal/handlers/
 	// projects) reads it, but sends requests unauthenticated when it's empty
-	// rather than failing to boot. It is not set in render.yaml today, so
-	// requiring it here would stop the live API from booting - a
-	// self-inflicted outage over a token that only lowers a rate limit.
+	// rather than failing to boot. render.yaml declares the key with
+	// sync: false, so whether a value actually exists depends on the Render
+	// dashboard - requiring it here would let an unset dashboard field stop
+	// the live API from booting, a self-inflicted outage over a token that
+	// only raises a rate limit the endpoint comes nowhere near.
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
 			return Config{}, fmt.Errorf("%s is required", env)
