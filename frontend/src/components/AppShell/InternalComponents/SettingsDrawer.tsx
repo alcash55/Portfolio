@@ -61,14 +61,24 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
       sx={{ width: '100%', height: '100%' }}
     >
       <Card sx={{ width: '100%' }}>
-        <CardHeader title="Select a Theme" />
+        {/* Drawer's own title above is h2; these are its subsections, so h3
+            keeps the heading outline skip-free. Default CardHeader renders
+            the title as a plain <span>, which drops it from the
+            accessibility tree entirely. */}
+        <CardHeader
+          title="Select a Theme"
+          titleTypographyProps={{ variant: 'h5', component: 'h3' }}
+        />
         <CardContent>
           <ThemeButton />
         </CardContent>
       </Card>
       {!showLayout && (
         <Card sx={{ width: '100%' }}>
-          <CardHeader title="Select a Layout" />
+          <CardHeader
+            title="Select a Layout"
+            titleTypographyProps={{ variant: 'h5', component: 'h3' }}
+          />
           <CardContent>
             <LayoutButton />
           </CardContent>

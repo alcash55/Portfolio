@@ -1,6 +1,7 @@
 import { Box, AppBar, Toolbar, Button, IconButton, Fade } from '@mui/material';
 import { Menu } from '@mui/icons-material/';
 import { useShowNavBar } from './useShowNavBar';
+import { navLinks } from './navLinks';
 
 interface NavBarProps {
   setSettingDrawer: (value: boolean) => void;
@@ -26,7 +27,7 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
           visibility: isVisible ? 'visible' : 'hidden',
         }}
       >
-        <AppBar sx={{ bgcolor: 'black' }}>
+        <AppBar sx={{ bgcolor: 'background.paper' }}>
           <Toolbar>
             <Box
               sx={{
@@ -37,24 +38,19 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
                 flexWrap: 'wrap',
               }}
             >
-              <Button variant="text" sx={{ color: 'white' }} href="#landing">
-                Home
-              </Button>
-              <Button variant="text" sx={{ color: 'white' }} href="#experience">
-                Experience
-              </Button>
-              <Button variant="text" sx={{ color: 'white' }} href="#skills">
-                Skills & Tech
-              </Button>
-              <Button variant="text" sx={{ color: 'white' }} href="#projects">
-                Projects
-              </Button>
-              <Button variant="text" sx={{ color: 'white' }} href="#contact">
-                Contact
-              </Button>
+              {navLinks.map((link) => (
+                <Button
+                  key={link.id}
+                  variant="text"
+                  sx={{ color: 'text.primary' }}
+                  href={`#${link.id}`}
+                >
+                  {link.label}
+                </Button>
+              ))}
             </Box>
             <IconButton aria-label="Open Settings Drawer" onClick={() => setSettingDrawer(true)}>
-              <Menu sx={{ color: 'white' }} />
+              <Menu sx={{ color: 'text.primary' }} />
             </IconButton>
           </Toolbar>
         </AppBar>

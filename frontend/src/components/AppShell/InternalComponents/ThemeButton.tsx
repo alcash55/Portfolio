@@ -11,16 +11,12 @@ export const ThemeButton = () => {
       alignItems={'center'}
       sx={{ flexWrap: 'wrap' }}
     >
-      {/* <Button
-        variant={
-          mode.palette?.background?.paper === "#731010"
-            ? "contained"
-            : "outlined"
-        }
-        onClick={() => toggleColorMode("red")}
+      <Button
+        variant={mode.palette?.background?.paper === '#731010' ? 'contained' : 'outlined'}
+        onClick={() => toggleColorMode('red')}
       >
         Red
-      </Button> */}
+      </Button>
       <Button
         variant={mode.palette?.background?.paper === '#292929' ? 'contained' : 'outlined'}
         onClick={() => toggleColorMode('dark')}
