@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alcash55/Portfolio/internal/handlers/contact"
+	"github.com/alcash55/Portfolio/internal/handlers/projects"
 	"github.com/alcash55/Portfolio/internal/ratelimit"
 	"github.com/alcash55/Portfolio/pkg/config"
 	"github.com/gin-contrib/cors"
@@ -94,6 +95,7 @@ func New(cfg config.Config) *gin.Engine {
 	})
 
 	contactHandler := contact.New(cfg)
+	projectsHandler := projects.New(cfg)
 
 	// One instance on Render, so an in-process limiter needs no shared
 	// store. Built fresh per call to New() rather than as a package-level
@@ -119,6 +121,16 @@ func New(cfg config.Config) *gin.Engine {
 			// 429 on the one endpoint that exists to prove the service is up.
 			contactRoutes := v1.Group("/contact")
 			contactRoutes.POST("", ratelimit.Middleware(contactLimiter), contactHandler.SendMessage)
+
+			// /api/v1/projects - deliberately not behind the rate limiter,
+			// same reasoning as /healthz and /. Unlike /contact, which
+			// forwards every request to a permanently-public webhook URL,
+			// this endpoint's real cost (a GitHub API call) is already
+			// bounded to at most one per hour by projects.Handler's cache
+			// regardless of request volume - concurrent requests single-
+			// flight onto that one call, so there's no per-request cost for
+			// a limiter to protect against here.
+			v1.GET("/projects", projectsHandler.GetProjects)
 		}
 	}
 
