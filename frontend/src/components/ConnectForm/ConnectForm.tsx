@@ -128,7 +128,7 @@ const ConnectForm = () => {
       <Stack component="form" noValidate onSubmit={handleSubmit} spacing={1} width={'100%'}>
         <Typography
           variant="h3"
-          component="h2"
+          component="h3"
           sx={{
             fontSize: largeMobile ? '1.5rem' : '2rem',
             textAlign: 'start',
