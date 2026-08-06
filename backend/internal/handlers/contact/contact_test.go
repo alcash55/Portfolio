@@ -198,7 +198,7 @@ func TestSendMessage_WebhookUnreachable(t *testing.T) {
 	}
 }
 
-// TestSendMessage_ValidationErrorDoesNotLeakBindingDetail is B3: the client
+// TestSendMessage_ValidationErrorDoesNotLeakBindingDetail pins that the client
 // must get a stable, user-safe 400 body, never gin's raw binding error text
 // (e.g. "Key: 'message.Email' Error:Field validation for 'Email' failed on
 // the 'email' tag..."), which is internal detail about our validation

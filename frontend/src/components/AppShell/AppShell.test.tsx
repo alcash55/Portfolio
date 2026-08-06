@@ -83,7 +83,7 @@ const StateProbe = () => {
   );
 };
 
-describe('AppShellProvider (S1: breakpoint crossings must not reset app state)', () => {
+describe('AppShellProvider (breakpoint crossings must not reset app state)', () => {
   let setWidth: (width: number) => void;
 
   beforeEach(() => {

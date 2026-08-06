@@ -155,7 +155,7 @@ func TestCORS_AllowAnyLocalhost_RandomPort(t *testing.T) {
 	}
 }
 
-// --- B1: rate limiting wired onto POST /api/v1/contact ---
+// --- rate limiting wired onto POST /api/v1/contact ---
 //
 // The token-bucket algorithm itself (refill, per-key independence, stale
 // eviction, concurrency) is unit tested with an injected fake clock in
