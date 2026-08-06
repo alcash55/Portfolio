@@ -2,8 +2,10 @@ import { useState } from 'react';
 
 /**
  * Distinguishes contact-request failures by the reason the caller cares about
- * (what copy to show), not by the backend's raw error string. Mirrors the
- * status-code -> copy mapping in the Sprint 3 interface contract.
+ * (what copy to show), not by the backend's raw error string. The frontend's
+ * contract with the backend is: map HTTP status codes to user-facing copy
+ * (see contactErrors.ts) and never branch UI wording on the backend's
+ * `error` string -- that string is for logging only.
  */
 export type ContactErrorKind =
   | 'validation' // 400

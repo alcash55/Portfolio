@@ -14,11 +14,21 @@ describe('ConnectForm', () => {
     vi.unstubAllGlobals();
   });
 
-  it('disables Send on mount, before the user has typed anything', () => {
+  it('keeps Send focusable but aria-disabled on mount, before the user has typed anything (C1)', () => {
     render(<ConnectForm />);
 
     const sendButton = screen.getByRole('button', { name: /send/i });
-    expect(sendButton, 'Send should be disabled on an empty, untouched form').toBeDisabled();
+    // Native `disabled` would drop Send out of the tab sequence entirely, so
+    // a keyboard user tabbing an empty form would never reach it. It must
+    // stay focusable and only be marked aria-disabled.
+    expect(
+      sendButton,
+      'Send must stay focusable (not natively disabled) even on an empty form',
+    ).toBeEnabled();
+    expect(
+      sendButton,
+      'Send should be marked aria-disabled while the form is empty',
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('shows no field errors on mount, before the user has typed anything (F4)', () => {
@@ -68,22 +78,72 @@ describe('ConnectForm', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('attempting to submit an invalid form reveals every field error, even untouched ones', async () => {
+  it('reaches Send by keyboard alone on a completely empty form (C1)', async () => {
+    const user = userEvent.setup();
+    render(<ConnectForm />);
+
+    // Tab through every field in order; Send must be reachable even though
+    // the form is empty and invalid the whole way through.
+    await user.tab(); // name
+    await user.tab(); // email
+    await user.tab(); // message
+    await user.tab(); // Send (the honeypot is tabIndex={-1} and must be skipped)
+
+    expect(
+      screen.getByRole('button', { name: /send/i }),
+      'Send must be reachable by keyboard alone even while the form is empty and invalid',
+    ).toHaveFocus();
+  });
+
+  it('activating Send while invalid does not submit, reveals every field error (even untouched ones), and moves focus to the first invalid field (C1)', async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    render(<ConnectForm />);
+
+    // Fill only the name field; email and message stay blank and untouched.
+    await user.type(screen.getByLabelText(/name/i), 'Alex');
+
+    // Send stays focusable and clickable while aria-disabled -- that's the
+    // whole point of the accessible-disable pattern -- so activate it the
+    // same way a real user would, by clicking it.
+    await user.click(screen.getByRole('button', { name: /send/i }));
+
+    expect(
+      fetchMock,
+      'an invalid form must never reach the network -- aria-disabled communicates ' +
+        'state, it does not replace the "cannot actually submit" guarantee',
+    ).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText(/please fill out all required sections \(email\)/i),
+      'expected the untouched email field error to appear after an attempted submit',
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/please fill out all required sections \(message\)/i),
+      'expected the untouched message field error to appear after an attempted submit',
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/email/i),
+      'expected focus to move to the first invalid field (email, since name is already filled)',
+    ).toHaveFocus();
+  });
+
+  it('pressing Enter in a text field on an invalid form does not submit (native form-submit path, F5)', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
     const user = userEvent.setup();
     const { container } = render(<ConnectForm />);
 
     // Fill only the name field; email and message stay blank and untouched.
     await user.type(screen.getByLabelText(/name/i), 'Alex');
 
-    // Send is disabled, so drive the native form submit directly (this is
-    // what a browser does on Enter in a text field; see F5's dedicated
-    // browser verification for the real Enter-key path).
     const form = container.querySelector('form');
     expect(form, 'expected the form to render as a real <form> element (F5)').not.toBeNull();
     form?.requestSubmit
       ? form.requestSubmit()
       : form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
+    expect(fetchMock, 'an invalid form must never reach the network').not.toHaveBeenCalled();
     expect(
       await screen.findByText(/please fill out all required sections \(email\)/i),
       'expected the untouched email field error to appear after an attempted submit',
@@ -94,7 +154,7 @@ describe('ConnectForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('keeps Send disabled while the form is only partially filled', async () => {
+  it('keeps Send aria-disabled (but still focusable) while the form is only partially filled', async () => {
     const user = userEvent.setup();
     render(<ConnectForm />);
 
@@ -102,13 +162,18 @@ describe('ConnectForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'alex@example.com');
     // Message left empty.
 
+    const sendButton = screen.getByRole('button', { name: /send/i });
     expect(
-      screen.getByRole('button', { name: /send/i }),
-      'Send should stay disabled when the message field is still empty',
-    ).toBeDisabled();
+      sendButton,
+      'Send must stay focusable even while the message field is still empty',
+    ).toBeEnabled();
+    expect(
+      sendButton,
+      'Send should stay aria-disabled when the message field is still empty',
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('keeps Send disabled while the email is present but malformed', async () => {
+  it('keeps Send aria-disabled (but still focusable) while the email is present but malformed', async () => {
     const user = userEvent.setup();
     render(<ConnectForm />);
 
@@ -116,22 +181,32 @@ describe('ConnectForm', () => {
     await user.type(screen.getByLabelText(/email/i), 'not-an-email');
     await user.type(screen.getByLabelText(/message/i), 'Hello there');
 
+    const sendButton = screen.getByRole('button', { name: /send/i });
     expect(
-      screen.getByRole('button', { name: /send/i }),
-      'Send should stay disabled while the email fails format validation',
-    ).toBeDisabled();
+      sendButton,
+      'Send must stay focusable even while the email fails format validation',
+    ).toBeEnabled();
+    expect(
+      sendButton,
+      'Send should stay aria-disabled while the email fails format validation',
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('enables Send once name, email, and message are all valid', async () => {
+  it('enables Send (and clears aria-disabled) once name, email, and message are all valid', async () => {
     const user = userEvent.setup();
     render(<ConnectForm />);
 
     await fillValidForm(user);
 
+    const sendButton = screen.getByRole('button', { name: /send/i });
     expect(
-      screen.getByRole('button', { name: /send/i }),
+      sendButton,
       'Send should become enabled once every field is filled with valid data',
     ).toBeEnabled();
+    expect(
+      sendButton,
+      'Send should no longer be aria-disabled once every field is valid',
+    ).not.toHaveAttribute('aria-disabled');
   });
 
   it('renders a hidden honeypot input named "website" that is not reachable by keyboard or screen reader (F3)', () => {

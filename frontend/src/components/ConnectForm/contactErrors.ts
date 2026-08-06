@@ -6,11 +6,13 @@ import type { ContactErrorKind } from './useConnectForm';
 export const CONTACT_SUCCESS_MESSAGE = 'Message sent successfully!';
 
 /**
- * User-facing copy per failure kind, per the Sprint 3 interface contract's
- * status-code mapping table. `timeout` intentionally shares copy with
- * `server_error`: by the time a request aborts, it's just another failure to
- * the user -- the distinct `kind` still exists so it can be told apart for
- * logging/debugging.
+ * User-facing copy per failure kind. The frontend maps HTTP status codes to
+ * this copy and deliberately never branches on the backend's `error` string
+ * (see SendMessageResult in useConnectForm.ts) -- coupling UI wording to
+ * backend internals breaks the moment someone rewords a message on that
+ * side. `timeout` intentionally shares copy with `server_error`: by the time
+ * a request aborts, it's just another failure to the user -- the distinct
+ * `kind` still exists so it can be told apart for logging/debugging.
  */
 const CONTACT_ERROR_COPY: Record<ContactErrorKind, string> = {
   validation: 'Please check your details and try again.',
