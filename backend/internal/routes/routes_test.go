@@ -55,9 +55,11 @@ func TestIsLocalhost(t *testing.T) {
 	}
 }
 
-// testConfig returns a minimal Config for New(). WebhookURL is left empty
-// since none of these route-level tests exercise the contact handler's
-// webhook call (that is covered in internal/handlers/contact).
+// testConfig returns a minimal Config for New(). WebhookURL is set to an
+// invalid placeholder host: most tests in this file never reach the contact
+// handler at all, and the rate-limit tests below that do (via
+// contactRouterWithWebhook) override it with a real fake-webhook server URL,
+// so this default is never actually dialed.
 func testConfig(allowedOrigins []string, allowAnyLocalhost bool) config.Config {
 	return config.Config{
 		WebhookURL:        "http://example.invalid/webhook",
@@ -230,7 +232,7 @@ func TestRateLimit_ContactEndpoint_BurstThenBlocked(t *testing.T) {
 
 	const wantBody = `{"error":"too many requests"}`
 	if got := rec.Body.String(); got != wantBody {
-		t.Errorf("429 response body = %q, want %q (see TEAM-BRIEF.md contract table)", got, wantBody)
+		t.Errorf("429 response body = %q, want %q (pinning the exact error shape ratelimit.Middleware writes)", got, wantBody)
 	}
 
 	retryAfter := rec.Header().Get("Retry-After")
@@ -247,8 +249,9 @@ func TestRateLimit_ContactEndpoint_BurstThenBlocked(t *testing.T) {
 }
 
 // TestRateLimit_PerIPIndependent proves one IP being rate limited does not
-// affect a different IP hitting the same route, using the real ClientIP()
-// resolution path (RemoteAddr, since no X-Forwarded-For is set).
+// affect a different IP hitting the same route. Like postContactFrom above,
+// this keys on RemoteAddr via the rate limiter's own clientKey resolution
+// (no X-Forwarded-For is set here), not gin's ClientIP().
 func TestRateLimit_PerIPIndependent(t *testing.T) {
 	router := contactRouterWithWebhook(t)
 	body := contactBody(t)

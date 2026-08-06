@@ -16,7 +16,7 @@ import (
 // contactRateLimit is the budget for POST /api/v1/contact: a human sends one
 // message, so 5 requests/minute per IP with a burst of 5 never throttles
 // real traffic while still bounding how fast the endpoint's permanently
-// public Discord webhook URL can be hammered. See TEAM-BRIEF.md B1.
+// public Discord webhook URL can be hammered.
 const (
 	contactRateLimit      = 5
 	contactRateWindow     = time.Minute
@@ -113,8 +113,10 @@ func New(cfg config.Config) *gin.Engine {
 		v1 := api.Group("/v1")
 		{
 			// /api/v1/contact - rate limited; deliberately not applied to
-			// /healthz or / (see TEAM-BRIEF.md B4: a keep-alive pinging its
-			// own limiter into 429 would be a self-inflicted outage).
+			// /healthz or /, since the keep-alive workflow that pings /healthz
+			// every ~10 minutes to stop Render's free plan from spinning down
+			// (.github/workflows/keep-alive.yml) must never be able to trip a
+			// 429 on the one endpoint that exists to prove the service is up.
 			contactRoutes := v1.Group("/contact")
 			contactRoutes.POST("", ratelimit.Middleware(contactLimiter), contactHandler.SendMessage)
 		}

@@ -7,7 +7,8 @@ import (
 )
 
 // fakeClock lets tests move time forward deterministically instead of
-// sleeping, per TEAM-BRIEF.md B1 ("no time.Sleep-based tests").
+// sleeping, so refill/expiry assertions (e.g. "a full minute refills the
+// burst") run instantly and don't flake under load.
 type fakeClock struct {
 	mu  sync.Mutex
 	now time.Time
@@ -29,8 +30,9 @@ func (c *fakeClock) Advance(d time.Duration) {
 	c.now = c.now.Add(d)
 }
 
-// testLimiter builds a 5-requests-per-minute, burst-5 limiter (the budget
-// TEAM-BRIEF.md suggests for the contact endpoint) driven by a fake clock.
+// testLimiter builds a 5-requests-per-minute, burst-5 limiter — matching
+// contactRateLimit/contactRateBurst in internal/routes, the actual budget
+// wired onto the contact endpoint — driven by a fake clock.
 func testLimiter(clock *fakeClock) *Limiter {
 	return New(Config{
 		Rate:       5,
@@ -134,8 +136,10 @@ func TestAllow_PerKeyIndependent(t *testing.T) {
 }
 
 // TestSweep_EvictsStaleEntries proves stale buckets are actually removed
-// from the map, not just logically expired - the memory-leak concern
-// TEAM-BRIEF.md calls out explicitly for this public endpoint.
+// from the map, not just logically expired. This matters because the map is
+// keyed on a client-supplied value (see clientKey) on a public, unauthenticated
+// endpoint: without eviction, distinct keys accumulate without bound for as
+// long as the process runs.
 func TestSweep_EvictsStaleEntries(t *testing.T) {
 	clock := newFakeClock(time.Now())
 	l := testLimiter(clock) // StaleAfter: 10 * time.Minute
