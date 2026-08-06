@@ -15,11 +15,16 @@ const SideBarTopItem = () => {
           alignItems: 'center',
         }}
       >
-        <Typography variant={'h1'} fontSize={24} sx={{ color: 'white' }}>
+        {/* This is persistent shell chrome (a brand label repeated in every layout
+            mode), not the page's title, so it's rendered as a plain div rather than
+            an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
+            one real title; a second element with the same text would be a duplicate
+            heading, not a subordinate one. */}
+        <Typography variant={'h1'} component={'div'} fontSize={24} sx={{ color: 'text.primary' }}>
           Alex Cash
         </Typography>
       </Toolbar>
-      <Divider sx={{}} />
+      <Divider />
     </>
   );
 };

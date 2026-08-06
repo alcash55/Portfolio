@@ -7,6 +7,7 @@ import ArrowDownward from '@mui/icons-material/ArrowDownward';
 import GitHub from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
+import { navLinks } from '../../AppShell/InternalComponents/navLinks';
 
 const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -16,6 +17,11 @@ const Landing = () => {
       .getElementById(id)
       ?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
   };
+
+  // Landing IS the "landing" section, so a link back to it would be a no-op;
+  // NavBar (the global bar shown once the viewport scrolls past this
+  // section) keeps that entry since it links back to the top from anywhere.
+  const landingNavLinks = navLinks.filter((link) => link.id !== 'landing');
 
   const images = [
     {
@@ -159,54 +165,41 @@ const Landing = () => {
         <Box
           component="nav"
           sx={{
-            px: 4,
+            px: { xs: 2, sm: 4 },
             py: 3,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
           }}
         >
-          <Box sx={{ display: 'flex', gap: 4, fontSize: 14 }}>
-            <Button
-              onClick={() => scrollToSection('skills')}
-              variant="text"
-              sx={{
-                color: 'rgba(255,255,255,0.6)',
-                '&:hover': { color: '#fff' },
-              }}
-            >
-              Skills & Tech
-            </Button>
-            <Button
-              onClick={() => scrollToSection('experience')}
-              variant="text"
-              sx={{
-                color: 'rgba(255,255,255,0.6)',
-                '&:hover': { color: '#fff' },
-              }}
-            >
-              Experience
-            </Button>
-            <Button
-              onClick={() => scrollToSection('projects')}
-              variant="text"
-              sx={{
-                color: 'rgba(255,255,255,0.6)',
-                '&:hover': { color: '#fff' },
-              }}
-            >
-              Projects
-            </Button>
-            <Button
-              onClick={() => scrollToSection('contact')}
-              variant="text"
-              sx={{
-                color: 'rgba(255,255,255,0.6)',
-                '&:hover': { color: '#fff' },
-              }}
-            >
-              Contact
-            </Button>
+          {/* flexWrap + a shrinking gap keep this reachable at phone widths: unwrapped
+              with the sm+ gap, four links overflow past the left edge (off-screen,
+              unreachable) at 390px and narrower. */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+              rowGap: 1,
+              columnGap: { xs: 1.5, sm: 4 },
+              fontSize: 14,
+            }}
+          >
+            {landingNavLinks.map((link) => (
+              <Button
+                key={link.id}
+                onClick={() => scrollToSection(link.id)}
+                variant="text"
+                sx={{
+                  minWidth: 'auto',
+                  px: { xs: 1, sm: 2 },
+                  color: 'rgba(255,255,255,0.6)',
+                  '&:hover': { color: '#fff' },
+                }}
+              >
+                {link.label}
+              </Button>
+            ))}
           </Box>
         </Box>
 

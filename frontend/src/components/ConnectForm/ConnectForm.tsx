@@ -39,6 +39,13 @@ const ConnectForm = () => {
     getFieldErrors,
   } = useConnectForm();
 
+  // Refs to the underlying <input>/<textarea> elements so an attempted
+  // submit while invalid can move focus to the first field that needs
+  // fixing, instead of leaving a keyboard user stranded on Send.
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
   const {
     open,
     setOpen,
@@ -73,6 +80,17 @@ const ConnectForm = () => {
       setNameTouched(true);
       setEmailTouched(true);
       setMessageTouched(true);
+      // Send stays focusable while invalid (see the button below), so an
+      // activation while invalid can land here from mouse or keyboard.
+      // Surface the validation state by moving focus to the first invalid
+      // field, in the same name -> email -> message priority validateForm
+      // uses, rather than doing nothing.
+      const firstInvalidRef = fieldErrors.name
+        ? nameInputRef
+        : fieldErrors.email
+          ? emailInputRef
+          : messageInputRef;
+      firstInvalidRef.current?.focus();
       return;
     }
 
@@ -110,7 +128,7 @@ const ConnectForm = () => {
       <Stack component="form" noValidate onSubmit={handleSubmit} spacing={1} width={'100%'}>
         <Typography
           variant="h3"
-          component="h2"
+          component="h3"
           sx={{
             fontSize: largeMobile ? '1.5rem' : '2rem',
             textAlign: 'start',
@@ -134,6 +152,7 @@ const ConnectForm = () => {
               setNameTouched(true);
               setName(e.target.value);
             }}
+            inputRef={nameInputRef}
           />
           <TextField
             id="email"
@@ -148,6 +167,7 @@ const ConnectForm = () => {
               setEmailTouched(true);
               setEmail(e.target.value);
             }}
+            inputRef={emailInputRef}
           />
         </Box>
         <TextField
@@ -164,6 +184,7 @@ const ConnectForm = () => {
             setMessageTouched(true);
             setMessage(e.target.value);
           }}
+          inputRef={messageInputRef}
         />
         {/* Honeypot (F3): a real bot fills every input it finds; a human never
             sees or reaches this one. Hidden with off-screen CSS positioning
@@ -190,7 +211,29 @@ const ConnectForm = () => {
         <Button
           type="submit"
           variant="contained"
-          disabled={!!formErrors || sending}
+          // Native `disabled` is reserved for the transient "request in
+          // flight" state, where removing Send from the tab order for a
+          // moment is expected. While the form is merely invalid, Send stays
+          // focusable (aria-disabled, not disabled) so a keyboard user
+          // tabbing an empty form still reaches it -- activating it while
+          // invalid reveals the field errors and moves focus to the first
+          // one (see handleSubmit) instead of doing nothing. An invalid form
+          // still cannot be submitted; it just no longer disappears.
+          disabled={sending}
+          aria-disabled={formErrors && !sending ? true : undefined}
+          sx={
+            formErrors && !sending
+              ? {
+                  backgroundColor: (theme) => theme.palette.action.disabledBackground,
+                  color: (theme) => theme.palette.action.disabled,
+                  boxShadow: 'none',
+                  '&:hover': {
+                    backgroundColor: (theme) => theme.palette.action.disabledBackground,
+                    boxShadow: 'none',
+                  },
+                }
+              : undefined
+          }
           startIcon={sending ? <CircularProgress size={16} color="inherit" /> : undefined}
         >
           {sending ? (showColdStartHint ? 'Waking up the server…' : 'Sending…') : 'Send'}

@@ -68,7 +68,7 @@ const Skills = () => {
           }}
         >
           <Card sx={skillCardSx}>
-            <CardHeader title="Languages" />
+            <CardHeader title="Languages" titleTypographyProps={{ component: 'h3' }} />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Languages.map((language) => (
                 <Chip key={language} label={language} />
@@ -76,7 +76,7 @@ const Skills = () => {
             </CardContent>
           </Card>
           <Card sx={skillCardSx}>
-            <CardHeader title="Frameworks" />
+            <CardHeader title="Frameworks" titleTypographyProps={{ component: 'h3' }} />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Frameworks.map((framework) => (
                 <Chip key={framework} label={framework} />
@@ -84,7 +84,7 @@ const Skills = () => {
             </CardContent>
           </Card>
           <Card sx={skillCardSx}>
-            <CardHeader title="Tools" />
+            <CardHeader title="Tools" titleTypographyProps={{ component: 'h3' }} />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Tools.map((tool) => (
                 <Chip key={tool} label={tool} />

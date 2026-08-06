@@ -198,7 +198,7 @@ func TestSendMessage_WebhookUnreachable(t *testing.T) {
 	}
 }
 
-// TestSendMessage_ValidationErrorDoesNotLeakBindingDetail is B3: the client
+// TestSendMessage_ValidationErrorDoesNotLeakBindingDetail pins that the client
 // must get a stable, user-safe 400 body, never gin's raw binding error text
 // (e.g. "Key: 'message.Email' Error:Field validation for 'Email' failed on
 // the 'email' tag..."), which is internal detail about our validation
@@ -230,10 +230,11 @@ func TestSendMessage_ValidationErrorDoesNotLeakBindingDetail(t *testing.T) {
 	}
 }
 
-// TestSendMessage_Honeypot covers the honeypot contract from TEAM-BRIEF.md:
-// a non-empty "website" field must look exactly like success from the
-// outside (200 {"status":"ok"}) while silently never reaching the webhook —
-// and an empty or absent "website" must never affect a genuine submission.
+// TestSendMessage_Honeypot covers the honeypot contract implemented in
+// SendMessage: a non-empty "website" field must look exactly like success
+// from the outside (200 {"status":"ok"}) while silently never reaching the
+// webhook — and an empty or absent "website" must never affect a genuine
+// submission.
 func TestSendMessage_Honeypot(t *testing.T) {
 	t.Run("non-empty website is dropped silently", func(t *testing.T) {
 		webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
