@@ -1,2 +1,0 @@
-- Dynamically map all projects from github using the github API
-- Use honeypot for contact section to remove any potential bot spam
