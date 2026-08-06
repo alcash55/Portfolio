@@ -6,7 +6,7 @@ This is a website build to showcase my skills and experiences.
 
 ```
 frontend/   React + TypeScript single-page app, deployed to GitHub Pages
-backend/    Go + Gin API that handles the contact form
+backend/    Go + Gin API: contact form + a GitHub proxy for live project data
 ```
 
 ## Architecture
@@ -41,7 +41,17 @@ Dependencies are passed as ordinary arguments (`main` → `routes.New(cfg)` →
 `contact.New(cfg)`) rather than stashed in the Gin context, so they are checked
 at compile time.
 
-## Contact form
+## Backend API
+
+### Endpoints
+
+| Method | Route              | Body                          | Responses                                                                                              |
+| ------ | ------------------ | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/healthz`         | –                              | `200 {"status":"ok"}`                                                                                    |
+| `POST` | `/api/v1/contact`  | `{"name","email","message"}`  | `200` ok · `400` validation · `413` >64 KiB · `429` rate limited · `502` webhook unreachable/rejected     |
+| `GET`  | `/api/v1/projects` | –                              | `200 {"projects":[...],"stale":bool}` · `502` if every configured repo failed to fetch                   |
+
+### Contact form
 
 The form posts to the backend, which validates the payload and forwards it to a
 Discord webhook:
@@ -55,16 +65,24 @@ The webhook URL lives only in the backend's `WEBHOOK_URL`. It is deliberately
 client bundle, which would make the webhook readable by anyone who views source
 on the deployed site.
 
-### API
-
-| Method | Route             | Body                         | Responses                                                                        |
-| ------ | ----------------- | ---------------------------- | -------------------------------------------------------------------------------- |
-| `GET`  | `/healthz`        | –                            | `200 {"status":"ok"}`                                                            |
-| `POST` | `/api/v1/contact` | `{"name","email","message"}` | `200` ok · `400` validation · `413` >64 KiB · `502` webhook unreachable/rejected |
-
 Field limits: `name` ≤ 100, `email` ≤ 254 and must parse as an email address,
 `message` ≤ 1500. The caps keep the rendered Discord message within that API's
 2000-character limit.
+
+It's rate limited to 5 requests/minute per client (burst 5), keyed off the rightmost
+`X-Forwarded-For` entry — the one a client can't forge past Render's proxy — with a fallback to
+the raw peer address in local development. A throttled request gets `429` plus a `Retry-After`
+header. `/healthz` and `/api/v1/projects` are deliberately not rate limited; see the comments in
+`internal/routes/routes.go` for why each is safe to leave open.
+
+### Live projects data
+
+`GET /api/v1/projects` returns a curated, hand-maintained list of repos (`PROJECT_REPOS`, below),
+fetched from the GitHub API and cached for **one hour**, with concurrent refreshes single-flighted
+onto one upstream call. If a refresh fails but a previous successful fetch is still cached, that
+stale data is served instead (`"stale": true`) rather than erroring. The frontend
+(`frontend/src/components/Pages/Projects/useProjects.ts`) merges this over a static fallback list
+and never surfaces a failure to the visitor beyond a `console.error`.
 
 ## Local development
 
@@ -72,12 +90,19 @@ Field limits: `name` ≤ 100, `email` ≤ 254 and must parse as an email address
 
 Copy `backend/.env.example` to `backend/.env` and fill it in:
 
-| Variable          | Required | Purpose                                                           |
-| ----------------- | -------- | ----------------------------------------------------------------- |
-| `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically |
-| `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                      |
-| `GH_TOKEN`        | no       | GitHub token. Loaded for future use; nothing reads it yet         |
-| `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below       |
+| Variable          | Required | Purpose                                                                                     |
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
+| `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
+| `GH_TOKEN`        | no       | GitHub token `GET /api/v1/projects` sends when calling the GitHub API. Optional — see below    |
+| `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
+| `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
+
+`GH_TOKEN` is genuinely optional — you can run this backend without one. `/api/v1/projects` works
+unauthenticated against the public GitHub API (60 requests/hour, and the four default repos behind
+a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just raises the limit to
+5000/hour. A token that GitHub rejects (expired, revoked, wrong scope) doesn't fail the request
+either — the handler retries that one refresh unauthenticated instead.
 
 `.env` is read by [godotenv](https://github.com/joho/godotenv) at startup — Go
 does not read `.env` files on its own, and real environment variables always win,
@@ -103,6 +128,18 @@ cd backend
 go run ./cmd/app
 ```
 
+Tests:
+
+```sh
+cd backend
+go test ./...        # all packages
+go test ./... -race   # same, with the race detector
+```
+
+`-race` needs cgo, which needs a C compiler (`gcc`/`cc`) on the machine — it will fail with
+`requires cgo` if there isn't one. CI has one and runs `-race`; if you don't, `go test ./...`
+without the flag still runs every test, just without race detection.
+
 ### Frontend
 
 Vite is configured with `envDir: './src'`, so frontend env files live in
@@ -118,6 +155,29 @@ cd frontend
 bun install
 bun run dev     # http://localhost:3005
 ```
+
+Tests:
+
+```sh
+cd frontend
+bun run test         # Vitest, single run
+bun run test:watch   # Vitest, watch mode
+```
+
+## Continuous integration
+
+`.github/workflows/ci.yml` is a reusable workflow (`workflow_call`) that runs on every pull
+request: lint, `tsc --noEmit`, `bun run test`, and `bun run build` for the frontend; `go vet`,
+`go test ./... -race`, and `go build` for the backend.
+
+`.github/workflows/deploy.yml` (push to `main`) calls that same `ci.yml` as a gate before
+deploying the frontend to GitHub Pages — a push to `main` only deploys if CI passes. The backend
+deploys separately: Render watches `main` directly via the `render.yaml` blueprint and isn't gated
+on this repo's CI.
+
+Two more workflows exist outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
+stop the Render free plan from spinning down (see below), and `check-resume.yml` runs an ATS check
+against `frontend/src/assets/AlexResume.pdf` when that file changes. Neither blocks a deploy.
 
 ## Deployment
 
@@ -135,8 +195,10 @@ In the Render dashboard: **New → Blueprint**, point it at this repo, and Rende
 reads the file. It builds `backend/Dockerfile` (`rootDir: backend`, so frontend
 changes don't trigger a redeploy) and health-checks `/healthz`.
 
-Set `WEBHOOK_URL` in the Render dashboard — it is marked `sync: false` in the
-blueprint precisely so the secret never lives in this repo.
+Set `WEBHOOK_URL` in the Render dashboard — it's marked `sync: false` in the blueprint precisely so
+the secret never lives in this repo. `GH_TOKEN` is in the blueprint the same way (`sync: false`)
+but is optional at the application level (see the env var table above) — leaving it unset in the
+dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub.
 
 Two things Render handles that the app relies on:
 
@@ -145,11 +207,19 @@ Two things Render handles that the app relies on:
 - **TLS terminates at Render**, so the service serves plain HTTP internally
   while the public URL is `https://<service>.onrender.com`.
 
-> On the free plan the service **spins down after ~15 minutes of inactivity**,
-> and the next request pays a cold start of roughly 50 seconds. The contact form
-> has no timeout handling, so the first submission after an idle period will just
-> appear to hang. Upgrading off the free plan, or pinging `/healthz` on a
-> schedule, avoids this.
+> On the free plan the service **spins down after ~15 minutes of inactivity**, and the next
+> request pays a cold start of roughly 50 seconds. Both frontend requests that hit the backend
+> allow 60 seconds via an `AbortController` before giving up, rather than hanging indefinitely, so
+> a cold start reads as slow, not broken. The contact form shows a "Sending…" state immediately
+> and, if the request is still going after 4s, swaps in copy explaining the server is waking up
+> (`ConnectForm.tsx`). The projects section shows skeleton cards while its fetch is in flight, then
+> renders the real cards — from live data merged over a static fallback, or the static fallback
+> alone if the fetch never comes back in time (`Projects.tsx`, `useProjects.ts`). Neither request
+> is ever left to hang forever. `.github/workflows/keep-alive.yml` pings `/healthz` every 10
+> minutes to make a cold start less likely in the first place. GitHub's `schedule` trigger is
+> best-effort, not a guarantee — it can be delayed under load, and GitHub disables `schedule`
+> entirely on a repo with no commits for 60 days — so a cold start is mitigated, not eliminated.
+> Upgrading off the free plan removes the spin-down altogether.
 
 The repository **variable** (not secret) `VITE_API_URL` points the Pages build at
 the API; it is currently set to `https://portfolio-api-0mta.onrender.com`. Keep
