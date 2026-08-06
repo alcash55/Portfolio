@@ -34,11 +34,11 @@ func unsetEnv(t *testing.T, key string) {
 }
 
 // isZeroConfig reports whether cfg is the zero Config{}. Config is not
-// comparable with == because it embeds a slice, so this checks field by
+// comparable with == because it embeds slices, so this checks field by
 // field instead.
 func isZeroConfig(cfg Config) bool {
 	return cfg.WebhookURL == "" && cfg.Port == 0 && cfg.GHToken == "" &&
-		len(cfg.AllowedOrigins) == 0 && !cfg.AllowAnyLocalhost
+		len(cfg.AllowedOrigins) == 0 && len(cfg.ProjectRepos) == 0 && !cfg.AllowAnyLocalhost
 }
 
 func TestLoad_MissingPort(t *testing.T) {
@@ -193,5 +193,89 @@ func TestLoad_AllowedOriginsSetButUnusable(t *testing.T) {
 				t.Errorf("Load() with ALLOWED_ORIGINS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
 			}
 		})
+	}
+}
+
+// --- PROJECT_REPOS: mirrors the ALLOWED_ORIGINS tests above, since B1
+// deliberately reuses the same parsing helper (resolveCommaList) and its
+// hard-won "set-but-empty is an error" rule. ---
+
+func TestLoad_ProjectReposUnset(t *testing.T) {
+	baseEnv(t)
+	unsetEnv(t, "PROJECT_REPOS")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() with PROJECT_REPOS unset: unexpected error: %v", err)
+	}
+	if !slices.Equal(cfg.ProjectRepos, defaultProjectRepos) {
+		t.Errorf("Load() with PROJECT_REPOS unset: ProjectRepos = %v, want package defaults %v", cfg.ProjectRepos, defaultProjectRepos)
+	}
+}
+
+func TestLoad_ProjectReposSet(t *testing.T) {
+	baseEnv(t)
+	t.Setenv("PROJECT_REPOS", "Foo, Bar ,Baz")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() with PROJECT_REPOS set: unexpected error: %v", err)
+	}
+
+	want := []string{"Foo", "Bar", "Baz"}
+	if !slices.Equal(cfg.ProjectRepos, want) {
+		t.Errorf("Load() with PROJECT_REPOS=%q: ProjectRepos = %v, want %v (whitespace trimmed, order preserved)", "Foo, Bar ,Baz", cfg.ProjectRepos, want)
+	}
+}
+
+// TestLoad_ProjectReposSetButUnusable pins the same rule ALLOWED_ORIGINS
+// already enforces: PROJECT_REPOS set but parsing to nothing usable is a
+// configuration error, not a silent fallback to the curated defaults - a
+// broken deploy-time substitution here should surface loudly, not quietly
+// serve an unrelated default project list.
+func TestLoad_ProjectReposSetButUnusable(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{name: "only commas and whitespace", raw: " , , "},
+		{name: "single comma", raw: ","},
+		{name: "only whitespace", raw: "   "},
+		{name: "empty string", raw: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseEnv(t)
+			t.Setenv("PROJECT_REPOS", tt.raw)
+
+			cfg, err := Load()
+			if err == nil {
+				t.Fatalf("Load() with PROJECT_REPOS=%q: got nil error, want error mentioning PROJECT_REPOS", tt.raw)
+			}
+			if !strings.Contains(err.Error(), "PROJECT_REPOS") {
+				t.Errorf("Load() with PROJECT_REPOS=%q: error = %q, want it to mention PROJECT_REPOS", tt.raw, err.Error())
+			}
+			if !isZeroConfig(cfg) {
+				t.Errorf("Load() with PROJECT_REPOS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
+			}
+		})
+	}
+}
+
+// TestLoad_GHTokenOptional pins that an absent GH_TOKEN does not fail Load()
+// - the whole point of B4's "GH_TOKEN must remain optional" requirement,
+// since render.yaml does not set it today and the projects handler is built
+// to degrade cleanly without one.
+func TestLoad_GHTokenOptional(t *testing.T) {
+	baseEnv(t)
+	unsetEnv(t, "GH_TOKEN")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() with GH_TOKEN unset: unexpected error: %v", err)
+	}
+	if cfg.GHToken != "" {
+		t.Errorf("Load() with GH_TOKEN unset: GHToken = %q, want empty", cfg.GHToken)
 	}
 }
