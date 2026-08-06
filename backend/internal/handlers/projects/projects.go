@@ -16,8 +16,8 @@ import (
 )
 
 // repoOwner is the GitHub account every entry in config.Config.ProjectRepos
-// belongs to. A single owner is curated by hand; not worth parameterizing
-// per-repo (see TEAM-BRIEF B1).
+// belongs to. The allow-list is curated by hand and every entry is this
+// account's, so a per-repo owner field would be dead weight.
 const repoOwner = "alcash55"
 
 const (
@@ -28,8 +28,9 @@ const (
 )
 
 // Project is the contract shape for a single entry in the "projects" array
-// of GET /api/v1/projects. Field names are exactly what the frontend
-// contract requires - see TEAM-BRIEF.md's interface contract.
+// of GET /api/v1/projects. The json tags are the wire contract the frontend
+// consumes: camelCase, with topics always an array and homepage/language
+// always strings, never null. Changing a tag here breaks the client.
 type Project struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
@@ -225,7 +226,7 @@ func (h *Handler) fetchRepo(ctx context.Context, name string, onAuthRejected fun
 // doFetchRepo makes one request for name. sendToken controls whether
 // Authorization is set at all - not just whether it's empty - since an empty
 // bearer token is rejected outright by GitHub, whereas omitting the header
-// entirely is a valid unauthenticated request (see TEAM-BRIEF B2). status is
+// entirely is a valid unauthenticated request. status is
 // only meaningful when err is nil; the caller decides what a non-200 status
 // means (retry, skip, fail).
 func (h *Handler) doFetchRepo(ctx context.Context, name string, sendToken bool) (project Project, status int, err error) {

@@ -24,8 +24,16 @@ export interface StaticProject {
   description: string;
 }
 
-/** OSRS Bingo description
- * @see https://www.youtube.com/watch?v=MF6LjbPVFtA
+/**
+ * The curated project list. This is the source of truth for *which* projects
+ * appear and for their descriptions, screenshots, and links -- the API only
+ * layers live metadata (stars, language, last updated) on top, matched by
+ * `repoName`. Entries render from this data alone when the API is
+ * unavailable, so nothing here may depend on a response arriving.
+ *
+ * Note two entries deliberately link somewhere other than their GitHub repo
+ * (a live site and a Marketplace listing), which is why `href` is never
+ * derived from the API's `url`.
  */
 export const staticProjects: StaticProject[] = [
   {

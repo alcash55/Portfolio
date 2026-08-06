@@ -499,9 +499,10 @@ func TestGetProjects_OneRepo404_SkipsThatRepo(t *testing.T) {
 
 // --- Authorization header ---
 
-// TestGetProjects_AuthorizationHeader pins the exact rule from TEAM-BRIEF
-// B2: sent only when the token is non-empty, and absent entirely (not just
-// empty) when it is.
+// TestGetProjects_AuthorizationHeader pins the rule that the header is sent
+// only when the token is non-empty, and absent entirely (not merely empty)
+// when it is -- GitHub rejects an empty bearer outright, while omitting the
+// header is a valid unauthenticated request.
 func TestGetProjects_AuthorizationHeader(t *testing.T) {
 	t.Run("token configured", func(t *testing.T) {
 		var gotHeader string
