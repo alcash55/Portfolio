@@ -165,8 +165,7 @@ func TestLoad_AllowedOriginsWhitespaceAndEmptyEntries(t *testing.T) {
 // misconfigured production deploy to dev-permissive CORS. Load() now uses
 // os.LookupEnv to tell "set" apart from "unset" and returns an error (and a
 // zero Config) whenever the variable is set but useless, including the empty
-// string — see TEAM-BRIEF.md for why "" is deliberately an error rather than
-// falling through to defaults.
+// string.
 func TestLoad_AllowedOriginsSetButUnusable(t *testing.T) {
 	tests := []struct {
 		name string

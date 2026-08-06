@@ -21,7 +21,7 @@ const maxBodyBytes = 64 << 10 // 64 KiB
 // failure. gin's binding errors (e.g. "Key: 'message.Email' Error:Field
 // validation for 'Email' failed on the 'email' tag") are internal detail,
 // not user-presentable text, so they are logged server-side instead of sent
-// to the client. See TEAM-BRIEF.md B3.
+// to the client.
 const invalidSubmissionMessage = "please check your details and try again"
 
 // message is the contact-form payload accepted by SendMessage. The field caps
@@ -34,8 +34,8 @@ type message struct {
 	// Website is a honeypot: a real form field, hidden from and never filled
 	// in by human users, but visible to unsophisticated bots that fill in
 	// every field they find. No binding tag - it must never be required and
-	// must never block a genuine submission. See TEAM-BRIEF.md's honeypot
-	// contract.
+	// must never block a genuine submission; see the check in SendMessage for
+	// what happens when it comes back non-empty.
 	Website string `json:"website"`
 }
 
