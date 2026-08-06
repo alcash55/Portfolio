@@ -102,7 +102,10 @@ const Experience = () => {
                       },
                     }}
                   >
-                    <CardHeader title={experience.title} />
+                    <CardHeader
+                      title={experience.title}
+                      titleTypographyProps={{ component: 'h3' }}
+                    />
                     <CardContent>{experience.description}</CardContent>
                   </Card>
                 </TimelineContent>
