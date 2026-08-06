@@ -18,11 +18,23 @@ var defaultAllowedOrigins = []string{
 	"https://alcash55.github.io",
 }
 
+// defaultProjectRepos is used when PROJECT_REPOS is unset: the current
+// curated order for the Projects section. None of these repos carry GitHub
+// topics (verified against the live API), so curation is this explicit
+// allow-list rather than a topic filter.
+var defaultProjectRepos = []string{
+	"Little-Town",
+	"ac-composite-actions",
+	"Royalty-VS-Code-Theme",
+	"Portfolio",
+}
+
 type Config struct {
 	WebhookURL     string   `env:"WEBHOOK_URL"`
 	Port           int      `env:"PORT"`
 	GHToken        string   `env:"GH_TOKEN"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS"`
+	ProjectRepos   []string `env:"PROJECT_REPOS"`
 
 	// AllowAnyLocalhost is true when ALLOWED_ORIGINS was not set, which only
 	// happens in local development. Dev servers drift to another port when
@@ -38,23 +50,14 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("PORT is required: %w", err)
 	}
 
-	rawOrigins, originsSet := os.LookupEnv("ALLOWED_ORIGINS")
+	origins, usingDefaultOrigins, err := resolveCommaList("ALLOWED_ORIGINS", defaultAllowedOrigins)
+	if err != nil {
+		return Config{}, err
+	}
 
-	var origins []string
-	var usingDefaults bool
-	if !originsSet {
-		// Genuinely unset: this is the local-dev path.
-		origins = slices.Clone(defaultAllowedOrigins)
-		usingDefaults = true
-	} else {
-		origins = parseOrigins(rawOrigins)
-		if len(origins) == 0 {
-			// Set but parses to nothing usable (e.g. "", ",", " , , ", "   ").
-			// This is most likely a broken deploy-time template substitution;
-			// falling back to permissive defaults would silently downgrade
-			// production CORS, so treat it as a configuration error instead.
-			return Config{}, fmt.Errorf("ALLOWED_ORIGINS is set but contains no usable origins: %q", rawOrigins)
-		}
+	projectRepos, _, err := resolveCommaList("PROJECT_REPOS", defaultProjectRepos)
+	if err != nil {
+		return Config{}, err
 	}
 
 	cfg := Config{
@@ -62,11 +65,15 @@ func Load() (Config, error) {
 		Port:              port,
 		GHToken:           os.Getenv("GH_TOKEN"),
 		AllowedOrigins:    origins,
-		AllowAnyLocalhost: usingDefaults,
+		ProjectRepos:      projectRepos,
+		AllowAnyLocalhost: usingDefaultOrigins,
 	}
 
-	// GH_TOKEN is optional: it is loaded for future use but nothing reads it
-	// yet, so requiring it would block deploys for no reason.
+	// GH_TOKEN is optional: the /api/v1/projects handler (internal/handlers/
+	// projects) reads it, but sends requests unauthenticated when it's empty
+	// rather than failing to boot. It is not set in render.yaml today, so
+	// requiring it here would stop the live API from booting - a
+	// self-inflicted outage over a token that only lowers a rate limit.
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
 			return Config{}, fmt.Errorf("%s is required", env)
@@ -76,16 +83,37 @@ func Load() (Config, error) {
 	return cfg, nil
 }
 
-// parseOrigins splits a comma-separated origin list. It returns an empty slice
-// when the value is unset or contains nothing usable, leaving the caller to
-// decide whether that means "use the defaults".
-func parseOrigins(raw string) []string {
-	origins := make([]string, 0, len(defaultAllowedOrigins))
-	for _, origin := range strings.Split(raw, ",") {
-		if origin = strings.TrimSpace(origin); origin != "" {
-			origins = append(origins, origin)
+// resolveCommaList reads envVar as a comma-separated list, following the
+// ALLOWED_ORIGINS precedent: unset falls back to defaults (usingDefaults =
+// true), but set-but-parses-to-nothing-usable (e.g. "", ",", " , , ") is a
+// configuration error, not a silent fallback. That case is most likely a
+// broken deploy-time template substitution; falling back to defaults would
+// silently downgrade a curated production setting instead of surfacing the
+// misconfiguration.
+func resolveCommaList(envVar string, defaults []string) (values []string, usingDefaults bool, err error) {
+	raw, isSet := os.LookupEnv(envVar)
+	if !isSet {
+		return slices.Clone(defaults), true, nil
+	}
+
+	values = splitCommaList(raw)
+	if len(values) == 0 {
+		return nil, false, fmt.Errorf("%s is set but contains no usable values: %q", envVar, raw)
+	}
+	return values, false, nil
+}
+
+// splitCommaList splits a comma-separated string, trimming whitespace and
+// dropping empty entries. It returns an empty slice when raw is unset or
+// contains nothing usable, leaving the caller to decide what that means.
+func splitCommaList(raw string) []string {
+	parts := strings.Split(raw, ",")
+	values := make([]string, 0, len(parts))
+	for _, v := range parts {
+		if v = strings.TrimSpace(v); v != "" {
+			values = append(values, v)
 		}
 	}
 
-	return origins
+	return values
 }
