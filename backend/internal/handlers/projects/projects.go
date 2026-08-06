@@ -142,12 +142,22 @@ func (h *Handler) fetchAll(ctx context.Context) ([]Project, error) {
 	results := make([]Project, len(repos))
 	errs := make([]error, len(repos))
 
+	// A stale/rotated GH_TOKEN rejects every repo the same way, so log the
+	// unauthenticated fallback once per refresh, not once per repo - four
+	// identical lines from one bad token is noise, not signal.
+	var logAuthFallbackOnce sync.Once
+	logAuthFallback := func() {
+		logAuthFallbackOnce.Do(func() {
+			log.Print("projects: GH_TOKEN rejected by GitHub (401/403); retrying this refresh unauthenticated")
+		})
+	}
+
 	var wg sync.WaitGroup
 	for i, name := range repos {
 		wg.Add(1)
 		go func(i int, name string) {
 			defer wg.Done()
-			p, err := h.fetchRepo(ctx, name)
+			p, err := h.fetchRepo(ctx, name, logAuthFallback)
 			results[i] = p
 			errs[i] = err
 		}(i, name)
@@ -169,44 +179,85 @@ func (h *Handler) fetchAll(ctx context.Context) ([]Project, error) {
 	return projects, nil
 }
 
-// fetchRepo fetches and maps a single repo. The returned error never
-// contains the token, even indirectly - only the HTTP status or a generic
-// transport-error description.
-func (h *Handler) fetchRepo(ctx context.Context, name string) (Project, error) {
+// fetchRepo fetches and maps a single repo, sending GH_TOKEN if configured.
+//
+// A stale or rotated token is strictly worse than no token at all: an
+// authenticated request GitHub rejects with 401/403 fails outright, while
+// the same request sent unauthenticated would likely succeed (60/hr
+// unauthenticated vs. 5000/hr authenticated - plenty for four repos behind
+// an hour-long cache). So a 401/403 on an authenticated request triggers
+// exactly one retry, unauthenticated. Nothing else retries: 404 and 5xx
+// aren't credential problems, and a transport error retried instantly is
+// unlikely to succeed and just doubles the load on a possibly-struggling
+// upstream. onAuthRejected is called (not necessarily just once per
+// fetchRepo call, but see fetchAll's single-flighted logger) when the retry
+// fires, so the caller can log it once per refresh instead of once per repo.
+//
+// The returned error never contains the token, even indirectly - only the
+// HTTP status or a generic transport-error description.
+func (h *Handler) fetchRepo(ctx context.Context, name string, onAuthRejected func()) (Project, error) {
+	sendToken := h.cfg.GHToken != ""
+
+	project, status, err := h.doFetchRepo(ctx, name, sendToken)
+	if err != nil {
+		return Project{}, err
+	}
+	if status == http.StatusOK {
+		return project, nil
+	}
+
+	if sendToken && (status == http.StatusUnauthorized || status == http.StatusForbidden) {
+		onAuthRejected()
+		project, status, err = h.doFetchRepo(ctx, name, false)
+		if err != nil {
+			return Project{}, err
+		}
+		if status == http.StatusOK {
+			return project, nil
+		}
+	}
+
+	// GitHub's error body is not forwarded anywhere - just the status, which
+	// is enough to diagnose from server-side logs.
+	return Project{}, fmt.Errorf("unexpected status %d", status)
+}
+
+// doFetchRepo makes one request for name. sendToken controls whether
+// Authorization is set at all - not just whether it's empty - since an empty
+// bearer token is rejected outright by GitHub, whereas omitting the header
+// entirely is a valid unauthenticated request (see TEAM-BRIEF B2). status is
+// only meaningful when err is nil; the caller decides what a non-200 status
+// means (retry, skip, fail).
+func (h *Handler) doFetchRepo(ctx context.Context, name string, sendToken bool) (project Project, status int, err error) {
 	url := fmt.Sprintf("%s/repos/%s/%s", h.baseURL, repoOwner, name)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return Project{}, fmt.Errorf("building request: %w", err)
+		return Project{}, 0, fmt.Errorf("building request: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	// GitHub rejects requests with no User-Agent at all.
 	req.Header.Set("User-Agent", "alcash55-portfolio-backend")
-	// Sent only when non-empty: an empty bearer token is rejected outright by
-	// GitHub, whereas omitting the header entirely is a valid unauthenticated
-	// request (see TEAM-BRIEF B2).
-	if h.cfg.GHToken != "" {
+	if sendToken {
 		req.Header.Set("Authorization", "Bearer "+h.cfg.GHToken)
 	}
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return Project{}, fmt.Errorf("request failed: %w", err)
+		return Project{}, 0, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		// GitHub's error body is not forwarded anywhere - just the status,
-		// which is enough to diagnose from server-side logs.
-		return Project{}, fmt.Errorf("unexpected status %d", resp.StatusCode)
+		return Project{}, resp.StatusCode, nil
 	}
 
 	var repo githubRepo
 	if err := json.NewDecoder(resp.Body).Decode(&repo); err != nil {
-		return Project{}, fmt.Errorf("decoding response: %w", err)
+		return Project{}, resp.StatusCode, fmt.Errorf("decoding response: %w", err)
 	}
 
-	return toProject(repo), nil
+	return toProject(repo), resp.StatusCode, nil
 }
 
 // toProject maps a githubRepo onto the contract's Project shape: GitHub's

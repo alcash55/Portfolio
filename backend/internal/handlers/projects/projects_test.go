@@ -1,7 +1,9 @@
 package projects
 
 import (
+	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"path"
@@ -164,6 +166,25 @@ func TestGetProjects_OrderMatchesAllowListNotResponseOrder(t *testing.T) {
 	if !equalStrings(gotNames, want) {
 		t.Errorf("response project order = %v, want %v (allow-list order, despite C completing first, then B, then A)", gotNames, want)
 	}
+}
+
+// captureLog redirects the standard logger's output into a buffer for the
+// duration of the test, restoring the previous output and flags on cleanup.
+// This package logs through the standard "log" package (see log.Printf
+// calls in projects.go), so this is the only way to assert on what got
+// logged and how many times.
+func captureLog(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	prevOutput := log.Writer()
+	prevFlags := log.Flags()
+	log.SetOutput(&buf)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(prevOutput)
+		log.SetFlags(prevFlags)
+	})
+	return &buf
 }
 
 func equalStrings(a, b []string) bool {
@@ -593,5 +614,191 @@ func TestGetProjects_ConcurrentFetchesAreFaster(t *testing.T) {
 	// well under that. Generous budget to avoid flaking on a loaded CI box.
 	if budget := artificialDelay * 3; elapsed > budget {
 		t.Errorf("fetching %d repos took %v, want under %v (repos should be fetched concurrently, not sequentially)", len(repos), elapsed, budget)
+	}
+}
+
+// --- unauthenticated retry on a rejected token ---
+//
+// A stale or rotated GH_TOKEN must not be worse than no token at all: an
+// authenticated request GitHub rejects with 401/403 gets retried exactly
+// once, unauthenticated, since an anonymous request is strictly more likely
+// to succeed than repeating a rejected one.
+
+// TestGetProjects_Upstream401WithToken_RetriesUnauthenticated proves the
+// core behavior: a token that gets 401'd is retried once without
+// Authorization, and a request that would otherwise succeed unauthenticated
+// does succeed.
+func TestGetProjects_Upstream401WithToken_RetriesUnauthenticated(t *testing.T) {
+	var calls int32
+	var sawAuthedAttempt, sawUnauthedAttempt bool
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		if _, hasAuth := r.Header["Authorization"]; hasAuth {
+			sawAuthedAttempt = true
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		sawUnauthedAttempt = true
+		json.NewEncoder(w).Encode(githubRepo{Name: "Little-Town", HTMLURL: "https://github.com/alcash55/Little-Town"})
+	}))
+	defer server.Close()
+
+	cfg := config.Config{ProjectRepos: []string{"Little-Town"}, GHToken: "stale-token"}
+	h := New(cfg, WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getProjects(t, router)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("401 on authenticated attempt, retry unauthenticated: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	resp := decodeResponse(t, rec)
+	if resp.Stale {
+		t.Errorf("status = 200 via retry: stale = true, want false (this is a fresh successful fetch)")
+	}
+	if len(resp.Projects) != 1 || resp.Projects[0].Name != "Little-Town" {
+		t.Errorf("projects = %+v, want the successfully-retried Little-Town", resp.Projects)
+	}
+	if !sawAuthedAttempt {
+		t.Error("fake server never saw an authenticated attempt - test setup is wrong")
+	}
+	if !sawUnauthedAttempt {
+		t.Error("fake server never saw an unauthenticated retry - the 401 fallback did not fire")
+	}
+	if got := atomic.LoadInt32(&calls); got != 2 {
+		t.Errorf("upstream calls for one repo that 401s then succeeds: got %d, want exactly 2 (one authenticated attempt, one unauthenticated retry - no loop)", got)
+	}
+}
+
+// TestGetProjects_Upstream403WithToken_RetriesUnauthenticated covers 403
+// (GitHub uses this for e.g. a token that lacks scope, not only 401 for
+// "bad credential") alongside 401.
+func TestGetProjects_Upstream403WithToken_RetriesUnauthenticated(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, hasAuth := r.Header["Authorization"]; hasAuth {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		json.NewEncoder(w).Encode(githubRepo{Name: "Little-Town", HTMLURL: "https://github.com/alcash55/Little-Town"})
+	}))
+	defer server.Close()
+
+	cfg := config.Config{ProjectRepos: []string{"Little-Town"}, GHToken: "stale-token"}
+	h := New(cfg, WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getProjects(t, router)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("403 on authenticated attempt, retry unauthenticated: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+}
+
+// TestGetProjects_Upstream404NotRetried and the 500 case below prove the
+// retry is scoped to 401/403 only: neither a missing repo nor a server
+// error is a credential problem, and retrying either just doubles load for
+// no chance of a different outcome. Exactly one upstream call must happen.
+func TestGetProjects_Upstream404NotRetried(t *testing.T) {
+	var calls int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	cfg := config.Config{ProjectRepos: []string{"Little-Town"}, GHToken: "some-token"}
+	h := New(cfg, WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getProjects(t, router)
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("single repo 404s: status = %d, want %d; body: %s", rec.Code, http.StatusBadGateway, rec.Body.String())
+	}
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Errorf("upstream calls for a 404: got %d, want exactly 1 (404 is not a credential problem and must not be retried)", got)
+	}
+}
+
+func TestGetProjects_Upstream500NotRetried(t *testing.T) {
+	var calls int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	cfg := config.Config{ProjectRepos: []string{"Little-Town"}, GHToken: "some-token"}
+	h := New(cfg, WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getProjects(t, router)
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("single repo 500s: status = %d, want %d; body: %s", rec.Code, http.StatusBadGateway, rec.Body.String())
+	}
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Errorf("upstream calls for a 500: got %d, want exactly 1 (5xx is not a credential problem and must not be retried)", got)
+	}
+}
+
+// TestGetProjects_NoTokenConfigured_NoRetryPath proves that with no
+// GH_TOKEN at all, a 401 (e.g. GitHub rate-limiting an anonymous caller)
+// makes exactly one upstream call - there is no authenticated attempt to
+// fall back from, so the retry path must never fire.
+func TestGetProjects_NoTokenConfigured_NoRetryPath(t *testing.T) {
+	var calls int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		if _, hasAuth := r.Header["Authorization"]; hasAuth {
+			t.Error("fake server received an Authorization header with no GH_TOKEN configured")
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	cfg := config.Config{ProjectRepos: []string{"Little-Town"}, GHToken: ""}
+	h := New(cfg, WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getProjects(t, router)
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("no token, upstream 401: status = %d, want %d; body: %s", rec.Code, http.StatusBadGateway, rec.Body.String())
+	}
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Errorf("upstream calls with no GH_TOKEN configured: got %d, want exactly 1 (nothing to retry without - a token was never sent in the first place)", got)
+	}
+}
+
+// TestGetProjects_AuthFallbackLoggedOncePerRefresh proves the fallback log
+// line appears exactly once per refresh even when every repo in the
+// allow-list independently hits the 401-then-retry path - a stale token
+// rejecting four repos must not produce four identical log lines.
+func TestGetProjects_AuthFallbackLoggedOncePerRefresh(t *testing.T) {
+	buf := captureLog(t)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, hasAuth := r.Header["Authorization"]; hasAuth {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		name := path.Base(r.URL.Path)
+		json.NewEncoder(w).Encode(githubRepo{Name: name, HTMLURL: "https://github.com/alcash55/" + name})
+	}))
+	defer server.Close()
+
+	cfg := config.Config{ProjectRepos: []string{"Repo-A", "Repo-B", "Repo-C", "Repo-D"}, GHToken: "stale-token"}
+	h := New(cfg, WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getProjects(t, router)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("4 repos, all 401-then-retry-succeed: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+
+	const marker = "GH_TOKEN rejected"
+	if got := strings.Count(buf.String(), marker); got != 1 {
+		t.Errorf("log output contains %d occurrence(s) of %q across 4 repos that all hit the retry path, want exactly 1 - got log:\n%s", got, marker, buf.String())
+	}
+	if strings.Contains(buf.String(), "stale-token") {
+		t.Errorf("log output leaked the GH_TOKEN value — got:\n%s", buf.String())
 	}
 }
