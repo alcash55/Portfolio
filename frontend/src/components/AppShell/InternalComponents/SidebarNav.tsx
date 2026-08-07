@@ -12,6 +12,7 @@ import {
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import { navLinks } from './navLinks';
+import { Logo } from '../../../assets/icons/Logo';
 
 /** localStorage key for the collapsed state, following the same pattern as the
  * `layout` key `AppShellProvider` uses to persist the layout mode. */
@@ -30,27 +31,40 @@ const SideBarTopItem = ({ collapsed, onToggle }: SideBarTopItemProps) => {
       <Toolbar
         sx={{
           display: 'flex',
+          flexDirection: collapsed ? 'column' : 'row',
           justifyContent: collapsed ? 'center' : 'space-between',
           alignItems: 'center',
           gap: 1,
+          py: collapsed ? 2 : undefined,
         }}
       >
-        {!collapsed && (
-          // This is persistent shell chrome (a brand label repeated in every layout
-          // mode), not the page's title, so it's rendered as a plain div rather than
-          // an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
-          // one real title; a second element with the same text would be a duplicate
-          // heading, not a subordinate one.
-          <Typography
-            variant={'h1'}
-            component={'div'}
-            sx={{
-              fontSize: 24,
-              color: 'text.primary',
-            }}
-          >
-            Alex Cash
-          </Typography>
+        {collapsed ? (
+          // Collapsed 72px rail: the mark alone. Decorative like the expanded
+          // brand text it stands in for below -- no titleAccess, so it stays
+          // aria-hidden; SideBarItems' own buttons carry the accessible names
+          // for this rail.
+          <Logo sx={{ fontSize: 28, color: 'text.primary' }} />
+        ) : (
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            {/* Decorative next to the adjacent "Alex Cash" text -- no
+                titleAccess, so the name is announced once, not twice. */}
+            <Logo sx={{ fontSize: 24, color: 'text.primary' }} />
+            {/* This is persistent shell chrome (a brand label repeated in every layout
+                mode), not the page's title, so it's rendered as a plain div rather than
+                an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
+                one real title; a second element with the same text would be a duplicate
+                heading, not a subordinate one. */}
+            <Typography
+              variant={'h1'}
+              component={'div'}
+              sx={{
+                fontSize: 24,
+                color: 'text.primary',
+              }}
+            >
+              Alex Cash
+            </Typography>
+          </Stack>
         )}
         <Tooltip title={collapsed ? 'Expand navigation' : 'Collapse navigation'}>
           <IconButton

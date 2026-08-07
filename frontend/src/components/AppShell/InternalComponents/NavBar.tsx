@@ -2,6 +2,7 @@ import { Box, AppBar, Toolbar, Button, IconButton, Fade } from '@mui/material';
 import Menu from '@mui/icons-material/Menu';
 import { useShowNavBar } from './useShowNavBar';
 import { navLinks } from './navLinks';
+import { Logo } from '../../../assets/icons/Logo';
 
 interface NavBarProps {
   setSettingDrawer: (value: boolean) => void;
@@ -29,6 +30,17 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
       >
         <AppBar sx={{ bgcolor: 'background.paper' }}>
           <Toolbar>
+            {/* Icon-only, so the accessible name lives on the IconButton -- Logo
+                itself stays decorative (no titleAccess) to avoid a duplicate
+                announcement, matching the pattern SidebarNav's collapsed rail
+                already uses for its own icon-only nav links. */}
+            <IconButton
+              aria-label="Alex Cash — go to top"
+              href="#landing"
+              sx={{ color: 'text.primary', mr: 1 }}
+            >
+              <Logo sx={{ fontSize: 28 }} />
+            </IconButton>
             <Box
               sx={{
                 display: 'flex',
