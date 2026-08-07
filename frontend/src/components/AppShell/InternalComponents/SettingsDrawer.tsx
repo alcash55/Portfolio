@@ -113,10 +113,14 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
       anchor={'right'}
       open={settingDrawer}
       onClose={() => setSettingDrawer(false)}
-      role="dialog"
-      aria-labelledby="settings-drawer-title"
       slotProps={{
+        // role/aria live on the paper slot, not on Drawer's root. MUI v9
+        // forwards unrecognized root props to the slots as well, so passing
+        // role="dialog" to <Drawer> lands it on both the modal root and the
+        // paper -- and a screen reader then announces two nested dialogs.
         paper: {
+          role: 'dialog',
+          'aria-labelledby': 'settings-drawer-title',
           sx: {
             width: isMobile ? '100%' : isTablet ? '50%' : tempSidebar ? 280 : 280,
           },
