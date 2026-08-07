@@ -1,12 +1,6 @@
 import Menu from '@mui/icons-material/Menu';
 import { Fragment, SyntheticEvent, useState } from 'react';
-import {
-  BottomNavigation,
-  BottomNavigationAction,
-  Fab,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { BottomNavigation, BottomNavigationAction, Fab } from '@mui/material';
 import { navLinks } from '../navLinks';
 
 interface MobileChromeProps {
@@ -21,9 +15,6 @@ interface MobileChromeProps {
  */
 export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
   const [value, setValue] = useState(`#${navLinks[0].id}`);
-
-  const theme = useTheme();
-  const isLargeMobile = useMediaQuery(theme.breakpoints.down(425));
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -64,7 +55,19 @@ export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
           return (
             <BottomNavigationAction
               sx={{
-                minWidth: isLargeMobile ? '65px' : 'auto',
+                // Six items must always fit the viewport (down to 320px) with no
+                // horizontal overflow. The root's default `minWidth: 80` (plus
+                // `0px 12px` padding) is wider than a 320px viewport can give
+                // six items without overflowing, and a *fixed* px minWidth (the
+                // previous approach here) overflows below the width it was
+                // tuned for. `minWidth: 0` removes that floor so `flex: 1`
+                // (already the root default) divides the bar evenly at any
+                // width instead of forcing a sum wider than the container.
+                // `px` and the label `fontSize` below are shrunk to match —
+                // this component only ever renders below the 650px mobile
+                // breakpoint, so one compact size covers its whole range.
+                minWidth: 0,
+                px: 0.5,
                 // Root stacks icon + label in a column and centers that group
                 // vertically (MUI's ButtonBase default `justifyContent: center`).
                 // "Skills & Tech" is long enough to wrap to two lines while every
@@ -76,6 +79,10 @@ export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
                 pt: 1.75,
                 '& .MuiBottomNavigationAction-label': {
                   whiteSpace: 'nowrap',
+                  fontSize: '0.6875rem',
+                },
+                '& .MuiBottomNavigationAction-label.Mui-selected': {
+                  fontSize: '0.75rem',
                 },
               }}
               key={link.id}
