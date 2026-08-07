@@ -6,9 +6,7 @@ const Node = (props: SvgIconProps) => {
       width="267"
       height="80"
       viewBox="0 0 267 80"
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="fill-[#333333] dark:fill-white index-module__oMcDnW__nodejsLogo"
       aria-label="Node.js logo"
     >
       <title>Node Logo</title>
