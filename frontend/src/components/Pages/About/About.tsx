@@ -32,17 +32,19 @@ const About = () => {
           sx={{
             width: '100%',
           }}
-          titleTypographyProps={{
-            textAlign: 'start',
-            variant: 'h4',
-            component: 'h2',
-          }}
           avatar={
             <IconButton aria-label="navigate to about" href="#about" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
           title="About Me"
+          slotProps={{
+            title: {
+              textAlign: 'start',
+              variant: 'h4',
+              component: 'h2',
+            },
+          }}
         />
         <CardContent
           sx={{
@@ -53,18 +55,33 @@ const About = () => {
         >
           <Grid container spacing={4}>
             {/* Photos Section */}
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               {/* <SwipeableCards /> */}
             </Grid>
 
             {/* Text Content */}
-            <Grid item xs={12} md={6}>
+            <Grid
+              size={{
+                xs: 12,
+                md: 6,
+              }}
+            >
               <Stack spacing={3}>
                 <Box>
                   <Typography variant="h5" component="h3" gutterBottom>
                     Hey, I’m Alex Cash — Software Engineer
                   </Typography>
-                  <Typography variant="body1" paragraph>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      marginBottom: '16px',
+                    }}
+                  >
                     I enjoy building clean, scalable, and well-designed systems. I focus on software
                     that works great under the hood and delivers a smooth, intuitive experience for
                     users.
@@ -119,7 +136,12 @@ const About = () => {
                   <Typography variant="h6" component="h4" gutterBottom>
                     Outside of Work
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     When I’m not coding, you’ll probably find me coaching lacrosse or spending time
                     with my two dogs. Coaching has taught me a lot about communication, patience,
                     and leadership — lessons that carry directly into how I approach software

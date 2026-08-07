@@ -73,17 +73,19 @@ const Projects = () => {
           sx={{
             width: '100%',
           }}
-          titleTypographyProps={{
-            textAlign: 'start',
-            variant: 'h4',
-            component: 'h2',
-          }}
           avatar={
             <IconButton aria-label="navigate to projects" href="#projects" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
           title="Projects"
+          slotProps={{
+            title: {
+              textAlign: 'start',
+              variant: 'h4',
+              component: 'h2',
+            },
+          }}
         />
         <CardContent
           sx={{
@@ -95,7 +97,15 @@ const Projects = () => {
             flexGrow: 1,
           }}
         >
-          <Grid container spacing={2} width={'100%'} height={'100%'} justifyContent={'center'}>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              width: '100%',
+              height: '100%',
+              justifyContent: 'center',
+            }}
+          >
             {isLoading
               ? staticProjects.map((project) => (
                   <ProjectCardSkeleton key={project.repoName} largeMobile={largeMobile} />
@@ -121,14 +131,18 @@ const ProjectCard = ({
 
   return (
     <Grid
-      item
-      xs={12}
-      sm={6}
-      md={4}
-      lg={4}
-      xl={4}
-      justifyContent={'center'}
-      sx={{ height: largeMobile ? 'auto' : 300 }}
+      data-testid="project-grid-item"
+      sx={{
+        justifyContent: 'center',
+        height: largeMobile ? 'auto' : 300,
+      }}
+      size={{
+        xs: 12,
+        sm: 6,
+        md: 4,
+        lg: 4,
+        xl: 4,
+      }}
     >
       <Card sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
         <CardActionArea
@@ -179,7 +193,12 @@ const ProjectCard = ({
             <Typography gutterBottom variant="h5" component="div">
               {project.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {project.description}
             </Typography>
             {/* Live metadata (F1): only rendered once the API has actually
@@ -189,15 +208,23 @@ const ProjectCard = ({
               <Stack
                 direction="row"
                 spacing={1}
-                alignItems="center"
-                flexWrap="wrap"
-                sx={{ mt: 1 }}
-                color="text.secondary"
+                sx={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  color: 'text.secondary',
+                  mt: 1,
+                }}
               >
                 {project.live.language && (
                   <Typography variant="caption">{project.live.language}</Typography>
                 )}
-                <Stack direction="row" spacing={0.25} alignItems="center">
+                <Stack
+                  direction="row"
+                  spacing={0.25}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <StarIcon sx={{ fontSize: 14 }} />
                   <Typography variant="caption">{project.live.stars}</Typography>
                 </Stack>
@@ -217,7 +244,17 @@ const ProjectCard = ({
  * stay on screen a while -- it needs to read as "loading", not "broken".
  */
 const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
-  <Grid item xs={12} sm={6} md={4} lg={4} xl={4} sx={{ height: largeMobile ? 'auto' : 300 }}>
+  <Grid
+    data-testid="project-grid-item"
+    sx={{ height: largeMobile ? 'auto' : 300 }}
+    size={{
+      xs: 12,
+      sm: 6,
+      md: 4,
+      lg: 4,
+      xl: 4,
+    }}
+  >
     <Card sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
       <Box
         sx={{

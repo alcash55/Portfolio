@@ -1,5 +1,5 @@
 import { Box, AppBar, Toolbar, Button, IconButton, Fade } from '@mui/material';
-import { Menu } from '@mui/icons-material/';
+import Menu from '@mui/icons-material/Menu';
 import { useShowNavBar } from './useShowNavBar';
 import { navLinks } from './navLinks';
 

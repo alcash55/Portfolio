@@ -314,7 +314,7 @@ const Landing = () => {
             <Box sx={{ maxWidth: 896, mx: 'auto', mb: 6 }}>
               <Grid container spacing={2}>
                 {images.map((image, index) => (
-                  <Grid key={index} item xs={3}>
+                  <Grid key={index} size={3}>
                     <Box
                       sx={{
                         position: 'relative',

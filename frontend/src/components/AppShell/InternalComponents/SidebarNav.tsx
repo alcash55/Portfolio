@@ -20,7 +20,14 @@ const SideBarTopItem = () => {
             an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
             one real title; a second element with the same text would be a duplicate
             heading, not a subordinate one. */}
-        <Typography variant={'h1'} component={'div'} fontSize={24} sx={{ color: 'text.primary' }}>
+        <Typography
+          variant={'h1'}
+          component={'div'}
+          sx={{
+            fontSize: 24,
+            color: 'text.primary',
+          }}
+        >
           Alex Cash
         </Typography>
       </Toolbar>
@@ -96,8 +103,8 @@ export const SidebarNav = () => {
   return (
     <Box
       component="nav"
-      position={'sticky'}
       sx={{
+        position: 'sticky',
         width: 240,
         height: '100%',
         px: 1,

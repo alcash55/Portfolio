@@ -53,7 +53,7 @@ describe('Projects', () => {
     );
     const { container } = render(<Projects />);
 
-    const skeletonGridItems = container.querySelectorAll('.MuiGrid-item');
+    const skeletonGridItems = container.querySelectorAll('[data-testid="project-grid-item"]');
     expect(
       skeletonGridItems.length,
       `expected ${staticProjects.length} skeleton grid items (one per static project), got ${skeletonGridItems.length}`,

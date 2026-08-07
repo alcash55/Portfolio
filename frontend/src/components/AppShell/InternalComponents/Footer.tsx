@@ -21,7 +21,14 @@ export const Footer = () => {
           3.98:1. primary.light clears AA in all three (5.1-6.6:1) without
           changing the hue.
         */}
-        <Stack spacing={2} width={'50%'} sx={{ textAlign: 'start', p: 2 }}>
+        <Stack
+          spacing={2}
+          sx={{
+            width: '50%',
+            textAlign: 'start',
+            p: 2,
+          }}
+        >
           <Typography variant="h6" component={'h2'}>
             Sitemap
           </Typography>
