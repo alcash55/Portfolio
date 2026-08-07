@@ -32,12 +32,12 @@ const Node = (props: SvgIconProps) => {
         ></path>
         <path
           fillRule="evenodd"
-          clip-rule="evenodd"
+          clipRule="evenodd"
           d="M43.674 41.954c0-.834-.46-1.62-1.197-2.038L23.01 28.572c-.322-.185-.69-.278-1.058-.324h-.184c-.368 0-.736.139-1.059.324l-19.512 11.3A2.38 2.38 0 0 0 0 41.953l.046 30.378c0 .416.23.833.598 1.018.368.232.829.232 1.15 0l11.598-6.668a2.36 2.36 0 0 0 1.197-2.037V50.428c0-.833.46-1.62 1.196-2.037l4.924-2.871a2.2 2.2 0 0 1 1.197-.325c.414 0 .828.093 1.15.325l4.925 2.87a2.36 2.36 0 0 1 1.196 2.038v14.217c0 .833.46 1.62 1.197 2.037l11.505 6.668c.368.232.828.232 1.197 0 .368-.185.598-.602.598-1.018zM137.465.139c-.369-.185-.829-.185-1.151 0-.368.231-.598.602-.598 1.019v30.1a.89.89 0 0 1-.415.74.88.88 0 0 1-.828 0l-4.878-2.825a2.36 2.36 0 0 0-2.347 0L107.735 40.52a2.36 2.36 0 0 0-1.196 2.037V65.2c0 .834.46 1.621 1.196 2.038l19.513 11.345a2.36 2.36 0 0 0 2.347 0l19.513-11.345a2.36 2.36 0 0 0 1.196-2.038V8.752c0-.88-.46-1.667-1.196-2.084zm-1.795 57.606c0 .232-.092.417-.276.51l-6.674 3.89a.68.68 0 0 1-.598 0l-6.673-3.89c-.184-.093-.276-.325-.276-.51v-7.78c0-.231.092-.416.276-.509l6.673-3.89a.68.68 0 0 1 .598 0l6.674 3.89c.184.093.276.324.276.51zm66.728-7.965c.737-.417 1.151-1.204 1.151-2.038v-5.51c0-.834-.46-1.62-1.151-2.037l-19.375-11.3a2.36 2.36 0 0 0-2.347 0l-19.512 11.346a2.36 2.36 0 0 0-1.197 2.037v22.645c0 .833.46 1.62 1.197 2.037l19.374 11.114c.737.416 1.611.416 2.301 0l11.736-6.576c.368-.185.598-.602.598-1.019s-.23-.833-.598-1.018L174.97 58.115c-.368-.231-.598-.602-.598-1.018v-7.085c0-.417.23-.834.598-1.02l6.121-3.518a1.12 1.12 0 0 1 1.196 0l6.121 3.519c.368.231.598.602.598 1.019v5.557c0 .416.23.833.599 1.018.368.232.828.232 1.196 0z"
         ></path>
         <path
           fillRule="evenodd"
-          clip-rule="evenodd"
+          clipRule="evenodd"
           d="M181.551 48.716a.42.42 0 0 1 .461 0l3.727 2.176c.138.092.23.231.23.417v4.352a.49.49 0 0 1-.23.417l-3.727 2.177a.42.42 0 0 1-.461 0l-3.727-2.177a.49.49 0 0 1-.23-.417V51.31c0-.185.092-.325.23-.417z"
           fill="#5FA04E"
         ></path>
@@ -49,12 +49,12 @@ const Node = (props: SvgIconProps) => {
             ></path>
             <path
               fill="url(#c)"
-              clip-path="url(#d)"
+              clipPath="url(#d)"
               d="m21.699-1.047 21.506 12.995L21.7 51.073.153 38.055z"
             ></path>
             <path
               fill="url(#e)"
-              clip-path="url(#d)"
+              clipPath="url(#d)"
               d="M21.699-1.047.153 11.948l21.546 39.125 21.506-13.018z"
             ></path>
           </g>
@@ -69,22 +69,22 @@ const Node = (props: SvgIconProps) => {
           y2="44.7"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#3F8B3D"></stop>
-          <stop offset="0.64" stop-color="#3F873F"></stop>
-          <stop offset="0.93" stop-color="#3DA92E"></stop>
-          <stop offset="1" stop-color="#3DAE2B"></stop>
+          <stop stopColor="#3F8B3D"></stop>
+          <stop offset="0.64" stopColor="#3F873F"></stop>
+          <stop offset="0.93" stopColor="#3DA92E"></stop>
+          <stop offset="1" stopColor="#3DAE2B"></stop>
         </linearGradient>
         <linearGradient id="c" x1="18.8" y1="26.8" x2="68" y2="0.4" gradientUnits="userSpaceOnUse">
-          <stop offset="0.14" stop-color="#3F873F"></stop>
-          <stop offset="0.4" stop-color="#52A044"></stop>
-          <stop offset="0.71" stop-color="#64B749"></stop>
-          <stop offset="0.91" stop-color="#6ABF4B"></stop>
+          <stop offset="0.14" stopColor="#3F873F"></stop>
+          <stop offset="0.4" stopColor="#52A044"></stop>
+          <stop offset="0.71" stopColor="#64B749"></stop>
+          <stop offset="0.91" stopColor="#6ABF4B"></stop>
         </linearGradient>
         <linearGradient id="e" x1="0.25" y1="24.5" x2="44" y2="24.5" gradientUnits="userSpaceOnUse">
-          <stop offset="0.09" stop-color="#6ABF4B"></stop>
-          <stop offset="0.29" stop-color="#64B749"></stop>
-          <stop offset="0.6" stop-color="#52A044"></stop>
-          <stop offset="0.86" stop-color="#3F873F"></stop>
+          <stop offset="0.09" stopColor="#6ABF4B"></stop>
+          <stop offset="0.29" stopColor="#64B749"></stop>
+          <stop offset="0.6" stopColor="#52A044"></stop>
+          <stop offset="0.86" stopColor="#3F873F"></stop>
         </linearGradient>
         <clipPath id="d">
           <path d="M22.873.417a2.36 2.36 0 0 0-2.348 0L1.151 11.669C.414 12.086 0 12.873 0 13.707v22.551c0 .834.46 1.621 1.15 2.038l19.375 11.253a2.36 2.36 0 0 0 2.348 0l19.374-11.253c.737-.417 1.15-1.204 1.15-2.038V13.707c0-.834-.46-1.62-1.15-2.038z"></path>

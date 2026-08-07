@@ -81,9 +81,9 @@ const Projects = () => {
           title="Projects"
           slotProps={{
             title: {
-              textAlign: 'start',
               variant: 'h4',
               component: 'h2',
+              sx: { textAlign: 'start' },
             },
           }}
         />

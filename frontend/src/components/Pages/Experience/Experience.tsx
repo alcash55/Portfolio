@@ -39,9 +39,9 @@ const Experience = () => {
           title="Experience"
           slotProps={{
             title: {
-              textAlign: 'start',
               variant: 'h4',
               component: 'h2',
+              sx: { textAlign: 'start' },
             },
           }}
         />
@@ -97,9 +97,7 @@ const Experience = () => {
               it loses the one piece of this layout that reads as a timeline
               at a glance. Desktop (`sm`+) renders byte-for-byte the same CSS
               as before this change. */}
-          <Stack
-            sx={{ width: '100%', alignItems: 'flex-start', py: 0.75, px: { xs: 1, sm: 2 } }}
-          >
+          <Stack sx={{ width: '100%', alignItems: 'flex-start', py: 0.75, px: { xs: 1, sm: 2 } }}>
             {experienceData.map((experience) => (
               <Stack
                 key={experience.dateRange}
@@ -153,10 +151,7 @@ const Experience = () => {
                     minWidth: 0,
                   }}
                 >
-                  <Typography
-                    variant="body1"
-                    sx={{ display: { xs: 'block', sm: 'none' }, mb: 1 }}
-                  >
+                  <Typography variant="body1" sx={{ display: { xs: 'block', sm: 'none' }, mb: 1 }}>
                     {experience.dateRange}
                   </Typography>
                   <Card
