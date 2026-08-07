@@ -8,9 +8,11 @@ import GitHub from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
 import { navLinks } from '../../AppShell/InternalComponents/navLinks';
+import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 
 const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const { layout } = useAppShellLayout();
 
   const scrollToSection = (id: string) => {
     document
@@ -22,6 +24,13 @@ const Landing = () => {
   // NavBar (the global bar shown once the viewport scrolls past this
   // section) keeps that entry since it links back to the top from anywhere.
   const landingNavLinks = navLinks.filter((link) => link.id !== 'landing');
+
+  // Landing's own nav only covers the gap left by `useShowNavBar` hiding the
+  // global NavBar while the viewport is on the hero -- that gap only exists
+  // in the `default` layout (AppShellLayout.tsx gates NavBar the same way).
+  // `sideNav` and `mobile` already render a persistent nav, so rendering
+  // this one too was duplicate, unhideable chrome in those layouts.
+  const showInlineNav = layout === 'default';
 
   const images = [
     {
@@ -54,12 +63,6 @@ const Landing = () => {
         position: 'relative',
         height: '100vh',
         bgcolor: 'background.default',
-        // `text.primary` isn't safe here: redTheme doesn't set palette.mode, so it
-        // defaults to MUI's light-mode text.primary (near-black) and would be
-        // unreadable against this dark hero. common.white is still a theme token
-        // (not a hardcoded hex) and matches how redTheme's own MuiCard override
-        // forces `color: 'white'` for the same reason elsewhere in the app.
-        color: 'common.white',
         overflow: 'hidden',
         scrollBehavior: prefersReducedMotion ? 'auto' : 'smooth',
       }}
@@ -161,47 +164,50 @@ const Landing = () => {
           flexDirection: 'column',
         }}
       >
-        {/* Navigation */}
-        <Box
-          component="nav"
-          sx={{
-            px: { xs: 2, sm: 4 },
-            py: 3,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-          }}
-        >
-          {/* flexWrap + a shrinking gap keep this reachable at phone widths: unwrapped
-              with the sm+ gap, four links overflow past the left edge (off-screen,
-              unreachable) at 390px and narrower. */}
+        {/* Navigation -- only in the `default` layout; `sideNav` and `mobile`
+            already render their own persistent nav (see showInlineNav above). */}
+        {showInlineNav && (
           <Box
+            component="nav"
             sx={{
+              px: { xs: 2, sm: 4 },
+              py: 3,
               display: 'flex',
-              flexWrap: 'wrap',
+              alignItems: 'center',
               justifyContent: 'flex-end',
-              rowGap: 1,
-              columnGap: { xs: 1.5, sm: 4 },
-              fontSize: 14,
             }}
           >
-            {landingNavLinks.map((link) => (
-              <Button
-                key={link.id}
-                onClick={() => scrollToSection(link.id)}
-                variant="text"
-                sx={{
-                  minWidth: 'auto',
-                  px: { xs: 1, sm: 2 },
-                  color: 'rgba(255,255,255,0.6)',
-                  '&:hover': { color: '#fff' },
-                }}
-              >
-                {link.label}
-              </Button>
-            ))}
+            {/* flexWrap + a shrinking gap keep this reachable at phone widths: unwrapped
+                with the sm+ gap, four links overflow past the left edge (off-screen,
+                unreachable) at 390px and narrower. */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+                rowGap: 1,
+                columnGap: { xs: 1.5, sm: 4 },
+                fontSize: 14,
+              }}
+            >
+              {landingNavLinks.map((link) => (
+                <Button
+                  key={link.id}
+                  onClick={() => scrollToSection(link.id)}
+                  variant="text"
+                  sx={{
+                    minWidth: 'auto',
+                    px: { xs: 1, sm: 2 },
+                    color: 'rgba(255,255,255,0.6)',
+                    '&:hover': { color: '#fff' },
+                  }}
+                >
+                  {link.label}
+                </Button>
+              ))}
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Main Content */}
         <Box
@@ -266,6 +272,8 @@ const Landing = () => {
                 <IconButton
                   href="https://github.com/alcash55"
                   target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Alex's GitHub profile (opens in a new tab)"
                   sx={{
                     width: 48,
                     height: 48,
@@ -281,6 +289,8 @@ const Landing = () => {
                 <IconButton
                   href="https://www.linkedin.com/in/alexander-cash"
                   target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Alex's LinkedIn profile (opens in a new tab)"
                   sx={{
                     width: 48,
                     height: 48,
@@ -295,6 +305,7 @@ const Landing = () => {
                 </IconButton>
                 <IconButton
                   href="mailto:alex.e.cash28@gmail.com"
+                  aria-label="Email Alex at alex.e.cash28@gmail.com"
                   sx={{
                     width: 48,
                     height: 48,
@@ -384,7 +395,11 @@ const Landing = () => {
             gap: 1.5,
           }}
         >
-          <IconButton size={'large'} onClick={() => scrollToSection('experience')}>
+          <IconButton
+            size={'large'}
+            onClick={() => scrollToSection('experience')}
+            aria-label="Scroll to Experience section"
+          >
             <ArrowDownward
               sx={{
                 width: 18,
