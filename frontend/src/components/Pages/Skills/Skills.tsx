@@ -10,7 +10,7 @@ const Skills = () => {
   };
   const skillCardSx = {
     width: '100%',
-    height: '25%',
+    height: { xs: 'auto', sm: '25%' },
     backgroundColor: theme.palette.background.default,
     border: `2px solid ${theme.palette.divider}`,
     transition: 'all 0.3s ease',
@@ -18,6 +18,10 @@ const Skills = () => {
       boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
     },
   };
+  // Shared by all three category CardContents: without flexWrap the chips
+  // force each card to its unwrapped min-content width, which is what was
+  // pushing cards (and their chips) outside the viewport at 320-390px.
+  const skillChipsSx = { display: 'flex', flexWrap: 'wrap', gap: 1 };
 
   return (
     <Stack id="skills" component={'section'}>
@@ -55,6 +59,11 @@ const Skills = () => {
             width: '100%',
             height: '100%',
             display: 'flex',
+            // Three cards side by side is what forced each one down to its
+            // unwrapped min-content width (chips one word per line, ~28px)
+            // at 320-390px. Stacking below `sm` gives each card the full
+            // section width instead.
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-evenly',
             alignItems: 'center',
             flexGrow: 1,
@@ -68,7 +77,7 @@ const Skills = () => {
                 title: { component: 'h3' },
               }}
             />
-            <CardContent sx={{ display: 'flex', gap: 1 }}>
+            <CardContent sx={skillChipsSx}>
               {skills.Languages.map((language) => (
                 <Chip key={language} label={language} />
               ))}
@@ -81,7 +90,7 @@ const Skills = () => {
                 title: { component: 'h3' },
               }}
             />
-            <CardContent sx={{ display: 'flex', gap: 1 }}>
+            <CardContent sx={skillChipsSx}>
               {skills.Frameworks.map((framework) => (
                 <Chip key={framework} label={framework} />
               ))}
@@ -94,7 +103,7 @@ const Skills = () => {
                 title: { component: 'h3' },
               }}
             />
-            <CardContent sx={{ display: 'flex', gap: 1 }}>
+            <CardContent sx={skillChipsSx}>
               {skills.Tools.map((tool) => (
                 <Chip key={tool} label={tool} />
               ))}

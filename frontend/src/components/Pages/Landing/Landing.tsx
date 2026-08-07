@@ -138,21 +138,6 @@ const Landing = () => {
             ))}
           </Box>
         )}
-
-        {/* Mouse-following gradient */}
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 600,
-            height: 600,
-            bgcolor: 'primary.main',
-            opacity: 0.1,
-            borderRadius: '50%',
-            filter: 'blur(48px)',
-            pointerEvents: 'none',
-            transition: 'all 1s ease',
-          }}
-        />
       </Box>
 
       <Box
@@ -216,7 +201,7 @@ const Landing = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            px: 4,
+            px: { xs: 2, sm: 4 },
           }}
         >
           <Box sx={{ maxWidth: 960, width: '100%' }}>
@@ -325,7 +310,11 @@ const Landing = () => {
             <Box sx={{ maxWidth: 896, mx: 'auto', mb: 6 }}>
               <Grid container spacing={2}>
                 {images.map((image, index) => (
-                  <Grid key={index} size={3}>
+                  // 4-across at every width left each photo ~40px square on a
+                  // 320px viewport -- rendered but not actually viewable.
+                  // Two columns below `sm` roughly triples the render size;
+                  // desktop keeps the original 4-across bento row.
+                  <Grid key={index} size={{ xs: 6, sm: 3 }}>
                     <Box
                       sx={{
                         position: 'relative',
