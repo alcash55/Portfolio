@@ -1,8 +1,3 @@
-import ConnectWithoutContact from '@mui/icons-material/ConnectWithoutContact';
-import Construction from '@mui/icons-material/Construction';
-import EmojiPeople from '@mui/icons-material/EmojiPeople';
-import Home from '@mui/icons-material/Home';
-import Work from '@mui/icons-material/Work';
 import Menu from '@mui/icons-material/Menu';
 import { Fragment, SyntheticEvent, useState } from 'react';
 import {
@@ -12,6 +7,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { navLinks } from '../navLinks';
 
 interface MobileChromeProps {
   setSettingDrawer: (value: boolean) => void;
@@ -24,43 +20,10 @@ interface MobileChromeProps {
  * chrome mounting or unmounting when the layout mode changes.
  */
 export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
-  const [value, setValue] = useState('summary');
+  const [value, setValue] = useState(`#${navLinks[0].id}`);
 
   const theme = useTheme();
   const isLargeMobile = useMediaQuery(theme.breakpoints.down(425));
-
-  const navItems = [
-    {
-      route: '#summary',
-      name: 'Home',
-      icon: <Home />,
-    },
-    {
-      route: '#about',
-      name: 'About',
-      icon: <EmojiPeople />,
-    },
-    {
-      route: '#experience',
-      name: 'Experience',
-      icon: <Work />,
-    },
-    {
-      route: '#skills',
-      name: 'Skills & Tech',
-      icon: <Work />,
-    },
-    {
-      route: '#projects',
-      name: 'Projects',
-      icon: <Construction />,
-    },
-    {
-      route: '#contact',
-      name: 'Contact',
-      icon: <ConnectWithoutContact />,
-    },
-  ];
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -78,22 +41,51 @@ export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
         <Menu />
       </Fab>
       <BottomNavigation
-        sx={{ width: '100%', position: 'fixed', bottom: 0 }}
+        sx={{
+          width: '100%',
+          position: 'fixed',
+          bottom: 0,
+          // `position: fixed` creates a stacking context, but with no z-index it
+          // sits in that context's default (`auto`) paint layer. Nothing between
+          // here and the document root creates a stacking context either, so this
+          // bar's `auto` layer is a sibling of any positive z-index set deep inside
+          // page content -- e.g. Landing's hero Box (`zIndex: 10`), which then
+          // paints on top of this "fixed" bar during scroll despite being earlier
+          // in the DOM. Match the theme's appBar layer, same fix NavBar already
+          // applies for the equivalent problem on desktop.
+          zIndex: (theme) => theme.zIndex.appBar,
+        }}
         value={value}
         onChange={handleChange}
       >
-        {navItems.map((item) => (
-          <BottomNavigationAction
-            sx={{
-              minWidth: isLargeMobile ? '65px' : 'auto',
-            }}
-            key={item.route}
-            label={item.name}
-            value={item.route}
-            icon={item.icon}
-            href={item.route}
-          />
-        ))}
+        {navLinks.map((link) => {
+          const Icon = link.icon;
+          const href = `#${link.id}`;
+          return (
+            <BottomNavigationAction
+              sx={{
+                minWidth: isLargeMobile ? '65px' : 'auto',
+                // Root stacks icon + label in a column and centers that group
+                // vertically (MUI's ButtonBase default `justifyContent: center`).
+                // "Skills & Tech" is long enough to wrap to two lines while every
+                // other label stays on one, so centering the taller group shifts
+                // its icon up relative to its neighbours. Anchoring to the top
+                // with a fixed `pt` instead pins every icon at the same offset
+                // regardless of how many lines its label takes.
+                justifyContent: 'flex-start',
+                pt: 1.75,
+                '& .MuiBottomNavigationAction-label': {
+                  whiteSpace: 'nowrap',
+                },
+              }}
+              key={link.id}
+              label={link.label}
+              value={href}
+              icon={<Icon />}
+              href={href}
+            />
+          );
+        })}
       </BottomNavigation>
     </Fragment>
   );
