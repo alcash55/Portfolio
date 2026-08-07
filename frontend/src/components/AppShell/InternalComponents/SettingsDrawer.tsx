@@ -13,6 +13,7 @@ import {
 import Close from '@mui/icons-material/Close';
 import { ThemeButton } from './ThemeButton';
 import { LayoutButton } from './LayoutButton';
+import { Logo } from '../../../assets/icons/Logo';
 
 interface SettingsDrawerProps {
   settingDrawer: boolean;
@@ -57,13 +58,18 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
   const SettingDrawerBottomItem = () => (
     <Stack
       direction={'row'}
+      spacing={1}
       sx={{
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
+        color: 'text.secondary',
       }}
     >
-      Insert Logo/Brand
+      {/* Decorative next to the adjacent "Alex Cash" text -- no titleAccess, so
+          MUI's SvgIcon leaves it aria-hidden and the name is announced once. */}
+      <Logo sx={{ fontSize: 24 }} />
+      <Typography variant="body2">Alex Cash</Typography>
     </Stack>
   );
 
