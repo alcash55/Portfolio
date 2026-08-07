@@ -1,16 +1,28 @@
 import { ThemeOptions, createTheme } from '@mui/material/styles';
-import '@fontsource/oxygen';
+import '@fontsource/public-sans';
 import { muiButtonBaseOverrides } from './muiButtonBaseOverrides';
 
-export const darkTheme: ThemeOptions = createTheme({
+export const greenTheme: ThemeOptions = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#379dee',
+      main: '#7ddcae',
+      // Footer/About/Contact read `primary.light`, not `main` (Sprint 4).
+      // Left unset: MUI's auto-derived `light` (#97e3be) measures 11.40:1
+      // against `paper` and 9.38:1 against `default` -- lightening raises
+      // contrast on this dark page, so pinning (as light theme must) isn't
+      // needed here.
     },
+    // Warm complement to the green primary -- same role blue's teal
+    // secondary plays against its blue primary. Purely decorative (Landing's
+    // ambient blend circles, About's accent bar), but measured anyway:
+    // 7.81:1 on `default`, 6.42:1 on `paper`.
     secondary: {
-      main: '#989798',
+      main: '#e0a458',
     },
+    // Same tuned set as darkTheme, re-measured against this theme's
+    // background: 5.86:1 on `default`, 4.82:1 on `paper` for all four --
+    // the tightest margin of the three new themes, still clears AA.
     error: {
       main: '#ff6459',
     },
@@ -23,45 +35,20 @@ export const darkTheme: ThemeOptions = createTheme({
     info: {
       main: '#7b8fff',
     },
-    text: {
-      primary: '#ffffff',
-      secondary: '#a3a4a6',
-      disabled: '#6b696d',
-    },
-    action: {
-      active: '#a3a2a7',
-      hover: '#2e2e31',
-      selected: '#363536',
-      disabled: '#666569',
-      focus: '#414145',
-    },
     background: {
-      paper: '#292929',
-      default: '#202020',
+      default: '#101f19',
+      paper: '#1b3026',
     },
-    // See muiButtonBaseOverrides.ts. White ring, unchanged from before this
-    // was made theme-aware: this theme's backgrounds are all dark.
+    // Paper lift (luminance): 0.0133. text/default 17.04:1, text/paper
+    // 14.02:1 (white body text, per palette.text below).
+    // White ring: this theme's backgrounds are all dark, same as dark/blue.
     focusRing: '#ffffff',
-    grey: {
-      '50': '#262626',
-      '100': '#302f30',
-      '200': '#343334',
-      '300': '#3c3c3c',
-      '400': '#515353',
-      '500': '#6a6a68',
-      '600': '#919190',
-      '700': '#a9a9a9',
-      '800': '#d7d6d9',
-      '900': '#fafafa',
-    },
   },
   components: {
-    // See muiButtonBaseOverrides.ts for the focus-visible ring; shared
-    // across every theme and reads `palette.focusRing` above.
     MuiButtonBase: muiButtonBaseOverrides,
   },
   typography: {
-    fontFamily: 'Oxygen, Arial, sans-serif',
+    fontFamily: 'public-sans, sans-serif',
     overline: {
       fontSize: 12,
       fontWeight: 400,

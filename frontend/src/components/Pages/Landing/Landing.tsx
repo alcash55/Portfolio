@@ -1,4 +1,5 @@
 import { Box, Typography, Button, IconButton, Grid, Stack, useMediaQuery } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import rmu_lacrosse from '../../../assets/images/rmu_lacrosse.webp';
 import west_ms_coaching from '../../../assets/images/west_ms_coaching.webp';
 import joshua_tree from '../../../assets/images/joshua_tree.webp';
@@ -13,6 +14,44 @@ import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const { layout } = useAppShellLayout();
+  const theme = useTheme();
+
+  // Every "white" on the hero below used to be a literal `rgba(255,255,255,…)`/
+  // `#fff`, which only worked because `background.hero` was pinned dark in
+  // every theme (see the comment on that `bgcolor` below) -- on the light
+  // theme's now-light hero it went invisible. Deriving from `text.primary`
+  // instead keeps the same translucent-white-on-dark look on dark/blue/red/
+  // purple/green (whose `text.primary` is white) and flips to a translucent
+  // dark tone on light, so it reads against whichever surface is actually
+  // under it.
+  //
+  // `heroTextReadable` covers every text node that has to clear WCAG AA on
+  // its own (nav links, the "Software Engineer" caption, the subtitle) --
+  // 0.82 is the alpha Sprint 10 already validated against the hero's ambient
+  // blend circles for the caption specifically (measured 3.81:1 and failing
+  // intermittently at 0.5, since the circles are randomly positioned each
+  // load); reused here rather than inventing a second ratio to re-validate.
+  const heroTextReadable = alpha(theme.palette.text.primary, 0.82);
+  // Decorative-only derivatives: borders, hover fills, the particle field,
+  // and the scroll-indicator icon. None of these are text nodes an
+  // accessibility audit scores for contrast, so they keep the original
+  // design's lower alphas -- just theme-relative instead of fixed white.
+  const heroBorder = alpha(theme.palette.text.primary, 0.2);
+  const heroBorderHover = alpha(theme.palette.text.primary, 0.4);
+  const heroSurfaceHover = alpha(theme.palette.text.primary, 0.05);
+  const heroParticle = alpha(theme.palette.text.primary, 0.2);
+  const heroScrollIcon = alpha(theme.palette.text.primary, 0.6);
+  // Shared by all three social IconButtons below -- was three copies of the
+  // same literal `rgba(255,255,255,…)` trio.
+  const socialButtonSx = {
+    width: 48,
+    height: 48,
+    border: `1px solid ${heroBorder}`,
+    '&:hover': {
+      borderColor: heroBorderHover,
+      bgcolor: heroSurfaceHover,
+    },
+  };
 
   const scrollToSection = (id: string) => {
     document
@@ -62,12 +101,15 @@ const Landing = () => {
       sx={{
         position: 'relative',
         height: '100vh',
-        // The hero stays dark in every theme by design (its white text/icon
-        // overrides below depend on it) -- `background.default` inverts to a
-        // light value in the light theme, which would strand those against a
-        // now-light surface. `background.hero` is a fixed dark surface every
-        // theme defines for exactly this.
-        bgcolor: 'background.hero',
+        // The hero is just this theme's page surface -- same as every other
+        // section. It used to sit on a separate `background.hero` token
+        // pinned to a fixed dark color in every theme, including light --
+        // that was the bug ("light theme does not change the colors on the
+        // home section"). `background.hero` is gone now (see theme.d.ts);
+        // the text/icon colors below are derived from `text.primary` instead
+        // of hardcoded white specifically so they stay legible against
+        // `background.default` whichever theme it resolves to.
+        bgcolor: 'background.default',
         overflow: 'hidden',
         scrollBehavior: prefersReducedMotion ? 'auto' : 'smooth',
       }}
@@ -132,7 +174,7 @@ const Landing = () => {
                   position: 'absolute',
                   width: 4,
                   height: 4,
-                  bgcolor: 'rgba(255,255,255,0.2)',
+                  bgcolor: heroParticle,
                   borderRadius: '50%',
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
@@ -188,8 +230,8 @@ const Landing = () => {
                   sx={{
                     minWidth: 'auto',
                     px: { xs: 1, sm: 2 },
-                    color: 'rgba(255,255,255,0.6)',
-                    '&:hover': { color: '#fff' },
+                    color: heroTextReadable,
+                    '&:hover': { color: 'text.primary' },
                   }}
                 >
                   {link.label}
@@ -220,12 +262,12 @@ const Landing = () => {
                     mb: 1,
                     letterSpacing: 4,
                     textTransform: 'uppercase',
-                    // 0.5 alpha measured 3.81:1 against the hero's ambient
-                    // blend circles -- below the 4.5:1 AA floor for text this
-                    // size, and the last Lighthouse contrast failure on the
-                    // site. It passed intermittently because the circles are
-                    // randomly positioned, so a run could miss the overlap.
-                    color: 'rgba(255,255,255,0.82)',
+                    // See `heroTextReadable` above -- this is the element
+                    // Sprint 10 measured against the hero's ambient blend
+                    // circles (0.5 alpha scored 3.81:1, under the 4.5:1 AA
+                    // floor for text this size, and passed intermittently
+                    // only because the circles are randomly positioned).
+                    color: heroTextReadable,
                   }}
                 >
                   Software Engineer
@@ -244,7 +286,7 @@ const Landing = () => {
                   variant="body1"
                   sx={{
                     fontSize: { xs: 18, md: 22 },
-                    color: 'rgba(255,255,255,0.6)',
+                    color: heroTextReadable,
                     maxWidth: 680,
                     mx: 'auto',
                     lineHeight: 1.7,
@@ -269,15 +311,7 @@ const Landing = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Alex's GitHub profile (opens in a new tab)"
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    '&:hover': {
-                      borderColor: 'rgba(255,255,255,0.4)',
-                      bgcolor: 'rgba(255,255,255,0.05)',
-                    },
-                  }}
+                  sx={socialButtonSx}
                 >
                   <GitHub fontSize="small" />
                 </IconButton>
@@ -286,30 +320,14 @@ const Landing = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Alex's LinkedIn profile (opens in a new tab)"
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    '&:hover': {
-                      borderColor: 'rgba(255,255,255,0.4)',
-                      bgcolor: 'rgba(255,255,255,0.05)',
-                    },
-                  }}
+                  sx={socialButtonSx}
                 >
                   <LinkedIn fontSize="small" />
                 </IconButton>
                 <IconButton
                   href="mailto:alex.e.cash28@gmail.com"
                   aria-label="Email Alex at alex.e.cash28@gmail.com"
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    '&:hover': {
-                      borderColor: 'rgba(255,255,255,0.4)',
-                      bgcolor: 'rgba(255,255,255,0.05)',
-                    },
-                  }}
+                  sx={socialButtonSx}
                 >
                   <Mail fontSize="small" />
                 </IconButton>
@@ -403,7 +421,7 @@ const Landing = () => {
               sx={{
                 width: 18,
                 height: 18,
-                color: 'rgba(255,255,255,0.5)',
+                color: heroScrollIcon,
                 animation: prefersReducedMotion ? 'none' : 'bounce 1.5s infinite',
               }}
             />
