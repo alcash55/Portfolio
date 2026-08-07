@@ -220,7 +220,12 @@ const Landing = () => {
                     mb: 1,
                     letterSpacing: 4,
                     textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.5)',
+                    // 0.5 alpha measured 3.81:1 against the hero's ambient
+                    // blend circles -- below the 4.5:1 AA floor for text this
+                    // size, and the last Lighthouse contrast failure on the
+                    // site. It passed intermittently because the circles are
+                    // randomly positioned, so a run could miss the overlap.
+                    color: 'rgba(255,255,255,0.82)',
                   }}
                 >
                   Software Engineer
