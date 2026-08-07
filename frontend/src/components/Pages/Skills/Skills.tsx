@@ -1,12 +1,4 @@
-import {
-  Stack,
-  Card,
-  CardHeader,
-  IconButton,
-  CardContent,
-  Chip,
-  useTheme,
-} from '@mui/material';
+import { Stack, Card, CardHeader, IconButton, CardContent, Chip, useTheme } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 
 const Skills = () => {
@@ -44,17 +36,19 @@ const Skills = () => {
           sx={{
             width: '100%',
           }}
-          titleTypographyProps={{
-            textAlign: 'start',
-            variant: 'h4',
-            component: 'h2',
-          }}
           avatar={
             <IconButton aria-label="navigate to skills & tech" href="#skills" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
           title="Skills & Tech"
+          slotProps={{
+            title: {
+              textAlign: 'start',
+              variant: 'h4',
+              component: 'h2',
+            },
+          }}
         />
         <CardContent
           sx={{
@@ -68,7 +62,12 @@ const Skills = () => {
           }}
         >
           <Card sx={skillCardSx}>
-            <CardHeader title="Languages" titleTypographyProps={{ component: 'h3' }} />
+            <CardHeader
+              title="Languages"
+              slotProps={{
+                title: { component: 'h3' },
+              }}
+            />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Languages.map((language) => (
                 <Chip key={language} label={language} />
@@ -76,7 +75,12 @@ const Skills = () => {
             </CardContent>
           </Card>
           <Card sx={skillCardSx}>
-            <CardHeader title="Frameworks" titleTypographyProps={{ component: 'h3' }} />
+            <CardHeader
+              title="Frameworks"
+              slotProps={{
+                title: { component: 'h3' },
+              }}
+            />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Frameworks.map((framework) => (
                 <Chip key={framework} label={framework} />
@@ -84,7 +88,12 @@ const Skills = () => {
             </CardContent>
           </Card>
           <Card sx={skillCardSx}>
-            <CardHeader title="Tools" titleTypographyProps={{ component: 'h3' }} />
+            <CardHeader
+              title="Tools"
+              slotProps={{
+                title: { component: 'h3' },
+              }}
+            />
             <CardContent sx={{ display: 'flex', gap: 1 }}>
               {skills.Tools.map((tool) => (
                 <Chip key={tool} label={tool} />

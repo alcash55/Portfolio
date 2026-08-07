@@ -7,9 +7,11 @@ export const ThemeButton = () => {
   return (
     <Stack
       direction={'row'}
-      justifyContent={'space-evenly'}
-      alignItems={'center'}
-      sx={{ flexWrap: 'wrap' }}
+      sx={{
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
     >
       <Button
         variant={mode.palette?.background?.paper === '#731010' ? 'contained' : 'outlined'}

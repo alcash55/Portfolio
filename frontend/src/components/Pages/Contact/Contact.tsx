@@ -36,16 +36,17 @@ const Contact = () => {
   };
 
   const ConnectList = (
-    <Stack spacing={1} width={'100%'}>
+    <Stack
+      spacing={1}
+      sx={{
+        width: '100%',
+      }}
+    >
       <Typography variant="h3" component="h3" sx={headerStyles}>
         Lets Connect!
       </Typography>
       <List sx={{ p: 0, width: '100%' }}>
-        <ListItem
-          component={Link}
-          href="mailto:alex.e.cash28@gmail.com"
-          sx={listLinkSx}
-        >
+        <ListItem component={Link} href="mailto:alex.e.cash28@gmail.com" sx={listLinkSx}>
           <ListItemText primary="Email" secondary="alex.e.cash28@gmail.com" sx={listItemStyles} />
         </ListItem>
 
@@ -93,17 +94,19 @@ const Contact = () => {
           sx={{
             width: '100%',
           }}
-          titleTypographyProps={{
-            textAlign: 'start',
-            variant: 'h4',
-            component: 'h2',
-          }}
           avatar={
             <IconButton aria-label="navigate to contact" href="#contact" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
           title="Contact"
+          slotProps={{
+            title: {
+              textAlign: 'start',
+              variant: 'h4',
+              component: 'h2',
+            },
+          }}
         />
         <CardContent
           sx={{
@@ -116,10 +119,12 @@ const Contact = () => {
           }}
         >
           <Stack
-            width="auto"
             spacing={3}
             direction={tablet ? 'column' : 'row'}
-            justifyContent="space-evenly"
+            sx={{
+              width: 'auto',
+              justifyContent: 'space-evenly',
+            }}
           >
             {ConnectList}
             <ContactForm />

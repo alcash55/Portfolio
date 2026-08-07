@@ -7,9 +7,11 @@ export const LayoutButton = () => {
   return (
     <Stack
       direction={'row'}
-      justifyContent={'space-evenly'}
-      alignItems={'center'}
-      sx={{ flexWrap: 'wrap' }}
+      sx={{
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
     >
       <Button
         variant={localStorage.getItem('layout') === 'default' ? 'contained' : 'outlined'}
