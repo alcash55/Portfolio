@@ -1,4 +1,5 @@
 import {
+  Box,
   Stack,
   Card,
   CardHeader,
@@ -9,16 +10,6 @@ import {
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import { experienceData } from './experienceData';
-
-import {
-  Timeline,
-  TimelineItem,
-  TimelineOppositeContent,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineDot,
-  TimelineContent,
-} from '@mui/lab';
 
 const Experience = () => {
   const theme = useTheme();
@@ -73,22 +64,45 @@ const Experience = () => {
             high-quality results.
           </Typography>
 
-          <Timeline sx={{ alignItems: 'flex-start' }}>
-            {experienceData.map((experience, idx) => (
-              <TimelineItem key={experience.dateRange}>
-                <TimelineOppositeContent
-                  sx={{ width: '175px', textAlign: 'left', flex: '0 0 auto' }}
-                >
-                  {experience.dateRange}
-                </TimelineOppositeContent>
-                <TimelineSeparator>
-                  {idx === experienceData.length - (experienceData.length - 1) && (
-                    <TimelineConnector />
-                  )}
-                  <TimelineDot>{experience.icon}</TimelineDot>
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent sx={{ py: '12px', px: 2, width: '100%' }}>
+          {/* Rebuilt from stable @mui/material primitives — @mui/lab's Timeline
+              was dropped rather than shipped as a beta dependency (@mui/lab@9
+              is 9.0.0-beta.8). Layout replicates the removed
+              Timeline/TimelineItem/TimelineOppositeContent/TimelineSeparator/
+              TimelineConnector/TimelineDot/TimelineContent structure
+              measurement-for-measurement (date column width, dot size/shadow,
+              connector width/color, card padding) rather than redesigning it;
+              a redesign is Sprint 11's job. */}
+          <Stack sx={{ width: '100%', alignItems: 'flex-start', py: 0.75, px: 2 }}>
+            {experienceData.map((experience) => (
+              <Stack
+                key={experience.dateRange}
+                direction="row"
+                sx={{ width: '100%', minHeight: 70 }}
+              >
+                <Box sx={{ width: '175px', flex: '0 0 auto', textAlign: 'left', py: 0.75, px: 2 }}>
+                  <Typography variant="body1">{experience.dateRange}</Typography>
+                </Box>
+                <Stack alignItems="center" sx={{ width: 36, flex: '0 0 auto' }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      p: 0.5,
+                      my: '11.5px',
+                      borderRadius: '50%',
+                      bgcolor: 'grey.400',
+                      boxShadow: 2,
+                    }}
+                  >
+                    {experience.icon}
+                  </Box>
+                  <Box sx={{ width: '2px', flexGrow: 1, bgcolor: 'grey.400' }} />
+                </Stack>
+                <Box sx={{ flex: '1 1 0%', py: '12px', px: 2, width: '100%' }}>
                   <Card
                     sx={{
                       width: '100%',
@@ -108,10 +122,10 @@ const Experience = () => {
                     />
                     <CardContent>{experience.description}</CardContent>
                   </Card>
-                </TimelineContent>
-              </TimelineItem>
+                </Box>
+              </Stack>
             ))}
-          </Timeline>
+          </Stack>
         </CardContent>
       </Card>
     </Stack>
