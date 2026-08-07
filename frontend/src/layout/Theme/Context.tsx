@@ -3,12 +3,18 @@ import { ThemeProvider } from '@mui/material';
 import { darkTheme } from './darkTheme';
 import { blueTheme } from './blueTheme';
 import { lightTheme } from './lightTheme';
+import { redTheme } from './redTheme';
+import { purpleTheme } from './purpleTheme';
+import { greenTheme } from './greenTheme';
 import { ColorModeContext, ThemeName, isThemeName } from './ColorModeContext';
 
 const themes: Record<ThemeName, typeof darkTheme> = {
   dark: darkTheme,
   blue: blueTheme,
   light: lightTheme,
+  red: redTheme,
+  purple: purpleTheme,
+  green: greenTheme,
 };
 
 /**
@@ -22,10 +28,12 @@ const themes: Record<ThemeName, typeof darkTheme> = {
  * colour flash here. Reading `localStorage` in the lazy initializer instead
  * renders the right theme on the first frame.
  *
- * Also the migration point for the red theme's removal: `isThemeName`
- * rejects 'red' (and anything else unrecognized), so a returning visitor
- * with `theme: 'red'` saved falls back to 'dark' instead of rendering a
- * deleted theme.
+ * Also the stored-value migration point: `isThemeName` (see
+ * ColorModeContext.ts) accepts only the six current names, so a visitor
+ * whose saved value predates a theme's addition or survived its removal
+ * (e.g. 'red' from before Sprint 12 restored it with a new palette) either
+ * resolves to the current theme of that name or, if the name is genuinely
+ * unrecognized, falls back to 'dark' instead of rendering nothing.
  */
 const resolveInitialThemeName = (): ThemeName => {
   if (typeof window === 'undefined') return 'dark';
@@ -42,9 +50,10 @@ export default function ToggleColorMode({ children }: PropsWithChildren) {
   const [themeName, setThemeName] = useState<ThemeName>(resolveInitialThemeName);
 
   useEffect(() => {
-    // Normalizes a legacy/invalid stored value (e.g. 'red') on disk so the
-    // next visit reads a valid name directly; the name to render was already
-    // resolved above, so this doesn't need to touch state.
+    // Normalizes an unrecognized stored value on disk (e.g. garbage, or a
+    // name from a theme that no longer exists) so the next visit reads a
+    // valid name directly; the name to render was already resolved above,
+    // so this doesn't need to touch state.
     if (localStorage.getItem('theme') !== themeName) {
       localStorage.setItem('theme', themeName);
     }

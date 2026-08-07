@@ -11,9 +11,9 @@ import { Components, Theme } from '@mui/material/styles';
 // `common.white`, chosen back when every theme had a dark page background.
 // That's invisible on the light theme's white/near-white surfaces. Rather
 // than branch on `theme.palette.mode` here, each theme declares its own
-// `palette.focusRing` (see theme.d.ts) -- dark and blue keep white
-// (unchanged from before), light uses a dark ring -- and this override,
-// shared by all three themes, just reads it.
+// `palette.focusRing` (see theme.d.ts) -- dark, blue, red, purple, and green
+// all keep white (their backgrounds are all dark), light uses a dark ring --
+// and this override, shared by every theme, just reads it.
 export const muiButtonBaseOverrides: Components<Theme>['MuiButtonBase'] = {
   styleOverrides: {
     root: ({ theme }) => ({

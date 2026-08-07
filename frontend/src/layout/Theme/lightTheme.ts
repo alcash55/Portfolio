@@ -7,9 +7,12 @@ export const lightTheme: ThemeOptions = createTheme({
     // First light theme in this app -- every other theme is `mode: 'dark'`.
     // Any component relying on a MUI-derived default (divider, overlay,
     // action states, getContrastText) that has only ever been exercised in
-    // dark mode is unverified until this renders. `focusRing`,
-    // `background.hero`, and the explicit `warning`/`info`/`primary.light`
-    // overrides below are what that surfaced.
+    // dark mode is unverified until this renders. `focusRing` and the
+    // explicit `warning`/`info`/`primary.light` overrides below are what
+    // that surfaced. (Sprint 10 also pinned `background.hero` dark here as
+    // a workaround -- Sprint 12 removed the token; Landing's hero now reads
+    // `background.default`, which is light, same as everywhere else on this
+    // page.)
     mode: 'light',
     primary: {
       main: '#0958d9',
@@ -44,11 +47,6 @@ export const lightTheme: ThemeOptions = createTheme({
     background: {
       default: '#f4f5f7',
       paper: '#ffffff',
-      // See theme.d.ts -- Landing's hero stays dark by design, so it can't
-      // read `background.default`. Reuses darkTheme's own default so the
-      // hero looks identical to the dark theme's, regardless of which theme
-      // is active.
-      hero: '#202020',
     },
     focusRing: '#000000',
     grey: {

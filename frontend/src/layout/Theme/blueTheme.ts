@@ -20,9 +20,6 @@ export const blueTheme: ThemeOptions = createTheme({
     background: {
       default: '#192231',
       paper: '#24344d',
-      // Landing's hero stays dark in every theme by design; see theme.d.ts.
-      // Unchanged from this theme's own default, so blue is visually identical.
-      hero: '#192231',
     },
     // See muiButtonBaseOverrides.ts. White ring, unchanged from before this
     // was made theme-aware: this theme's backgrounds are all dark.
@@ -30,7 +27,7 @@ export const blueTheme: ThemeOptions = createTheme({
   },
   components: {
     // See muiButtonBaseOverrides.ts for the focus-visible ring; shared
-    // across all three themes and reads `palette.focusRing` above.
+    // across every theme and reads `palette.focusRing` above.
     MuiButtonBase: muiButtonBaseOverrides,
   },
   typography: {
