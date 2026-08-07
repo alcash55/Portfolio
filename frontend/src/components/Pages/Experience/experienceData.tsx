@@ -31,11 +31,17 @@ export const experienceData = [
         <ListItem sx={{ display: 'list-item', py: 0 }}>
           <ListItemText primary="Completed a Bachelor of Science in Software Engineering with a GPA of 3.24" />
         </ListItem>
-        <List sx={{ listStyleType: 'circle', pl: 4.5, py: 0 }}>
-          <ListItem sx={{ display: 'list-item', py: 0 }}>
-            <ListItemText primary="Minored in Data Analytics" />
-          </ListItem>
-        </List>
+        {/* A real `<li>` wraps the sub-list -- `<ul>` cannot be a direct child of
+            `<ul>` (Lighthouse's `list` audit) -- but `display: 'block'` (not
+            `list-item`) keeps it from drawing its own bullet with no text next
+            to it; the circle bullets below come from the nested list itself. */}
+        <ListItem sx={{ display: 'block', py: 0 }}>
+          <List sx={{ listStyleType: 'circle', pl: 4.5, py: 0 }}>
+            <ListItem sx={{ display: 'list-item', py: 0 }}>
+              <ListItemText primary="Minored in Data Analytics" />
+            </ListItem>
+          </List>
+        </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0 }}>
           <ListItemText primary="Dedicated 40+ hours as a D1 lacrosse player, practicing, lifting, analyzing game and practice film, and community service, while balancing a full academic course load" />
         </ListItem>
