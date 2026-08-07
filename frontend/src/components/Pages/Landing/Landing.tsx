@@ -138,21 +138,6 @@ const Landing = () => {
             ))}
           </Box>
         )}
-
-        {/* Mouse-following gradient */}
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 600,
-            height: 600,
-            bgcolor: 'primary.main',
-            opacity: 0.1,
-            borderRadius: '50%',
-            filter: 'blur(48px)',
-            pointerEvents: 'none',
-            transition: 'all 1s ease',
-          }}
-        />
       </Box>
 
       <Box
