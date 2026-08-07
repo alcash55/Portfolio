@@ -62,7 +62,12 @@ const Landing = () => {
       sx={{
         position: 'relative',
         height: '100vh',
-        bgcolor: 'background.default',
+        // The hero stays dark in every theme by design (its white text/icon
+        // overrides below depend on it) -- `background.default` inverts to a
+        // light value in the light theme, which would strand those against a
+        // now-light surface. `background.hero` is a fixed dark surface every
+        // theme defines for exactly this.
+        bgcolor: 'background.hero',
         overflow: 'hidden',
         scrollBehavior: prefersReducedMotion ? 'auto' : 'smooth',
       }}
