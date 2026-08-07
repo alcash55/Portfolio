@@ -1,10 +1,18 @@
 import { ThemeOptions, createTheme } from '@mui/material/styles';
 import '@fontsource/public-sans';
+import { muiButtonBaseOverrides } from './muiButtonBaseOverrides';
+
 export const blueTheme: ThemeOptions = createTheme({
   palette: {
     mode: 'dark',
     primary: {
       main: '#5893df',
+      // Sprint 4: `primary.main` measured 3.98:1 against `background.paper`
+      // here (the other themes cleared AA with `main` alone), so links use
+      // `primary.light` instead. Re-measured this sprint: `main` is still
+      // 3.98:1 (unchanged, still fails), auto-derived `light` is 5.11:1
+      // (still clears AA) -- still the right call, so left unset rather
+      // than pinned to a literal value.
     },
     secondary: {
       main: '#2ec5d3',
@@ -12,23 +20,18 @@ export const blueTheme: ThemeOptions = createTheme({
     background: {
       default: '#192231',
       paper: '#24344d',
+      // Landing's hero stays dark in every theme by design; see theme.d.ts.
+      // Unchanged from this theme's own default, so blue is visually identical.
+      hero: '#192231',
     },
+    // See muiButtonBaseOverrides.ts. White ring, unchanged from before this
+    // was made theme-aware: this theme's backgrounds are all dark.
+    focusRing: '#ffffff',
   },
   components: {
-    // See darkTheme.ts for why this exists and why the ring color is fixed
-    // white rather than `currentColor`: MUI's ButtonBase sets `outline: 0`
-    // and expects the theme to restore a focus-visible indicator, which
-    // none of this project's themes did.
-    MuiButtonBase: {
-      styleOverrides: {
-        root: ({ theme }) => ({
-          '&.Mui-focusVisible': {
-            outline: `2px solid ${theme.palette.common.white}`,
-            outlineOffset: 2,
-          },
-        }),
-      },
-    },
+    // See muiButtonBaseOverrides.ts for the focus-visible ring; shared
+    // across all three themes and reads `palette.focusRing` above.
+    MuiButtonBase: muiButtonBaseOverrides,
   },
   typography: {
     fontFamily: 'public-sans, sans-serif',

@@ -1,5 +1,6 @@
 import { ThemeOptions, createTheme } from '@mui/material/styles';
 import '@fontsource/oxygen';
+import { muiButtonBaseOverrides } from './muiButtonBaseOverrides';
 
 export const darkTheme: ThemeOptions = createTheme({
   palette: {
@@ -37,7 +38,13 @@ export const darkTheme: ThemeOptions = createTheme({
     background: {
       paper: '#292929',
       default: '#202020',
+      // Landing's hero stays dark in every theme by design; see theme.d.ts.
+      // Unchanged from this theme's own default, so dark is visually identical.
+      hero: '#202020',
     },
+    // See muiButtonBaseOverrides.ts. White ring, unchanged from before this
+    // was made theme-aware: this theme's backgrounds are all dark.
+    focusRing: '#ffffff',
     grey: {
       '50': '#262626',
       '100': '#302f30',
@@ -52,25 +59,9 @@ export const darkTheme: ThemeOptions = createTheme({
     },
   },
   components: {
-    // MUI's ButtonBase (Button, IconButton, Fab, BottomNavigationAction, ...)
-    // sets `outline: 0` unconditionally and expects the app to restore a
-    // focus-visible indicator; none of this project's themes did, so every
-    // button site-wide was keyboard-focusable but invisible while focused
-    // (WCAG 2.4.7). `outlineOffset` puts the ring over the surrounding
-    // page/paper background rather than the button's own surface, and every
-    // theme's background is dark, so a fixed white ring (not `currentColor`,
-    // which for a dark-on-light contained button would render a
-    // low-contrast dark ring on this dark backdrop) stays visible everywhere.
-    MuiButtonBase: {
-      styleOverrides: {
-        root: ({ theme }) => ({
-          '&.Mui-focusVisible': {
-            outline: `2px solid ${theme.palette.common.white}`,
-            outlineOffset: 2,
-          },
-        }),
-      },
-    },
+    // See muiButtonBaseOverrides.ts for the focus-visible ring; shared
+    // across all three themes and reads `palette.focusRing` above.
+    MuiButtonBase: muiButtonBaseOverrides,
   },
   typography: {
     fontFamily: 'Oxygen, Arial, sans-serif',

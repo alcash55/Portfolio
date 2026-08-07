@@ -62,7 +62,12 @@ const Landing = () => {
       sx={{
         position: 'relative',
         height: '100vh',
-        bgcolor: 'background.default',
+        // The hero stays dark in every theme by design (its white text/icon
+        // overrides below depend on it) -- `background.default` inverts to a
+        // light value in the light theme, which would strand those against a
+        // now-light surface. `background.hero` is a fixed dark surface every
+        // theme defines for exactly this.
+        bgcolor: 'background.hero',
         overflow: 'hidden',
         scrollBehavior: prefersReducedMotion ? 'auto' : 'smooth',
       }}
@@ -215,7 +220,12 @@ const Landing = () => {
                     mb: 1,
                     letterSpacing: 4,
                     textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.5)',
+                    // 0.5 alpha measured 3.81:1 against the hero's ambient
+                    // blend circles -- below the 4.5:1 AA floor for text this
+                    // size, and the last Lighthouse contrast failure on the
+                    // site. It passed intermittently because the circles are
+                    // randomly positioned, so a run could miss the overlap.
+                    color: 'rgba(255,255,255,0.82)',
                   }}
                 >
                   Software Engineer

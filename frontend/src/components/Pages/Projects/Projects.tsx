@@ -178,13 +178,13 @@ const ProjectCard = ({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                bgcolor: 'action.hover',
               }}
             >
               <CodeIcon
                 sx={{
                   fontSize: 120,
-                  color: 'rgba(255, 255, 255, 0.3)',
+                  color: 'action.disabled',
                 }}
               />
             </Box>
