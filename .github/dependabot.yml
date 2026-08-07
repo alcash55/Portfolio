@@ -1,0 +1,55 @@
+# Keeps dependencies from drifting the way MUI did -- v5.16 to v9.3 is four
+# major versions of hand-migration that a steady trickle of PRs would have
+# avoided. Also catches the GitHub Actions Node-20 deprecation, which is
+# currently a warning on every run and eventually a hard failure.
+#
+# Grouped so a quiet week produces a few reviewable PRs rather than a dozen
+# one-line ones. Majors are deliberately NOT grouped: those need reading.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions-minor-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'ci'
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    # Bun is the package manager, but bun.lockb is not a format Dependabot
+    # writes. It updates package.json only; run `bun install` to refresh the
+    # lockfile before merging, or CI will install resolved-but-unpinned
+    # versions.
+    versioning-strategy: increase
+    open-pull-requests-limit: 5
+    groups:
+      mui:
+        patterns: ['@mui/*']
+        update-types: [minor, patch]
+      emotion:
+        patterns: ['@emotion/*']
+        update-types: [minor, patch]
+      testing:
+        patterns: ['vitest', '@vitest/*', '@testing-library/*', 'jsdom']
+        update-types: [minor, patch]
+      lint-and-types:
+        patterns: ['eslint*', '@typescript-eslint/*', 'prettier', 'typescript']
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'chore'
+
+  - package-ecosystem: gomod
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      go-minor-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'chore'
