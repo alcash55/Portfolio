@@ -31,17 +31,19 @@ const Experience = () => {
           sx={{
             width: '100%',
           }}
-          titleTypographyProps={{
-            textAlign: 'start',
-            variant: 'h4',
-            component: 'h2',
-          }}
           avatar={
             <IconButton aria-label="navigate to contact" href="#experience" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
           title="Experience"
+          slotProps={{
+            title: {
+              textAlign: 'start',
+              variant: 'h4',
+              component: 'h2',
+            },
+          }}
         />
         <CardContent
           sx={{
@@ -82,7 +84,13 @@ const Experience = () => {
                 <Box sx={{ width: '175px', flex: '0 0 auto', textAlign: 'left', py: 0.75, px: 2 }}>
                   <Typography variant="body1">{experience.dateRange}</Typography>
                 </Box>
-                <Stack alignItems="center" sx={{ width: 36, flex: '0 0 auto' }}>
+                <Stack
+                  sx={{
+                    alignItems: 'center',
+                    width: 36,
+                    flex: '0 0 auto',
+                  }}
+                >
                   <Box
                     sx={{
                       width: 36,
@@ -118,7 +126,9 @@ const Experience = () => {
                   >
                     <CardHeader
                       title={experience.title}
-                      titleTypographyProps={{ component: 'h3' }}
+                      slotProps={{
+                        title: { component: 'h3' },
+                      }}
                     />
                     <CardContent>{experience.description}</CardContent>
                   </Card>

@@ -125,7 +125,15 @@ const ConnectForm = () => {
 
   return (
     <>
-      <Stack component="form" noValidate onSubmit={handleSubmit} spacing={1} width={'100%'}>
+      <Stack
+        component="form"
+        noValidate
+        onSubmit={handleSubmit}
+        spacing={1}
+        sx={{
+          width: '100%',
+        }}
+      >
         <Typography
           variant="h3"
           component="h3"
@@ -239,7 +247,12 @@ const ConnectForm = () => {
           {sending ? (showColdStartHint ? 'Waking up the server…' : 'Sending…') : 'Send'}
         </Button>
         {sending && showColdStartHint && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Still waking the server up — this can take up to a minute on the free plan. Hang tight!
           </Typography>
         )}

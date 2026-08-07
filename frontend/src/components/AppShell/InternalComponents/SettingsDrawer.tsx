@@ -27,7 +27,14 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
   const showLayout = useMediaQuery(theme.breakpoints.down(650));
 
   const SettingDrawerTopItem = () => (
-    <Stack direction={'row'} justifyContent="center" alignItems="center" sx={{ width: '100%' }}>
+    <Stack
+      direction={'row'}
+      sx={{
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+      }}
+    >
       <Box
         sx={{
           width: '100%',
@@ -48,7 +55,14 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
   );
 
   const SettingDrawerBottomItem = () => (
-    <Stack direction={'row'} justifyContent="center" alignItems="center" sx={{ width: '100%' }}>
+    <Stack
+      direction={'row'}
+      sx={{
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+      }}
+    >
       Insert Logo/Brand
     </Stack>
   );
@@ -56,9 +70,12 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
   const SettingDrawerContent = () => (
     <Stack
       spacing={2}
-      justifyContent="flex-start"
-      alignItems="center"
-      sx={{ width: '100%', height: '100%' }}
+      sx={{
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+      }}
     >
       <Card sx={{ width: '100%' }}>
         {/* Drawer's own title above is h2; these are its subsections, so h3
@@ -67,7 +84,9 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
             accessibility tree entirely. */}
         <CardHeader
           title="Select a Theme"
-          titleTypographyProps={{ variant: 'h5', component: 'h3' }}
+          slotProps={{
+            title: { variant: 'h5', component: 'h3' },
+          }}
         />
         <CardContent>
           <ThemeButton />
@@ -77,7 +96,9 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
         <Card sx={{ width: '100%' }}>
           <CardHeader
             title="Select a Layout"
-            titleTypographyProps={{ variant: 'h5', component: 'h3' }}
+            slotProps={{
+              title: { variant: 'h5', component: 'h3' },
+            }}
           />
           <CardContent>
             <LayoutButton />
@@ -94,17 +115,23 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
       onClose={() => setSettingDrawer(false)}
       role="dialog"
       aria-labelledby="settings-drawer-title"
-      PaperProps={{
-        sx: {
-          width: isMobile ? '100%' : isTablet ? '50%' : tempSidebar ? 280 : 280,
+      slotProps={{
+        paper: {
+          sx: {
+            width: isMobile ? '100%' : isTablet ? '50%' : tempSidebar ? 280 : 280,
+          },
         },
       }}
     >
       <Stack
         spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        sx={{ px: 2, py: 2, height: '100%' }}
+        sx={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          px: 2,
+          py: 2,
+          height: '100%',
+        }}
       >
         <SettingDrawerTopItem />
         <SettingDrawerContent />

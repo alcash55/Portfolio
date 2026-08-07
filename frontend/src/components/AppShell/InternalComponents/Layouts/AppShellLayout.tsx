@@ -33,7 +33,12 @@ export const AppShellLayout = ({ children, mode }: AppShellLayoutProps) => {
   const isSideNav = mode === 'sideNav';
 
   return (
-    <Stack px={isSideNav ? 2 : 0} sx={{ width: '100%' }}>
+    <Stack
+      sx={{
+        px: isSideNav ? 2 : 0,
+        width: '100%',
+      }}
+    >
       <Stack direction={isSideNav ? 'row' : 'column'} sx={{ width: '100%' }}>
         {isSideNav && <SidebarNav />}
         {mode === 'default' && <NavBar setSettingDrawer={setSettingDrawer} />}
