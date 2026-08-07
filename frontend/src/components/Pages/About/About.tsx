@@ -97,7 +97,7 @@ const About = () => {
                     rel="noopener noreferrer"
                     variant="outlined"
                     startIcon={<DescriptionOutlined />}
-                    aria-label="View Alex Cash's resume PDF (opens in a new tab)"
+                    aria-label="View Resume (opens Alex Cash's resume PDF in a new tab)"
                     // primary.light, not the outlined-button default of primary.main:
                     // primary.main only clears WCAG AA body-text contrast (4.5:1)
                     // against paper in the dark and red themes; in blue it measures

@@ -5,6 +5,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   Link,
   Stack,
@@ -45,33 +46,50 @@ const Contact = () => {
       <Typography variant="h3" component="h3" sx={headerStyles}>
         Lets Connect!
       </Typography>
+      {/* `<ListItem>` stays a real `<li>` here (Lighthouse's `list` audit flags a
+          `<ul>` whose children aren't `<li>`) -- the anchor lives one level down,
+          on `ListItemButton`, via `component={Link}`. */}
       <List sx={{ p: 0, width: '100%' }}>
-        <ListItem component={Link} href="mailto:alex.e.cash28@gmail.com" sx={listLinkSx}>
-          <ListItemText primary="Email" secondary="alex.e.cash28@gmail.com" sx={listItemStyles} />
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            href="mailto:alex.e.cash28@gmail.com"
+            sx={listLinkSx}
+          >
+            <ListItemText
+              primary="Email"
+              secondary="alex.e.cash28@gmail.com"
+              sx={listItemStyles}
+            />
+          </ListItemButton>
         </ListItem>
 
-        <ListItem
-          component={Link}
-          href="https://www.linkedin.com/in/alexander-cash"
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={listLinkSx}
-        >
-          <ListItemText
-            primary="LinkedIn"
-            secondary="linkedin.com/in/alexander-cash"
-            sx={listItemStyles}
-          />
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            href="https://www.linkedin.com/in/alexander-cash"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={listLinkSx}
+          >
+            <ListItemText
+              primary="LinkedIn"
+              secondary="linkedin.com/in/alexander-cash"
+              sx={listItemStyles}
+            />
+          </ListItemButton>
         </ListItem>
 
-        <ListItem
-          component={Link}
-          href="https://github.com/alcash55"
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={listLinkSx}
-        >
-          <ListItemText primary="GitHub" secondary="github.com/alcash55" sx={listItemStyles} />
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            href="https://github.com/alcash55"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={listLinkSx}
+          >
+            <ListItemText primary="GitHub" secondary="github.com/alcash55" sx={listItemStyles} />
+          </ListItemButton>
         </ListItem>
       </List>
     </Stack>
