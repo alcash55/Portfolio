@@ -62,9 +62,9 @@ const About = () => {
           title="About Me"
           slotProps={{
             title: {
-              textAlign: 'start',
               variant: 'h4',
               component: 'h2',
+              sx: { textAlign: 'start' },
             },
           }}
         />
@@ -105,7 +105,10 @@ const About = () => {
                     <Typography variant="h5" component="p" sx={{ fontWeight: 700 }}>
                       Alex Cash
                     </Typography>
-                    <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: 2 }}>
+                    <Typography
+                      variant="overline"
+                      sx={{ color: 'text.secondary', letterSpacing: 2 }}
+                    >
                       Software Engineer
                     </Typography>
                   </Box>

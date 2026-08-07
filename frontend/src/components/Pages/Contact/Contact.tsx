@@ -51,16 +51,8 @@ const Contact = () => {
           on `ListItemButton`, via `component={Link}`. */}
       <List sx={{ p: 0, width: '100%' }}>
         <ListItem disablePadding>
-          <ListItemButton
-            component={Link}
-            href="mailto:alex.e.cash28@gmail.com"
-            sx={listLinkSx}
-          >
-            <ListItemText
-              primary="Email"
-              secondary="alex.e.cash28@gmail.com"
-              sx={listItemStyles}
-            />
+          <ListItemButton component={Link} href="mailto:alex.e.cash28@gmail.com" sx={listLinkSx}>
+            <ListItemText primary="Email" secondary="alex.e.cash28@gmail.com" sx={listItemStyles} />
           </ListItemButton>
         </ListItem>
 
@@ -120,9 +112,9 @@ const Contact = () => {
           title="Contact"
           slotProps={{
             title: {
-              textAlign: 'start',
               variant: 'h4',
               component: 'h2',
+              sx: { textAlign: 'start' },
             },
           }}
         />

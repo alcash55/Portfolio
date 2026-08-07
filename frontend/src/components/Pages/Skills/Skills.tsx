@@ -55,9 +55,9 @@ const Skills = () => {
           title="Skills & Tech"
           slotProps={{
             title: {
-              textAlign: 'start',
               variant: 'h4',
               component: 'h2',
+              sx: { textAlign: 'start' },
             },
           }}
         />
