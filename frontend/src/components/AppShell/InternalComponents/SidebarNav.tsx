@@ -1,69 +1,78 @@
-import { Box, Button, Toolbar, Typography, Divider, Stack } from '@mui/material';
-import Home from '@mui/icons-material/Home';
-import ConnectWithoutContact from '@mui/icons-material/ConnectWithoutContact';
-import Construction from '@mui/icons-material/Construction';
-import Work from '@mui/icons-material/Work';
-import Build from '@mui/icons-material/Build';
+import { useState } from 'react';
+import {
+  Box,
+  Button,
+  IconButton,
+  Toolbar,
+  Tooltip,
+  Typography,
+  Divider,
+  Stack,
+} from '@mui/material';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+import { navLinks } from './navLinks';
 
-const SideBarTopItem = () => {
+/** localStorage key for the collapsed state, following the same pattern as the
+ * `layout` key `AppShellProvider` uses to persist the layout mode. */
+const COLLAPSE_STORAGE_KEY = 'sideNavCollapsed';
+const EXPANDED_WIDTH = 240;
+const COLLAPSED_WIDTH = 72;
+
+interface SideBarTopItemProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+const SideBarTopItem = ({ collapsed, onToggle }: SideBarTopItemProps) => {
   return (
     <>
       <Toolbar
         sx={{
           display: 'flex',
-          justifyContent: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
           alignItems: 'center',
+          gap: 1,
         }}
       >
-        {/* This is persistent shell chrome (a brand label repeated in every layout
-            mode), not the page's title, so it's rendered as a plain div rather than
-            an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
-            one real title; a second element with the same text would be a duplicate
-            heading, not a subordinate one. */}
-        <Typography
-          variant={'h1'}
-          component={'div'}
-          sx={{
-            fontSize: 24,
-            color: 'text.primary',
-          }}
-        >
-          Alex Cash
-        </Typography>
+        {!collapsed && (
+          // This is persistent shell chrome (a brand label repeated in every layout
+          // mode), not the page's title, so it's rendered as a plain div rather than
+          // an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
+          // one real title; a second element with the same text would be a duplicate
+          // heading, not a subordinate one.
+          <Typography
+            variant={'h1'}
+            component={'div'}
+            sx={{
+              fontSize: 24,
+              color: 'text.primary',
+            }}
+          >
+            Alex Cash
+          </Typography>
+        )}
+        <Tooltip title={collapsed ? 'Expand navigation' : 'Collapse navigation'}>
+          <IconButton
+            aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+            aria-expanded={!collapsed}
+            onClick={onToggle}
+            sx={{ color: 'text.primary' }}
+          >
+            {collapsed ? <ChevronRight /> : <ChevronLeft />}
+          </IconButton>
+        </Tooltip>
       </Toolbar>
       <Divider />
     </>
   );
 };
 
-const SideBarItems = () => {
-  const navItems = [
-    {
-      href: '#landing',
-      name: 'Home',
-      icon: <Home />,
-    },
-    {
-      href: '#experience',
-      name: 'Experience',
-      icon: <Work />,
-    },
-    {
-      href: '#skills',
-      name: 'Skills & Tech',
-      icon: <Build />,
-    },
-    {
-      href: '#projects',
-      name: 'Projects',
-      icon: <Construction />,
-    },
-    {
-      href: '#contact',
-      name: 'Contact',
-      icon: <ConnectWithoutContact />,
-    },
-  ];
+interface SideBarItemsProps {
+  collapsed: boolean;
+}
+
+const SideBarItems = ({ collapsed }: SideBarItemsProps) => {
   return (
     <Stack
       spacing={2}
@@ -74,21 +83,48 @@ const SideBarItems = () => {
         py: 2,
       }}
     >
-      {navItems.map((item) => (
-        <Button
-          variant="contained"
-          startIcon={item.icon}
-          href={item.href}
-          key={item.name}
-          sx={{
-            minWidth: 150,
-            display: 'flex',
-            justifyContent: 'space-evenly',
-          }}
-        >
-          {item.name}
-        </Button>
-      ))}
+      {navLinks.map((link) => {
+        const Icon = link.icon;
+        const href = `#${link.id}`;
+
+        // Collapsed rail: icon-only buttons. An icon with no visible label still
+        // needs an accessible name (WCAG 4.1.2 / Lighthouse `button-name`), so
+        // `aria-label` carries the name and `Tooltip` surfaces it visually on
+        // hover/focus for sighted mouse and keyboard users.
+        if (collapsed) {
+          return (
+            <Tooltip title={link.label} placement="right" key={link.id}>
+              <IconButton
+                aria-label={link.label}
+                href={href}
+                sx={{
+                  color: 'text.primary',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Icon />
+              </IconButton>
+            </Tooltip>
+          );
+        }
+
+        return (
+          <Button
+            variant="contained"
+            startIcon={<Icon />}
+            href={href}
+            key={link.id}
+            sx={{
+              minWidth: 150,
+              display: 'flex',
+              justifyContent: 'space-evenly',
+            }}
+          >
+            {link.label}
+          </Button>
+        );
+      })}
     </Stack>
   );
 };
@@ -97,23 +133,38 @@ const SideBarItems = () => {
  * The sideNav layout's fixed left-hand nav column only — deliberately does not wrap
  * `children`. `AppShellLayout` renders this as a sibling of the page content so that
  * content's position in the tree (and therefore its React state) is unaffected by
- * this nav column mounting or unmounting when the layout mode changes.
+ * this nav column mounting or unmounting when the layout mode changes, or by this
+ * component's own collapse/expand state changing.
  */
 export const SidebarNav = () => {
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem(COLLAPSE_STORAGE_KEY) === 'true',
+  );
+
+  const toggleCollapsed = () => {
+    setCollapsed((prevCollapsed) => {
+      const nextCollapsed = !prevCollapsed;
+      localStorage.setItem(COLLAPSE_STORAGE_KEY, String(nextCollapsed));
+      return nextCollapsed;
+    });
+  };
+
   return (
     <Box
       component="nav"
       sx={{
         position: 'sticky',
-        width: 240,
+        width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
+        flexShrink: 0,
         height: '100%',
         px: 1,
         py: 2,
         top: 0,
+        transition: (theme) => theme.transitions.create('width'),
       }}
     >
-      <SideBarTopItem />
-      <SideBarItems />
+      <SideBarTopItem collapsed={collapsed} onToggle={toggleCollapsed} />
+      <SideBarItems collapsed={collapsed} />
     </Box>
   );
 };
