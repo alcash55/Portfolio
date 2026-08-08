@@ -8,16 +8,15 @@ body {
   scroll-padding: 64px; /*height of navbar*/
 }
 
-section {
-  /* min-height, not height. As a fixed height this pinned every section to
-     exactly one viewport (826px at a 900px-tall window), so short sections
-     were stretched and tall ones overflowed their own box -- which is what
-     made About's content appear sliced and run underneath Experience, and
-     why three unrelated sections all measured an identical 826px.
-     min-height keeps the intended full-viewport, scroll-snapped feel while
-     letting content decide when a section needs to be taller. */
-  min-height: calc(100vh - 73.98px); /* height of card header */
-}
+/* No height rule on `section` at all -- sections size to their content.
+   It was `height: calc(100vh - 73.98px)`, a fixed height that pinned every
+   section to one viewport: short ones were stretched and tall ones spilled
+   out of their own box, which made About's content run under Experience.
+   Switching it to min-height fixed the spill but kept the stretch, leaving
+   360px of dead space under Skills and 387px under Contact (the gap before
+   the footer).
+   The hero does not need it either -- measured 900px identically with the
+   rule and with it removed, because Landing sets its own height. */
 
 img {
   font-style: italic;
