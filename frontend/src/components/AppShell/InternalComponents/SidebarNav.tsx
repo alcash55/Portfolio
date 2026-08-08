@@ -60,6 +60,10 @@ const SideBarTopItem = ({ collapsed, onToggle }: SideBarTopItemProps) => {
               sx={{
                 fontSize: 24,
                 color: 'text.primary',
+                // The rail is a fixed 240px and this sits beside the logo and
+                // the collapse toggle, so "Alex Cash" had just enough room to
+                // break onto a second line and push the row's height around.
+                whiteSpace: 'nowrap',
               }}
             >
               Alex Cash
