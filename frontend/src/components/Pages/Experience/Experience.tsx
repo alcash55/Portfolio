@@ -72,14 +72,10 @@ const Experience = () => {
             px: { xs: 1.5, sm: 4 },
           }}
         >
-          <Typography variant="h6" component={'p'} sx={{ fontWeight: 500 }}>
-            With 4+ years of software engineering experience, a masters degree in Web and Mobile
-            Information systems, and a background in division one athletics, I bring a unique blend
-            of technical expertise and competitive drive to every task and project I tackles. This
-            combination enables me to approach challenges with both analytical precision and a
-            determined mindset, ensuring innovative and effective solutions. Whether collaborating
-            with a team or working independently, I leverages my diverse background to deliver
-            high-quality results.
+          <Typography variant="h6" component={'p'} sx={{ fontWeight: 500, maxWidth: '72ch' }}>
+            Four years of software engineering, a master&apos;s in Web and Mobile Information
+            Systems, and a background in Division I athletics. I approach problems analytically and
+            see them through &mdash; whether I&apos;m working with a team or on my own.
           </Typography>
 
           {/* Rebuilt from stable @mui/material primitives — @mui/lab's Timeline
