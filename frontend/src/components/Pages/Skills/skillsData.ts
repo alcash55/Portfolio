@@ -11,6 +11,13 @@ import Next from '../../../assets/icons/Next';
 import Docker from '../../../assets/icons/Docker';
 import Git from '../../../assets/icons/Git';
 import Github from '../../../assets/icons/Github';
+import Vite from '../../../assets/icons/Vite';
+import Mui from '../../../assets/icons/Mui';
+import Tailwind from '../../../assets/icons/Tailwind';
+import ShadcnUi from '../../../assets/icons/ShadcnUi';
+import Supabase from '../../../assets/icons/Supabase';
+import Couchbase from '../../../assets/icons/Couchbase';
+import Postgresql from '../../../assets/icons/Postgresql';
 
 export interface SkillItem {
   label: string;
@@ -35,12 +42,15 @@ export interface SkillCategory {
  * Sprint 11 (A3): reconciles the original three categories (Languages,
  * Frameworks, Tools -- all plain-text chips, 11 items) with the richer
  * tech snapshot from `aboutme.MD`, and gives Databases and DevOps/CI/CD a
- * category of their own rather than overloading "Tools". Every one of the
- * 11 previously-unmounted icon components in `assets/icons/**` is used
- * here. The additional MD items (SQL, Single-SPA, MUI, Tailwind CSS,
- * Vite, Couchbase, PostgreSQL, GitHub Actions, REST APIs, CI/CD) have no
- * icon component built, so they render as plain-text chips -- building
- * new icons for them is out of scope for this sprint.
+ * category of their own rather than overloading "Tools".
+ *
+ * Sprint 14 (I2): built the seven icons that were still missing (Vite, MUI,
+ * shadcn/UI, Tailwind CSS, Supabase, Couchbase, PostgreSQL) and wired them
+ * in here. None are wordmarks -- every one is an abstract glyph (bolt,
+ * wave, elephant, crossed bars...) that doesn't spell the product name, so
+ * `wordmark` is left unset on all seven and the chip renders icon + text
+ * label, same as Bun/React/Docker/GitHub. Single-SPA, GitHub Actions, REST
+ * APIs and CI/CD still have no icon component built; out of scope here.
  */
 export const skillCategories: SkillCategory[] = [
   {
@@ -61,15 +71,19 @@ export const skillCategories: SkillCategory[] = [
       { label: 'Express', icon: Express, wordmark: true },
       { label: 'Next.js', icon: Next, wordmark: true },
       { label: 'Single-SPA' },
-      { label: 'MUI' },
-      { label: 'Tailwind CSS' },
-      { label: 'Vite' },
-      { label: 'shadcn/UI' },
+      { label: 'MUI', icon: Mui },
+      { label: 'Tailwind CSS', icon: Tailwind },
+      { label: 'Vite', icon: Vite },
+      { label: 'shadcn/UI', icon: ShadcnUi },
     ],
   },
   {
     label: 'Databases',
-    items: [{ label: 'Supabase' }, { label: 'Couchbase' }, { label: 'PostgreSQL' }],
+    items: [
+      { label: 'Supabase', icon: Supabase },
+      { label: 'Couchbase', icon: Couchbase },
+      { label: 'PostgreSQL', icon: Postgresql },
+    ],
   },
   {
     label: 'DevOps & CI/CD',
