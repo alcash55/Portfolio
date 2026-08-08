@@ -34,10 +34,22 @@ const Skills = () => {
     <Stack id="skills" component={'section'}>
       <Card
         sx={{
+          // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets
+          // `overflow: hidden`, and a flex item only gets an automatic minimum
+          // size while its overflow is visible -- so as a child of Home's flex
+          // column this Card could shrink below its own content and silently
+          // clip the bottom. Measured: About lost 124px at 1280px and 1057px
+          // at 390px, which was most of "Outside of Work". Setting height:auto
+          // does NOT fix it; restoring the min-size does.
+          overflow: 'visible',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          height: '100%',
+          // Deliberately NOT `height: '100%'`. As a flex child this resolved to
+          // a fixed 826px while the content wanted more, and MUI's Card sets
+          // `overflow: hidden` -- so the bottom of the section was silently
+          // clipped (About lost 124px at 1280px and 1057px at 390px). A
+          // content section must be as tall as its content.
           width: '100%',
           p: 0,
           m: 0,
@@ -100,22 +112,44 @@ const Skills = () => {
 /**
  * `icon` is rendered inside `label` (rather than via Chip's own `icon`
  * prop) so `TechIcon`'s sizing wrapper isn't fighting Chip's
- * `cloneElement`-based icon slot -- the label already reads as text to
- * assistive tech, so the icon itself stays `aria-hidden` (see TechIcon).
+ * `cloneElement`-based icon slot.
+ *
+ * Three cases:
+ * - **wordmark** -- the SVG already spells the product name (Go, Node.js,
+ *   Express, Next.js, Git), so printing the text beside it says the name
+ *   twice. The mark renders alone and `TechIcon`'s `label` carries the name
+ *   for assistive tech, which would otherwise get nothing at all.
+ * - **glyph** -- a symbol with no lettering, so it needs the text label; the
+ *   icon stays `aria-hidden` since the label already reads as text.
+ * - **no icon** -- plain text.
  */
-const SkillChip = ({ item }: { item: SkillItem }) => (
-  <Chip
-    label={
-      item.icon ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <TechIcon icon={item.icon} size={16} />
-          {item.label}
-        </Box>
-      ) : (
-        item.label
-      )
-    }
-  />
-);
+const SkillChip = ({ item }: { item: SkillItem }) => {
+  if (item.icon && item.wordmark) {
+    return (
+      <Chip
+        label={
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <TechIcon icon={item.icon} size={16} label={item.label} />
+          </Box>
+        }
+      />
+    );
+  }
+
+  return (
+    <Chip
+      label={
+        item.icon ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <TechIcon icon={item.icon} size={16} />
+            {item.label}
+          </Box>
+        ) : (
+          item.label
+        )
+      }
+    />
+  );
+};
 
 export default Skills;

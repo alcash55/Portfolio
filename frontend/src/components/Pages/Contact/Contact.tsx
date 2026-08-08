@@ -91,6 +91,14 @@ const Contact = () => {
     <Stack id="contact" component={'section'} sx={{ height: 'auto' }}>
       <Card
         sx={{
+          // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets
+          // `overflow: hidden`, and a flex item only gets an automatic minimum
+          // size while its overflow is visible -- so as a child of Home's flex
+          // column this Card could shrink below its own content and silently
+          // clip the bottom. Measured: About lost 124px at 1280px and 1057px
+          // at 390px, which was most of "Outside of Work". Setting height:auto
+          // does NOT fix it; restoring the min-size does.
+          overflow: 'visible',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

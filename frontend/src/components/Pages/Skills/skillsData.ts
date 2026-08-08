@@ -16,6 +16,14 @@ export interface SkillItem {
   label: string;
   /** Omitted for the items aboutme.MD names that have no icon component built. */
   icon?: ComponentType<SvgIconProps>;
+  /**
+   * True when the icon is a *logotype* -- it already spells the product name
+   * (Go, Node.js, Express, Next.js, Git all ship wide wordmark SVGs, viewBox
+   * aspect ratios 2.4-5.0 versus ~1.0 for the square glyphs). Rendering the
+   * text label beside one of those prints the name twice, so the chip shows
+   * the mark alone and moves the name onto its accessible label instead.
+   */
+  wordmark?: boolean;
 }
 
 export interface SkillCategory {
@@ -39,7 +47,7 @@ export const skillCategories: SkillCategory[] = [
     label: 'Languages',
     items: [
       { label: 'TypeScript', icon: Typescript },
-      { label: 'Go', icon: Go },
+      { label: 'Go', icon: Go, wordmark: true },
       { label: 'JavaScript', icon: Javascript },
       { label: 'SQL' },
     ],
@@ -48,25 +56,26 @@ export const skillCategories: SkillCategory[] = [
     label: 'Frameworks & Tools',
     items: [
       { label: 'React', icon: ReactIcon },
-      { label: 'Node.js', icon: Node },
+      { label: 'Node.js', icon: Node, wordmark: true },
       { label: 'Bun', icon: Bun },
-      { label: 'Express', icon: Express },
-      { label: 'Next.js', icon: Next },
+      { label: 'Express', icon: Express, wordmark: true },
+      { label: 'Next.js', icon: Next, wordmark: true },
       { label: 'Single-SPA' },
       { label: 'MUI' },
       { label: 'Tailwind CSS' },
       { label: 'Vite' },
+      { label: 'shadcn/UI' },
     ],
   },
   {
     label: 'Databases',
-    items: [{ label: 'Couchbase' }, { label: 'PostgreSQL' }],
+    items: [{ label: 'Supabase' }, { label: 'Couchbase' }, { label: 'PostgreSQL' }],
   },
   {
     label: 'DevOps & CI/CD',
     items: [
       { label: 'Docker', icon: Docker },
-      { label: 'Git', icon: Git },
+      { label: 'Git', icon: Git, wordmark: true },
       { label: 'GitHub', icon: Github },
       { label: 'GitHub Actions' },
       { label: 'REST APIs' },
