@@ -169,17 +169,40 @@ const About = () => {
             {/* Bio */}
             <Grid size={{ xs: 12, md: 8 }}>
               <Card sx={panelSx}>
+                {/* This was the only one of the four panels without a header,
+                    which is what made it read as a loose block of text rather
+                    than part of the set. */}
+                <CardHeader
+                  title="Who I Am"
+                  slotProps={{ title: { component: 'h3', variant: 'h6' } }}
+                />
                 <CardContent
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 2,
-                    height: '100%',
-                    justifyContent: 'center',
+                    // Deliberately not centred, and no height: 100%. This card's
+                    // height is set by the identity panel beside it, so centring
+                    // left the copy floating with large dead space above and
+                    // below. Top-aligned, it reads as the section's opening.
+                    pt: 0,
                   }}
                 >
-                  {bioParagraphs.map((paragraph) => (
-                    <Typography key={paragraph} variant="body1">
+                  {bioParagraphs.map((paragraph, i) => (
+                    <Typography
+                      key={paragraph}
+                      variant="body1"
+                      sx={{
+                        // ~68 characters is the readable range; without a cap
+                        // these lines ran the full card width.
+                        maxWidth: '68ch',
+                        // The opening line carries the introduction, so it gets
+                        // a little more weight than the paragraph that follows.
+                        ...(i === 0
+                          ? { fontSize: '1.05rem', color: 'text.primary' }
+                          : { color: 'text.secondary' }),
+                      }}
+                    >
                       {paragraph}
                     </Typography>
                   ))}

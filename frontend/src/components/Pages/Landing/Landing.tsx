@@ -420,6 +420,15 @@ const Landing = () => {
                           bottom: 16,
                           left: 16,
                           fontSize: 14,
+                          // Fixed white, and correctly so: this caption sits on
+                          // the rgba(0,0,0,0.5) scrim above, which is the same
+                          // dark surface in every theme. Inheriting text.primary
+                          // made it near-black on that scrim in the light theme.
+                          // A knockout is only safe when it sits on its own
+                          // opaque shape -- here it does.
+                          color: 'common.white',
+                          fontWeight: 600,
+                          textShadow: '0 1px 3px rgba(0,0,0,0.6)',
                           opacity: 0,
                           transition: 'opacity 0.3s ease',
                         }}
