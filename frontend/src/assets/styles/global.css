@@ -9,7 +9,14 @@ body {
 }
 
 section {
-  height: calc(100vh - 73.98px); /* height of card header */
+  /* min-height, not height. As a fixed height this pinned every section to
+     exactly one viewport (826px at a 900px-tall window), so short sections
+     were stretched and tall ones overflowed their own box -- which is what
+     made About's content appear sliced and run underneath Experience, and
+     why three unrelated sections all measured an identical 826px.
+     min-height keeps the intended full-viewport, scroll-snapped feel while
+     letting content decide when a section needs to be taller. */
+  min-height: calc(100vh - 73.98px); /* height of card header */
 }
 
 img {
