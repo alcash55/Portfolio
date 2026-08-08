@@ -8,6 +8,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import LinkIcon from '@mui/icons-material/Link';
 import { experienceData } from './experienceData';
 
@@ -40,7 +41,7 @@ const Experience = () => {
             width: '100%',
           }}
           avatar={
-            <IconButton aria-label="navigate to contact" href="#experience" sx={{ zIndex: 0 }}>
+            <IconButton aria-label="navigate to experience" href="#experience" sx={{ zIndex: 0 }}>
               <LinkIcon />
             </IconButton>
           }
@@ -164,14 +165,35 @@ const Experience = () => {
                   </Typography>
                   <Card
                     sx={{
+                      // Deliberately NOT `height: '100%'`. Its containing block is this
+                      // row's content column, a flex item of the `[date][dot][card]` row
+                      // Stack -- and percentage heights inside a stretched flex item
+                      // resolve through the same hypothetical-size pass that determines
+                      // the row's own auto height, which is circular: the row's height
+                      // depends on this card's height, which (via 100%) depends on the
+                      // row's height. Below `sm`, where the date renders *inside* this
+                      // column instead of in its own row cell, that circularity resolved
+                      // to a height matching the card's content ALONE -- silently
+                      // excluding the stacked date's own 32px (24px line + 8px margin)
+                      // from the row's total, so the card overflowed the row by exactly
+                      // that amount and visually overlapped the next entry's date.
+                      // Auto height breaks the loop and lets the card (and therefore the
+                      // row) size to its real content.
                       width: '100%',
-                      height: '100%',
                       backgroundColor: theme.palette.background.default,
                       border: `2px solid ${theme.palette.divider}`,
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        // border: `2px solid gray`,
-                        boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
+                        // Theme-derived, not a hardcoded blue: the fixed
+                        // `rgb(18, 72, 116)` read fine in the original dark theme but was
+                        // still a navy glow under the red/purple/green themes and fought
+                        // the light theme's bright background. Same offset/blur/spread
+                        // geometry as before -- only the hue (and its alpha, standing in
+                        // for the fixed color's implied darkness) now follows
+                        // `primary.main`. Alpha 0.55 matches Skills.tsx's identical glow
+                        // so hovering a Skills chip and an Experience card read as the
+                        // same effect.
+                        boxShadow: `0px 25px 20px -20px ${alpha(theme.palette.primary.main, 0.55)}`,
                       },
                     }}
                   >
