@@ -146,7 +146,6 @@ const ProjectCard = ({
       data-testid="project-grid-item"
       sx={{
         justifyContent: 'center',
-        height: largeMobile ? 'auto' : 300,
       }}
       size={{
         xs: 12,
@@ -156,16 +155,23 @@ const ProjectCard = ({
         xl: 4,
       }}
     >
-      <Card sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
+      {/* No fixed/percentage height anywhere in this card -- `height: 300` plus
+          a `height: '50%'` image and a `maxHeight: '60%'` CardContent looked
+          like a deliberate 50/60 split, but percentages don't clip cleanly:
+          at every width the description text needed more than the 60% cap
+          allowed, and Card's default `overflow: hidden` swallowed the rest
+          silently. Sizing every piece from its own content (image at a fixed
+          aspect ratio, text unconstrained) means the card is exactly as tall
+          as it needs to be, matching how the section-level cards were fixed. */}
+      <Card sx={{ width: '100%', bgcolor: 'background.default', overflow: 'visible' }}>
         <CardActionArea
           href={project.href}
           target="_blank"
           sx={{
             width: '100%',
-            height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'center',
           }}
         >
@@ -177,7 +183,7 @@ const ProjectCard = ({
               loading="lazy"
               sx={{
                 width: '100%',
-                height: '50%',
+                aspectRatio: '16 / 9',
                 objectFit: 'contain',
               }}
             />
@@ -186,7 +192,7 @@ const ProjectCard = ({
             <Box
               sx={{
                 width: '100%',
-                height: '50%',
+                aspectRatio: '16 / 9',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -201,7 +207,7 @@ const ProjectCard = ({
               />
             </Box>
           )}
-          <CardContent sx={{ maxHeight: '60%' }}>
+          <CardContent sx={{ width: '100%' }}>
             <Typography gutterBottom variant="h5" component="div">
               {project.name}
             </Typography>
@@ -258,7 +264,6 @@ const ProjectCard = ({
 const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
   <Grid
     data-testid="project-grid-item"
-    sx={{ height: largeMobile ? 'auto' : 300 }}
     size={{
       xs: 12,
       sm: 6,
@@ -267,17 +272,18 @@ const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
       xl: 4,
     }}
   >
-    <Card sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
+    <Card sx={{ width: '100%', bgcolor: 'background.default', overflow: 'visible' }}>
       <Box
         sx={{
           width: '100%',
-          height: '100%',
           display: 'flex',
           flexDirection: 'column',
         }}
       >
-        {!largeMobile && <Skeleton variant="rectangular" width="100%" height="50%" />}
-        <CardContent sx={{ maxHeight: '60%' }}>
+        {!largeMobile && (
+          <Skeleton variant="rectangular" width="100%" sx={{ aspectRatio: '16 / 9' }} />
+        )}
+        <CardContent sx={{ width: '100%' }}>
           <Skeleton variant="text" width="60%" height={32} />
           <Skeleton variant="text" width="90%" />
           <Skeleton variant="text" width="75%" />
