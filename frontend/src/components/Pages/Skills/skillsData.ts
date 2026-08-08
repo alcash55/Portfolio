@@ -16,6 +16,7 @@ import Mui from '../../../assets/icons/Mui';
 import Tailwind from '../../../assets/icons/Tailwind';
 import ShadcnUi from '../../../assets/icons/ShadcnUi';
 import Supabase from '../../../assets/icons/Supabase';
+import Snowflake from '../../../assets/icons/Snowflake';
 import Couchbase from '../../../assets/icons/Couchbase';
 import Postgresql from '../../../assets/icons/Postgresql';
 
@@ -81,6 +82,7 @@ export const skillCategories: SkillCategory[] = [
     label: 'Databases',
     items: [
       { label: 'Supabase', icon: Supabase },
+      { label: 'Snowflake', icon: Snowflake },
       { label: 'Couchbase', icon: Couchbase },
       { label: 'PostgreSQL', icon: Postgresql },
     ],
