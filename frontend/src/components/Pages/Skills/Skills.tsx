@@ -8,6 +8,7 @@ import {
   Grid,
   Box,
   useTheme,
+  alpha,
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import { skillCategories, type SkillItem } from './skillsData';
@@ -15,6 +16,12 @@ import TechIcon from './TechIcon';
 
 const Skills = () => {
   const theme = useTheme();
+  // Sprint 14 (I3): was a hardcoded `rgb(18, 72, 116)` -- a fixed blue that
+  // read wrong against five of the six themes (only dark/blue are blue at
+  // all). Derived from `primary.main` instead so the hue follows the active
+  // theme; same offset/blur/spread geometry, alpha 0.55 chosen to match the
+  // original's dim, glow-not-neon weight. Experience.tsx's hover glow uses
+  // the identical formula -- keep them in sync if this changes.
   const skillCardSx = {
     width: '100%',
     height: '100%',
@@ -22,7 +29,7 @@ const Skills = () => {
     border: `2px solid ${theme.palette.divider}`,
     transition: 'all 0.3s ease',
     '&:hover': {
-      boxShadow: ' 0px 25px 20px -20px rgb(18, 72, 116)',
+      boxShadow: `0px 25px 20px -20px ${alpha(theme.palette.primary.main, 0.55)}`,
     },
   };
   // Shared by all four category CardContents: without flexWrap the chips
