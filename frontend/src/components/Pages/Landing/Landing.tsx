@@ -8,12 +8,13 @@ import ArrowDownward from '@mui/icons-material/ArrowDownward';
 import GitHub from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
+import Menu from '@mui/icons-material/Menu';
 import { navLinks } from '../../AppShell/InternalComponents/navLinks';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 
 const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const { layout } = useAppShellLayout();
+  const { layout, openSettingDrawer } = useAppShellLayout();
   const theme = useTheme();
 
   // Every "white" on the hero below used to be a literal `rgba(255,255,255,…)`/
@@ -63,6 +64,17 @@ const Landing = () => {
   // NavBar (the global bar shown once the viewport scrolls past this
   // section) keeps that entry since it links back to the top from anywhere.
   const landingNavLinks = navLinks.filter((link) => link.id !== 'landing');
+
+  // The scroll-indicator arrow's target: whatever section actually follows
+  // the hero in document order, read from the same single source of truth
+  // (navLinks.ts) that Home.tsx's section order is meant to match, instead
+  // of a name hardcoded here. Landing.tsx:417 used to hardcode 'experience'
+  // -- correct back when Experience was the section right after the hero,
+  // but Sprint 4 inserted About between them and this target was never
+  // updated, silently skipping the whole section. Deriving it means
+  // inserting another section (or reordering) can't cause the same drift
+  // again: whichever link is first in `landingNavLinks` is the target.
+  const nextSection = landingNavLinks[0];
 
   // Landing's own nav only covers the gap left by `useShowNavBar` hiding the
   // global NavBar while the viewport is on the hero -- that gap only exists
@@ -207,6 +219,7 @@ const Landing = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
+              gap: { xs: 1, sm: 2 },
             }}
           >
             {/* flexWrap + a shrinking gap keep this reachable at phone widths: unwrapped
@@ -238,6 +251,25 @@ const Landing = () => {
                 </Button>
               ))}
             </Box>
+            {/* H2: the only settings-drawer trigger while the viewport is on the hero
+                in the `default` layout -- `useShowNavBar` hides the global NavBar (and
+                its gear) here, and `mobile`/`sideNav` already have their own trigger
+                (MobileChrome's Fab, AppShellLayout's Fab), so this only needs to exist
+                where `showInlineNav` is true. Opens the same drawer NavBar's gear does,
+                via the shared `openSettingDrawer` lifted onto AppShellLayoutContext.
+                Focus ring comes from the theme-wide MuiButtonBase override
+                (muiButtonBaseOverrides.ts), which every IconButton already gets for
+                free in all six themes. */}
+            <IconButton
+              aria-label="Open Settings Drawer"
+              onClick={openSettingDrawer}
+              sx={{
+                color: heroTextReadable,
+                '&:hover': { color: 'text.primary' },
+              }}
+            >
+              <Menu />
+            </IconButton>
           </Box>
         )}
 
@@ -414,8 +446,10 @@ const Landing = () => {
         >
           <IconButton
             size={'large'}
-            onClick={() => scrollToSection('experience')}
-            aria-label="Scroll to Experience section"
+            onClick={() => nextSection && scrollToSection(nextSection.id)}
+            aria-label={
+              nextSection ? `Scroll to ${nextSection.label} section` : 'Scroll to next section'
+            }
           >
             <ArrowDownward
               sx={{

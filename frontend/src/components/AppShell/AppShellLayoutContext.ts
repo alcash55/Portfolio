@@ -10,16 +10,24 @@ import { createContext, useContext } from 'react';
 export type AppShellLayoutMode = 'default' | 'mobile' | 'sideNav';
 
 /**
- * AppShellLayoutContext context that provides the current layout mode and a function to
+ * AppShellLayoutContext context that provides the current layout mode, a function to
  * change it (used by `LayoutButton` in the settings drawer to switch between top-nav and
- * side-nav on non-mobile viewports).
+ * side-nav on non-mobile viewports), and a function to open the settings drawer itself.
+ *
+ * `openSettingDrawer` exists here so any descendant can reach the one settings-drawer
+ * state that lives in `AppShellProvider`, without prop-drilling it through `children`.
+ * Landing needs this: it renders its own inline nav (see Landing.tsx `showInlineNav`)
+ * to cover the gap left by `useShowNavBar` hiding the global `NavBar` -- and therefore
+ * its own gear icon -- while the viewport is on the hero.
  */
 export const AppShellLayoutContext = createContext<{
   layout: AppShellLayoutMode;
   toggleLayout: (newLayout: string) => void;
+  openSettingDrawer: () => void;
 }>({
   layout: 'default',
   toggleLayout: () => {},
+  openSettingDrawer: () => {},
 });
 
 /**

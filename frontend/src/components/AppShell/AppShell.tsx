@@ -2,6 +2,7 @@ import { PropsWithChildren, useEffect, useState } from 'react';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { AppShellLayout } from './InternalComponents/Layouts/AppShellLayout';
 import { AppShellLayoutContext, AppShellLayoutMode } from './AppShellLayoutContext';
+import { useSettingDrawer } from './InternalComponents/useSettingsDrawer';
 
 /**
  * The AppShellProvider component that provides the layout context
@@ -28,6 +29,11 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(650));
   const [mode, setMode] = useState<AppShellLayoutMode>(() => resolveInitialMode(650));
+  // Lifted from `AppShellLayout` so the one settings-drawer state can be reached from
+  // both the chrome (NavBar/MobileChrome/SidebarNav's Fab) and Landing's inline nav
+  // (H2) via `openSettingDrawer` on this context -- `AppShellLayout` still owns
+  // rendering the actual `<SettingsDrawer>`.
+  const { settingDrawer, setSettingDrawer, openSettingDrawer } = useSettingDrawer();
 
   useEffect(() => {
     //set initial layout
@@ -67,11 +73,14 @@ export default function AppShellProvider({ children }: PropsWithChildren) {
   const contextValue = {
     layout: mode,
     toggleLayout: applyMode,
+    openSettingDrawer,
   };
 
   return (
     <AppShellLayoutContext.Provider value={contextValue}>
-      <AppShellLayout mode={mode}>{children}</AppShellLayout>
+      <AppShellLayout mode={mode} settingDrawer={settingDrawer} setSettingDrawer={setSettingDrawer}>
+        {children}
+      </AppShellLayout>
     </AppShellLayoutContext.Provider>
   );
 }

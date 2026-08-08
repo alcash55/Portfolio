@@ -5,11 +5,12 @@ import { AppShellLayoutMode } from '../../AppShellLayoutContext';
 import { NavBar } from '../NavBar';
 import { SettingsDrawer } from '../SettingsDrawer';
 import { SidebarNav } from '../SidebarNav';
-import { useSettingDrawer } from '../useSettingsDrawer';
 import { MobileChrome } from './MobileChrome';
 
 interface AppShellLayoutProps extends PropsWithChildren {
   mode: AppShellLayoutMode;
+  settingDrawer: boolean;
+  setSettingDrawer: (value: boolean) => void;
 }
 
 /**
@@ -28,8 +29,12 @@ interface AppShellLayoutProps extends PropsWithChildren {
  * portaled (Drawer), so their position in the DOM relative to `children` doesn't affect
  * visual layout, letting the mode-specific pieces come and go freely.
  */
-export const AppShellLayout = ({ children, mode }: AppShellLayoutProps) => {
-  const { settingDrawer, setSettingDrawer } = useSettingDrawer();
+export const AppShellLayout = ({
+  children,
+  mode,
+  settingDrawer,
+  setSettingDrawer,
+}: AppShellLayoutProps) => {
   const isSideNav = mode === 'sideNav';
 
   return (
