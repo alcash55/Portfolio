@@ -1,180 +1,164 @@
-# TEAM-BRIEF — Sprint 14: responsive repair, brand icons, hero controls
+# TEAM-BRIEF — Sprint 15: close out the plan
 
 Scratch file, deleted at sprint end. **Never cite this file in a code comment** — it won't exist.
-`grep -rn "TEAM-BRIEF" frontend/src` before you commit.
+`grep -rn "TEAM-BRIEF" frontend/src backend` before you commit.
 
 ## Goal
 
-Seven bugs Alex reported. Several are regressions or stale-target drift from earlier sprints, and
-the causes are already found — don't re-derive them.
+Empty the remaining actionable items. The site is deployed at **93 / 100 / 96 / 100** with zero
+accessibility failures — this is closing the last real gaps, not rescuing anything.
 
-## Root causes I confirmed while scoping
+Two entries in the plan were stale and I disproved them by measurement; don't go looking for them:
 
-1. **The hover glow is a hardcoded blue.** `Skills.tsx:25` and `Experience.tsx:174` both set
-   `boxShadow: '0px 25px 20px -20px rgb(18, 72, 116)'`. A fixed blue against six themes — that is
-   the whole inconsistency.
-2. **The down arrow hardcodes the wrong target.** `Landing.tsx:417` is
-   `scrollToSection('experience')` with `aria-label="Scroll to Experience section"`. It was written
-   before About was inserted into the page in Sprint 4, so it now **skips a whole section**, and
-   its accessible name is wrong too.
-3. **The hero has no theme control at all.** `Landing.tsx` contains no settings/drawer trigger, and
-   `useShowNavBar` hides the global NavBar (which carries the gear) while the viewport is on the
-   hero. In the `mobile` and `sideNav` layouts the chrome provides its own trigger, so the gap is
-   specifically **the `default` layout while on the hero**.
-4. **Seven icons genuinely don't exist**: Vite, MUI, shadcn/UI, Tailwind, Supabase, Couchbase,
-   PostgreSQL. Existing components are `Bun Docker Express Git Github Go Javascript Logo Ncr Next
-   Node React Rmu SoleaEnergy Typescript Voyix`.
-
-## Ground rules
-
-- **78 frontend tests must pass**, plus `bun run lint` (`--max-warnings 0`), `bunx tsc --noEmit`,
-  `bun run build`. Backend untouched. **No `any`.** MUI is **v9**.
-- **Six themes now** — dark, blue, light, red, purple, green. Everything must work in all of them,
-  and **light inverts assumptions the other five share.**
-- Baseline: **Accessibility 100 with zero failures**, Performance ~95. Don't regress either.
-- **Measure with `getBoundingClientRect()` / computed styles, not screenshots.** A 320 px screenshot
-  looks plausible while content is clipped.
-- **Restart the dev server immediately before each measurement pass.** Vite's watcher is unreliable
-  on this `/mnt/c` mount — it has now bitten six sprints, including me twice in the last hour.
-
-### A trap that just cost me several passes — read this
-
-MUI's `Card` sets `overflow: hidden`, and **a flex item only keeps its automatic minimum size while
-its overflow is `visible`.** As children of `Home`'s flex column, section cards could therefore
-shrink *below their own content* and silently clip the bottom. About was losing 1057 px at 390 px.
-
-All five section cards now carry `overflow: 'visible'` to prevent it. **If you see content
-disappearing rather than overflowing, suspect this before anything else** — and note
-`height: auto` does *not* fix it; restoring the min-size does.
+- **"The mobile FAB overlaps About/Experience cards"** — does not reproduce. At 390 px the FAB sits
+  at `[312,687,360,735]` and intersects **zero** section cards. The section-height work fixed it.
+- **"Six existing icons invisible on white"** — down to one. Only `Node` still carries a literal
+  white fill, and it is probably a legitimate knockout on its own green hexagon, the same reason
+  `Ncr`, `Docker` and `Bun` were deliberately left alone. Verify, don't assume it's broken.
 
 ## Ownership
 
 | Agent | Owns | Must not touch |
 | --- | --- | --- |
-| **responsive** | `Pages/About/**`, `Pages/Experience/**`, `Pages/Projects/**` | `Skills`, `Landing`, `AppShell` |
-| **icons** | `assets/icons/**`, `Pages/Skills/**` | `Experience`, `About`, `Projects`, `Landing` |
-| **hero** | `Pages/Landing/**`, `AppShell/**` | all other `Pages/**` |
+| **ci** | `.github/**`, `frontend/e2e/**` (new), `frontend/package.json` | `frontend/src/**` |
+| **theme** | `frontend/src/layout/Theme/**` | everything else |
+| **cleanup** | `frontend/src/components/Pages/Contact/**`, `frontend/src/assets/icons/**`, `frontend/vite.config.ts` | `layout/**`, `package.json` |
 
-### Shared decision — the glow, agreed up front so two agents converge
+`package.json` belongs to **ci** alone — if cleanup's bundle work needs a script or dependency
+change, it **reports** and ci adds it.
 
-The glow lives in both `Skills.tsx` (icons agent) and `Experience.tsx` (responsive agent). There is
-no shared file, so **both must apply the same formula**:
+## Ground rules
 
-> Derive it from the active theme — `alpha(theme.palette.primary.main, …)` — rather than a literal
-> colour. Keep the same offset/blur/spread geometry so only the hue changes.
-
-Whoever finishes first, say in your report exactly what you used; the other matches it. If you
-think a different token reads better across all six themes, **say so rather than diverging.**
-
----
-
-## RESPONSIVE tasks
-
-### R1 — About is cut off at many breakpoints
-
-Alex reports it, and the section-card clipping fix above was only part of it. Sweep **320, 360,
-390, 414, 600, 768, 900, 1280** and fix everything that clips, overflows, or becomes unreadable.
-Report the measurements.
-
-### R2 — The Experience timeline overlaps its dates with the content
-
-Sprint 9 made the date stack above the card below `sm`. Alex reports dates now overlapping content,
-so either that breakpoint is wrong or the two-column form persists where it shouldn't.
-
-**History worth knowing so you don't repeat it:** the row is `[date][dot][card]`. At 320 px the
-first two columns consumed 211 px of 272 px available. Sprint 7 tried three fixes that all failed —
-`minWidth: 0` alone collapsed cards to 4 px, `alignItems: 'stretch'` did nothing, and a narrower
-date column gave 28 px cards. Stacking was the answer. Find why it isn't holding.
-
-### R3 — Projects cards cut off content on smaller screens
-
-Same sweep. Note Grid moved to the v2 API in Sprint 7 (`size={{ xs: 12, sm: 6, md: 4 }}`).
-
-### R4 — The Experience glow
-
-Per the shared decision above.
+- **78 frontend tests must pass**, plus `bun run lint` (`--max-warnings 0`), `bunx tsc --noEmit`,
+  `bun run build`. Backend must stay untouched. **No `any`.** MUI is **v9**.
+- **Six themes** (dark, blue, light, red, purple, green) × **three layouts** (default, mobile,
+  sideNav). Light inverts assumptions the other five share.
+- **Contrast is measured, not judged** — composite ancestor backgrounds. AA is 4.5:1 body, 3:1
+  large text and UI.
+- **Restart the dev server immediately before each measurement pass.** Vite's watcher is unreliable
+  on this `/mnt/c` mount. It has bitten seven sprints, including me three times.
 
 ---
 
-## ICONS tasks
+## CI tasks — the Playwright smoke test
 
-### I1 — Seven new brand icons
+This is the headline item and the case for it is entirely empirical. **Every sprint on this project
+produced at least one bug that lint, typecheck, tests and the build all passed and only a real
+browser caught:** a runtime circular import, PWA icons 404ing in production, an invisible focus
+ring app-wide, a duplicate `<h1>` in one of three layouts, a nav link at `x: -46`, a **fully
+bypassable rate limiter**, hero images rendering at 40 px, a 285 ms flash of the wrong theme, and
+sections silently clipping their own content.
 
-Vite, MUI, shadcn/UI, Tailwind CSS, Supabase, Couchbase, PostgreSQL.
+### C1 — A narrow, fast, reliable smoke test
 
-Match the existing components' shape: a `SvgIcon` wrapper, sized by `TechIcon`. Study two or three
-existing icons first — and note `TechIcon` exists specifically because several wrap a nested `<svg>`
-with literal pixel dimensions that MUI's `fontSize` can't resize. **Don't reproduce that problem:**
-a single `<svg>` with a `viewBox` and no width/height attributes is what you want.
+**Start small and make it trustworthy.** A flaky suite that everyone learns to re-run is worse than
+no suite. Cover only things that have actually broken here:
 
-**Theme-awareness is the requirement that matters.** Six themes including light:
-- Where a brand mark is genuinely monochrome (shadcn/UI is a black-and-white mark), use
-  `currentColor` so it inverts.
-- Where a brand has real colours (Vite's gradient, Supabase green, PostgreSQL blue, MUI blue,
-  Tailwind cyan), keep them — but **verify each stays visible on light *and* on the five dark
-  backgrounds.** A mid-tone brand colour usually works on both; a near-white or near-black one
-  won't.
-- **Never hardcode white as a knockout** unless it sits on the icon's own opaque shape. That exact
-  mistake made six existing icons invisible-on-white and was only caught because a light theme
-  finally existed.
+- The page loads and renders, with **exactly one `<h1>`** — check in all three layouts.
+- **No horizontal overflow at 320 px**: `document.documentElement.scrollWidth === window.innerWidth`.
+- **No section card clips its own content** (`scrollHeight <= clientHeight + 1`) — this is the bug
+  class that hid About's "Outside of Work" entirely.
+- The contact form submits against a **stubbed** `/api/v1/contact` and shows the success state.
+- **Zero console errors** on load.
 
-Decide per icon and report your reasoning. These are recognisable marks — approximate them
-faithfully rather than inventing something unrecognisable, but a simplified geometric take is fine
-and often reads better at 16 px.
+Use `@playwright/test`. Run it against a production build via `vite preview`, not the dev server —
+dev-only warnings and HMR make it noisy and slow.
 
-### I2 — Wire them into Skills, and check the wordmark rule
+### C2 — Wire it into CI without making CI fragile
 
-`skillsData.ts` has a `wordmark` flag: true when the icon already spells the product name, so the
-chip shows the mark alone and moves the name to its accessible label. **Set it correctly for each
-new icon** — a Vite logo is a glyph (needs the text), a full "supabase" logotype would not be.
+Add it to `ci.yml` as its own job so a smoke failure is distinguishable from a unit-test failure.
+Install only the Chromium browser, and cache it — a full browser download on every run is the
+fastest way to make people resent the suite.
 
-Verify at 320 px that Sprint 9's chip wrapping and card stacking still hold.
+**It must gate the deploy the same way the existing jobs do.** Check how `deploy.yml` consumes
+`ci.yml` before wiring it; the reusable-workflow call and `needs:` relationship already exist.
 
-### I3 — The Skills glow
+### C3 — Make it runnable locally
 
-Per the shared decision above.
+A `bun run test:e2e` script, and a line in `README.md`'s testing section so it is discoverable.
+**Note the environment here has no system Chrome** — the cached Playwright Chromium at
+`~/.cache/ms-playwright` is what works locally. Say in your report exactly how you ran it.
 
 ---
 
-## HERO tasks
+## THEME task — the blue theme fails AA
 
-### H1 — The down arrow skips a section
+### T1 — Blue's `primary.main` is too light for white text and too dark for its own paper
 
-`Landing.tsx:417` hardcodes `scrollToSection('experience')`. About sits between the hero and
-Experience, so the arrow jumps past it. **Derive the target from `navLinks` — the first section
-after the hero — rather than naming one**, which is what let this go stale in the first place.
-Fix the `aria-label` to match, and make sure it can't drift again if a section is inserted.
+Measured just now, reproduced live:
 
-### H2 — No way to change theme from the hero
+| context | measured | needs |
+| --- | ---: | ---: |
+| `sideNav` contained button — white on `#5893df` | **3.16:1** | 4.5 |
+| `mobile` selected label — `#5893df` on `#24344d` | **3.98:1** | 4.5 |
+| the same control in `dark` | 7.22:1 ✓ | |
 
-In the `default` layout the global NavBar is hidden while the viewport is on the hero
-(`useShowNavBar`), and Landing's inline nav has no settings trigger — so themes are unreachable
-until you scroll. `mobile` and `sideNav` have their own triggers, so **the gap is `default` + hero.**
+It is specific to blue. Lighthouse has never caught it because it tests **one theme in one layout**
+— the failure lives in the other 17 combinations.
 
-Add a settings-drawer trigger to Landing's inline nav, matching how `NavBar` opens the same drawer.
-It needs an accessible name and a visible focus ring **in all six themes.**
+**This is harder than nudging one hex**, which is why it is its own task. `primary.main` is used for
+contained buttons (white text on it), for the mobile nav's selected label (it as text on paper),
+and `primary.light` is the site-wide link colour. Those pull in opposite directions: darkening
+helps the button, hurts the label.
 
-Do not "fix" this by making the global NavBar always visible — hiding it over the hero is
-deliberate design, and Sprint 8 fixed a related bug by making Landing's nav render only in
-`default`. Keep that.
+Consider giving contained buttons an explicit `contrastText` rather than forcing one hex to satisfy
+both roles — MUI computes `contrastText` from `main`, and its default threshold is more permissive
+than AA. Whatever you choose, **measure every role**: contained button text, the selected label,
+links via `primary.light`, and the focus ring.
+
+**Do not regress the other five themes.** Re-measure all six after the change and report a table.
+
+---
+
+## CLEANUP tasks
+
+### K1 — `Contact.tsx`'s stale `primary.light` comment
+
+It cites themes and contrast ratios that no longer hold after Sprint 12 (it references the red
+theme's old palette and a three-theme world; there are six now). Correct it to state what is
+actually true, or delete it if the reason is obvious from the code. **Do not leave a comment that
+asserts numbers nobody has re-measured** — that is the exact rot that needed its own sprint.
+
+### K2 — The `Node` icon's remaining white fill
+
+Verify whether it is a legitimate knockout on the icon's own opaque shape (like `Ncr`/`Docker`/
+`Bun`) or genuinely invisible on a light background. **Render it on white and look.** Fix only if
+actually broken; say which you found.
+
+### K3 — Bundle investigation — measure, then decide
+
+Current production build: **630 kB raw / 206.5 kB gzip, single chunk.** The plan says 179 kB, so it
+has grown since the MUI upgrade — seven new icons and a redesign landed in between.
+
+This is **investigation first**. Report where the weight is before changing anything. Specifically:
+
+- What proportion is MUI, and is anything obviously unused being pulled in? Sprint 7 already proved
+  barrel imports tree-shake correctly here (grepping the bundle for `MuiSlider`, `MuiTable` etc.
+  found **zero** matches), so **do not redo that** — look for something new.
+- Sprint 4.5 removed `React.lazy()` deliberately, having measured 13 chunks/517 kB against 1
+  chunk/513 kB. **Do not reintroduce code-splitting without a measurement that beats that**, and if
+  you do propose it, note that a single route rendering every section is why it lost last time.
+- Page transfer weight is ~400 KB and Performance is 93, so this is **not urgent**. A confident
+  "here is where it went, and nothing is worth changing" is a perfectly good outcome. Do not churn
+  imports on a hunch.
 
 ---
 
 ## Acceptance
 
-- Nothing clips or overflows at 320/360/390/414/600/768/900/1280, in all six themes.
-- The glow reads correctly in all six — same geometry, theme-derived hue.
-- The down arrow goes to the section that actually follows the hero, with a matching accessible name.
-- Themes reachable from the hero in the `default` layout.
-- All seven new icons visible and legible on light *and* the five dark themes, at 16 px.
-- **Accessibility stays 100 with zero failures.**
+- The smoke test runs in CI, gates the deploy, and passes. It must be **fast and not flaky** —
+  run it at least three times and report whether the result was identical each time.
+- Blue clears AA in every role, in `mobile` and `sideNav` as well as `default`, with the other five
+  themes re-measured and unregressed.
+- No comment left asserting a number nobody re-measured.
+- Deployed baseline held or improved: **93 / 100 / 96 / 100**, zero accessibility failures.
 
 ## Reporting
 
 1. Commands run, with actual output.
-2. Before/after measurements for every responsive fix — numbers, at each width.
-3. Per-icon: what colour treatment you chose and why, plus its legibility on light.
-4. The exact glow value you used (both agents must match).
-5. Browser verification: themes × widths, and how you scripted it.
+2. The blue contrast table — every role, all six themes, before and after.
+3. Smoke test: what it covers, how long it takes, and its result across repeated runs.
+4. Bundle: where the weight actually is, and your recommendation with the measurement behind it.
+5. Anything you found that should be someone else's task.
 
 If a task is wrong or impossible as specified, stop and say so rather than improvising.
