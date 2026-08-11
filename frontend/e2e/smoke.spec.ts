@@ -21,6 +21,26 @@ const CLIPPABLE_SECTION_IDS = ['about', 'experience', 'skills', 'projects', 'con
 const DESKTOP = { width: 1280, height: 800 };
 const MOBILE = { width: 390, height: 844 };
 
+/**
+ * The one network call the page makes on load. It is stubbed for every test so
+ * the suite asserts against the frontend alone: with a real `VITE_API_URL` the
+ * result would depend on whether a Go backend happened to be running, and
+ * `useProjects`' fallback would (correctly) log a console.error on connection
+ * refused -- which is exactly what made `zero console errors on load` pass on a
+ * developer machine with the backend up and fail in CI, where nothing listens
+ * on :8080. An empty `projects` list means no live metadata merges over the
+ * static list, so Projects still renders its real cards.
+ */
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/v1/projects', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ projects: [], stale: false }),
+    }),
+  );
+});
+
 /** Navigates home and waits for the hero's `<h1>` so later assertions don't race the first paint. */
 async function gotoHome(page: Page) {
   await page.goto('/');
