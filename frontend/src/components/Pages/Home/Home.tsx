@@ -13,8 +13,10 @@ const Home = () => {
         width: '100%',
         // Defence in depth, not the primary fix. The root cause of sections
         // clipping and running into each other was `section { height: ... }`
-        // in global.css pinning every section to one viewport; that is now a
-        // min-height. This keeps a section from being squeezed below its own
+        // in global.css pinning every section to one viewport; that rule is
+        // now gone entirely (min-height stopped the spill but kept the stretch,
+        // which is what left the dead space under Skills and Contact). This
+        // keeps a section from being squeezed below its own
         // content should it ever exceed that minimum -- a flex item only keeps
         // its automatic minimum size while `overflow` is `visible`, and the
         // section Cards are deliberately `overflow: visible`.

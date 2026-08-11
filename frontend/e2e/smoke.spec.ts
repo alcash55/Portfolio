@@ -110,10 +110,81 @@ test('no section card clips its own content', async ({ page }) => {
     }, id);
 
     expect(overflowPx, `section #${id} should render, found no .MuiCard-root child`).not.toBeNull();
-    expect(overflowPx, `section #${id} clips ${overflowPx}px of its own content`).toBeLessThanOrEqual(
-      1,
-    );
+    expect(
+      overflowPx,
+      `section #${id} clips ${overflowPx}px of its own content`,
+    ).toBeLessThanOrEqual(1);
   }
+});
+
+test('every section is fully visible after being scrolled to', async ({ page }) => {
+  // The scroll-reveal animation starts sections at opacity 0. Its catastrophic
+  // failure mode is failing closed -- content that never reveals is content
+  // nobody can read, and no other check here would notice, since a hidden
+  // element still has a bounding box, still contains its text, and still
+  // reports the same scrollHeight.
+  await page.setViewportSize(DESKTOP);
+  await gotoHome(page);
+
+  const opacityOf = (id: string) =>
+    page.evaluate((sectionId) => {
+      const el = document.getElementById(sectionId);
+      return el ? parseFloat(getComputedStyle(el).opacity) : null;
+    }, id);
+
+  for (const id of CLIPPABLE_SECTION_IDS) {
+    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => opacityOf(id), {
+        message: `section #${id} never finished revealing`,
+        timeout: 4000,
+      })
+      .toBe(1);
+  }
+
+  // The reveal only fires once a section's top edge is 25% of the way up the
+  // window, which is unreachable for anything close enough to the end of the
+  // document that the page runs out of scroll first. Nothing can rescue such a
+  // section -- it would simply never appear -- so the last one gets checked at
+  // the actual bottom of the page rather than at whatever position
+  // `scrollIntoViewIfNeeded` happens to pick.
+  const last = CLIPPABLE_SECTION_IDS[CLIPPABLE_SECTION_IDS.length - 1];
+  await page.evaluate(() => window.scrollTo({ top: 1e7, behavior: 'instant' }));
+  await expect
+    .poll(() => opacityOf(last), {
+      message: `section #${last} is still hidden at the very bottom of the page`,
+      timeout: 4000,
+    })
+    .toBe(1);
+});
+
+test('the nav bar appears as the hero arrow leaves, not before or long after', async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await gotoHome(page);
+
+  const navVisibility = () =>
+    page.evaluate(() => {
+      const header = document.querySelector('header');
+      return header ? getComputedStyle(header.parentElement as Element).visibility : null;
+    });
+
+  // While the arrow is on screen the hero has its own nav, so the global bar
+  // must stay out of the way.
+  expect(await navVisibility()).toBe('hidden');
+
+  // Put the arrow just past the top of the viewport.
+  await page.evaluate(() => {
+    const arrow = document.querySelector('[data-scroll-indicator]') as HTMLElement;
+    const bottom = arrow.getBoundingClientRect().bottom + window.scrollY;
+    window.scrollTo({ top: bottom + 2, behavior: 'instant' });
+  });
+
+  await expect
+    .poll(navVisibility, {
+      message: 'nav bar did not appear once the arrow had gone',
+      timeout: 2000,
+    })
+    .toBe('visible');
 });
 
 test('contact form submits against a stubbed backend and shows the success state', async ({

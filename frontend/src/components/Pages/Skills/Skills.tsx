@@ -13,8 +13,12 @@ import {
 import LinkIcon from '@mui/icons-material/Link';
 import { skillCategories, type SkillItem } from './skillsData';
 import TechIcon from './TechIcon';
+import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 const Skills = () => {
+  const reveal = useScrollReveal();
+  // The three category cards cascade rather than appearing as one block.
+  const cards = useScrollReveal({ stagger: 90, distance: 18 });
   const theme = useTheme();
   // Sprint 14 (I3): was a hardcoded `rgb(18, 72, 116)` -- a fixed blue that
   // read wrong against five of the six themes (only dark/blue are blue at
@@ -38,7 +42,7 @@ const Skills = () => {
   const skillChipsSx = { display: 'flex', flexWrap: 'wrap', gap: 1 };
 
   return (
-    <Stack id="skills" component={'section'}>
+    <Stack id="skills" component={'section'} ref={reveal.ref} sx={reveal.sx}>
       <Card
         sx={{
           // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets
@@ -91,7 +95,7 @@ const Skills = () => {
               width -- a 2-up grid (1-up below `sm`) gives each card room for
               its chips to wrap instead of being squeezed to min-content,
               which is what broke at 320-390px before Sprint 9's fix. */}
-          <Grid container spacing={3}>
+          <Grid container spacing={3} ref={cards.ref} sx={cards.sx}>
             {skillCategories.map((category) => (
               <Grid key={category.label} size={{ xs: 12, sm: 6 }}>
                 <Card sx={skillCardSx}>

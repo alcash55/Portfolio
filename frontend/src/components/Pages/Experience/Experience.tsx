@@ -11,12 +11,19 @@ import {
 import { alpha } from '@mui/material/styles';
 import LinkIcon from '@mui/icons-material/Link';
 import { experienceData } from './experienceData';
+import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 const Experience = () => {
+  const reveal = useScrollReveal();
   const theme = useTheme();
 
   return (
-    <Stack id="experience" component={'section'} sx={{ height: 'auto', width: '100%' }}>
+    <Stack
+      id="experience"
+      component={'section'}
+      ref={reveal.ref}
+      sx={[{ height: 'auto', width: '100%' }, reveal.sx]}
+    >
       <Card
         sx={{
           // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets

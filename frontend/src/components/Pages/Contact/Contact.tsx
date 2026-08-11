@@ -15,8 +15,10 @@ import {
 } from '@mui/material';
 import ContactForm from '../../ConnectForm/ConnectForm';
 import LinkIcon from '@mui/icons-material/Link';
+import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 const Contact = () => {
+  const reveal = useScrollReveal();
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(425));
   const tablet = useMediaQuery(theme.breakpoints.down(650));
@@ -95,7 +97,7 @@ const Contact = () => {
   );
 
   return (
-    <Stack id="contact" component={'section'} sx={{ height: 'auto' }}>
+    <Stack id="contact" component={'section'} ref={reveal.ref} sx={[{ height: 'auto' }, reveal.sx]}>
       <Card
         sx={{
           // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets

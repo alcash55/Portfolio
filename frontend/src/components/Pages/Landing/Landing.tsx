@@ -10,6 +10,7 @@ import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
 import Menu from '@mui/icons-material/Menu';
 import { navLinks } from '../../AppShell/InternalComponents/navLinks';
+import { SCROLL_INDICATOR_ATTR } from '../../AppShell/InternalComponents/useShowNavBar';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 
 const Landing = () => {
@@ -453,7 +454,19 @@ const Landing = () => {
             gap: 1.5,
           }}
         >
+          {/* The attribute is load-bearing, not a test hook: `useShowNavBar`
+              measures this element so the global NavBar appears as the arrow
+              leaves the viewport.
+
+              It sits here rather than on the Stack, which adds 24px of bottom
+              padding and so stays on screen well after the arrow has visibly
+              gone; and rather than on the arrow glyph itself, which is the
+              tightest box but is running the `bounce` animation -- a 6px
+              oscillation would drag the measured edge back and forth across
+              the threshold and flicker the bar. This button is the tightest
+              box that holds still. */}
           <IconButton
+            {...{ [SCROLL_INDICATOR_ATTR]: true }}
             size={'large'}
             onClick={() => nextSection && scrollToSection(nextSection.id)}
             aria-label={
