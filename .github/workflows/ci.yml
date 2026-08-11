@@ -43,6 +43,59 @@ jobs:
         working-directory: frontend
         run: bun run build
 
+  e2e:
+    name: Playwright smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # https://bun.sh/docs/cli/install#ci-cd
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: bun install
+
+      - name: Type check
+        working-directory: frontend
+        run: bunx tsc --noEmit -p e2e/tsconfig.json
+
+      # Keyed on bun.lockb, which pins the resolved @playwright/test version --
+      # a Playwright upgrade changes the hash and busts the cache along with it,
+      # so a stale browser binary can never sit alongside a newer test runner.
+      - name: Cache Playwright browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('frontend/bun.lockb') }}
+
+      # `--with-deps` also installs the OS shared libraries Chromium needs to
+      # launch headless; ubuntu-latest doesn't ship them. That apt step still
+      # runs on a cache hit, but it's the browser *download* (the slow, multi-
+      # hundred-MB part) that the cache above is there to skip.
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: bunx playwright install --with-deps chromium
+
+      # Runs against a production build via `vite preview`, not the dev
+      # server -- see e2e/playwright.config.ts's webServer. A failure here is
+      # a real-browser rendering/runtime bug, not a lint/type/unit-test gap,
+      # so it gets its own job rather than folding into `frontend` above.
+      - name: Smoke test
+        working-directory: frontend
+        run: bun run test:e2e
+
+      - name: Upload trace on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: frontend/e2e/test-results
+          retention-days: 7
+
   backend:
     name: Backend
     runs-on: ubuntu-latest
