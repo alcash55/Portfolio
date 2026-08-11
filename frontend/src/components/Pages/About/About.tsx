@@ -23,14 +23,16 @@ import Typescript from '../../../assets/icons/Typescript';
 import Go from '../../../assets/icons/Go';
 import TechIcon from '../Skills/TechIcon';
 import { bioParagraphs, whatDrivesMe, outsideOfWork, continuousLearning } from './aboutData';
+import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 const About = () => {
   const theme = useTheme();
+  const reveal = useScrollReveal();
   // Shared by every sub-panel below so the section reads as a set of
   // layered cards (the hero's idiom) rather than one continuous text
   // column -- matches Skills' skillCardSx: same border/bg treatment, no
-  // translucent overlays sitting behind body text (that's produced wrong
-  // contrast readings twice on this project per the sprint brief).
+  // translucent overlays sitting behind body text, which has produced wrong
+  // contrast readings twice on this project.
   const panelSx = {
     height: '100%',
     backgroundColor: theme.palette.background.default,
@@ -38,7 +40,7 @@ const About = () => {
   };
 
   return (
-    <Stack id="about" component={'section'}>
+    <Stack id="about" component={'section'} ref={reveal.ref} sx={reveal.sx}>
       <Card
         sx={{
           // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets

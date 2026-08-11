@@ -18,6 +18,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import StarIcon from '@mui/icons-material/StarBorder';
 import { staticProjects, type StaticProject } from './staticProjects';
 import useProjects, { type ApiProject } from './useProjects';
+import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 /**
  * A static project entry merged with live metadata (F1). The static entry
@@ -50,6 +51,11 @@ const formatUpdatedAt = (iso: string): string | null => {
  * @see https://mui-treasury.com/?path=/story/card-solidgame--solid-game
  */
 const Projects = () => {
+  const reveal = useScrollReveal();
+  // The cards cascade instead of arriving as one slab. Note this stays
+  // revealed once triggered, so the skeleton -> loaded-card swap does not
+  // re-run the animation -- that swap should be instant, not staged.
+  const cards = useScrollReveal({ stagger: 80, distance: 18 });
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(600));
   const { apiProjects, isLoading } = useProjects();
@@ -57,7 +63,7 @@ const Projects = () => {
   const displayProjects = staticProjects.map((project) => mergeProject(project, apiProjects));
 
   return (
-    <Stack id="projects" component={'section'}>
+    <Stack id="projects" component={'section'} ref={reveal.ref} sx={reveal.sx}>
       <Card
         sx={{
           // `overflow: visible` is load-bearing, not cosmetic. MUI's Card sets
@@ -112,11 +118,15 @@ const Projects = () => {
           <Grid
             container
             spacing={2}
-            sx={{
-              width: '100%',
-              height: '100%',
-              justifyContent: 'center',
-            }}
+            ref={cards.ref}
+            sx={[
+              {
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+              },
+              cards.sx,
+            ]}
           >
             {isLoading
               ? staticProjects.map((project) => (

@@ -10,6 +10,7 @@ import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
 import Menu from '@mui/icons-material/Menu';
 import { navLinks } from '../../AppShell/InternalComponents/navLinks';
+import { SCROLL_INDICATOR_ATTR } from '../../AppShell/InternalComponents/useShowNavBar';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 
 const Landing = () => {
@@ -444,8 +445,11 @@ const Landing = () => {
           </Box>
         </Box>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator. The attribute is load-bearing, not a test hook:
+            `useShowNavBar` observes this element so the global NavBar appears
+            the instant the arrow leaves the viewport. */}
         <Stack
+          {...{ [SCROLL_INDICATOR_ATTR]: true }}
           sx={{
             pb: 3,
             display: 'flex',
