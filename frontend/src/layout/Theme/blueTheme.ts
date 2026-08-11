@@ -6,13 +6,33 @@ export const blueTheme: ThemeOptions = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#5893df',
-      // Sprint 4: `primary.main` measured 3.98:1 against `background.paper`
-      // here (the other themes cleared AA with `main` alone), so links use
-      // `primary.light` instead. Re-measured this sprint: `main` is still
-      // 3.98:1 (unchanged, still fails), auto-derived `light` is 5.11:1
-      // (still clears AA) -- still the right call, so left unset rather
-      // than pinned to a literal value.
+      // Sprint 15: `main` was `#5893df`, which failed AA in two places at
+      // once -- `main` on `background.paper` (the mobile nav's selected
+      // label) measured 3.98:1 against the 4.5:1 body-text minimum, and
+      // white contained-button text on `main` measured 3.16:1. Both failures
+      // came from the same root cause: MUI's `getContrastText` picks white
+      // once a background clears *its* threshold (3:1 by default), which is
+      // more permissive than AA (4.5:1) -- `#5893df` sat in the gap between
+      // the two. Lightened (same hue/saturation, +0.07 HSL lightness) so
+      // `main` itself clears AA as body text on `paper`, which pushes white-
+      // on-`main` contrast down below MUI's 3:1 threshold and flips its
+      // auto-picked contrastText to black -- pinned below anyway rather than
+      // relying on that threshold crossing, so a future hue tweak can't
+      // silently flip it back to white the way `#5893df` did.
+      main: '#76a6e5',
+      // Contained buttons (sideNav nav items, Send, 404's Go Home): black
+      // clears every role that reads `main` as a background, so pin it
+      // rather than depend on MUI auto-selecting it. Matches the value MUI
+      // already computes by default for the other five themes' lighter/
+      // brighter `main` colors (red/purple/green/light all auto-resolve to
+      // this, or to white for light's darker `main` -- see the six-theme
+      // table in this sprint's report).
+      contrastText: 'rgba(0, 0, 0, 0.87)',
+      // Footer/About/Contact read `primary.light`, not `main`, as their link
+      // colour (Sprint 4). Re-measured this sprint against the new `main`:
+      // auto-derived `light` is 6.07:1 on `paper` and 7.73:1 on `default`
+      // (both clear AA with more margin than before) -- still the right
+      // call, so left unset rather than pinned to a literal value.
     },
     secondary: {
       main: '#2ec5d3',

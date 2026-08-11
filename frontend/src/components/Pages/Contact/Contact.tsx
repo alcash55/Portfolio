@@ -25,9 +25,13 @@ const Contact = () => {
       textDecoration: 'underline',
     },
   };
-  // primary.light, not the MuiLink/ListItem default of primary.main: primary.main
-  // only clears WCAG AA body-text contrast (4.5:1) against paper in the dark and
-  // red themes; in blue it measures 3.98:1. primary.light clears AA in all three.
+  // primary.light, not the MuiLink/ListItem default of primary.main: on every
+  // dark-mode theme (dark/blue/red/purple/green) lightening `main` only raises
+  // its contrast against `paper`, and blue's `main` alone falls short of AA
+  // (see blueTheme.ts). In light theme, `light` is pinned equal to `main`
+  // rather than auto-lightened toward white, specifically so it clears AA
+  // there too (see lightTheme.ts). Same choice as Footer's and About's link
+  // colour, for the same reason.
   const listLinkSx = { width: 'fit-content', p: 0, color: 'primary.light' };
   const headerStyles = {
     fontSize: largeMobile ? '1.5rem' : '2rem',
