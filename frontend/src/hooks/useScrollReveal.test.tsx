@@ -61,7 +61,7 @@ describe('useScrollReveal', () => {
     expect(seen.sx).toMatchObject({ opacity: 0 });
   });
 
-  it('reveals when the element intersects, and stops observing so it cannot replay', () => {
+  it('reveals when the element intersects', () => {
     const instances = installObserver();
     render(<Probe />);
 
@@ -71,8 +71,47 @@ describe('useScrollReveal', () => {
 
     expect(seen.revealed).toBe(true);
     expect(seen.sx).toMatchObject({ opacity: 1, transform: 'none' });
-    // Re-animating every time you scroll past is this effect's tacky mode.
-    expect(instances[0].disconnect).toHaveBeenCalled();
+  });
+
+  it('fades back out when the element leaves again, so the effect is reversible', () => {
+    const instances = installObserver();
+    render(<Probe />);
+
+    act(() => {
+      instances[0].callback([{ isIntersecting: true } as IntersectionObserverEntry]);
+    });
+    expect(seen.revealed).toBe(true);
+
+    // Scrolling back up: it must not latch on the first reveal.
+    act(() => {
+      instances[0].callback([{ isIntersecting: false } as IntersectionObserverEntry]);
+    });
+
+    expect(seen.revealed).toBe(false);
+    expect(seen.sx).toMatchObject({ opacity: 0 });
+    expect(instances[0].disconnect).not.toHaveBeenCalled();
+  });
+
+  it('drops the stagger delay on the way out', () => {
+    // A reverse cascade on exit reads as the page unloading rather than
+    // animating, so delays are for the entrance only.
+    const instances = installObserver();
+    render(<Probe stagger={80} />);
+
+    act(() => {
+      instances[0].callback([{ isIntersecting: true } as IntersectionObserverEntry]);
+    });
+    expect(
+      (seen.sx as Record<string, { transitionDelay?: string }>)['& > *:nth-of-type(2)'],
+    ).toBeDefined();
+
+    act(() => {
+      instances[0].callback([{ isIntersecting: false } as IntersectionObserverEntry]);
+    });
+
+    const sx = seen.sx as Record<string, { transitionDelay?: string }>;
+    expect(sx['& > *:nth-of-type(2)']).toBeUndefined();
+    expect(sx['& > *'].transitionDelay).toBe('0ms');
   });
 
   it('stays hidden while the element has not yet been reached', () => {
@@ -109,8 +148,11 @@ describe('useScrollReveal', () => {
   });
 
   it('staggers direct children by the given interval instead of moving the container', () => {
-    installObserver();
+    const instances = installObserver();
     render(<Probe stagger={80} />);
+    act(() => {
+      instances[0].callback([{ isIntersecting: true } as IntersectionObserverEntry]);
+    });
     const sx = seen.sx as Record<string, { transitionDelay?: string }>;
 
     expect(sx['& > *:nth-of-type(1)'].transitionDelay).toBe('0ms');
@@ -122,8 +164,11 @@ describe('useScrollReveal', () => {
   });
 
   it('caps the stagger so a long list does not trail further and further behind', () => {
-    installObserver();
+    const instances = installObserver();
     render(<Probe stagger={100} staggerCap={3} />);
+    act(() => {
+      instances[0].callback([{ isIntersecting: true } as IntersectionObserverEntry]);
+    });
     const sx = seen.sx as Record<string, { transitionDelay?: string }>;
 
     expect(sx['& > *:nth-of-type(3)'].transitionDelay).toBe('200ms');

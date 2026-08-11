@@ -28,19 +28,28 @@ const EASING = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
 const DURATION_MS = 600;
 
 /**
- * Reveals an element as it scrolls into view: a short upward drift plus a fade,
- * once, and never again.
+ * How far into the viewport an element has to travel before it starts, as a
+ * percentage of the window height. A wheel notch is ~100px, so on a typical
+ * ~900px window this is a scroll and a half of lead-in rather than firing the
+ * instant the element's top edge appears.
+ */
+const REVEAL_INSET_PERCENT = 25;
+
+/**
+ * Reveals an element as it scrolls into view -- a short upward drift plus a
+ * fade -- and fades it back out when it leaves.
  *
- * Three things this deliberately does *not* do, each of which is a bug this
+ * Three properties worth keeping, the first and last of which are bugs this
  * project has already shipped once in another form:
  *
  * 1. **It never leaves content permanently invisible.** If the element can't be
  *    animated -- `prefers-reduced-motion`, or no `IntersectionObserver` (jsdom,
  *    older browsers) -- it starts revealed and no opacity is ever applied. An
  *    animation that fails closed would hide the whole page.
- * 2. **It doesn't re-animate on scroll-back.** The observer disconnects on the
- *    first reveal. Content that re-fades every time you scroll past is the
- *    "super extra" version of this effect.
+ * 2. **It is reversible.** Scrolling back up fades the element out again, so
+ *    the effect reads the same in both directions rather than being a one-way
+ *    door. The fade-out drops any stagger delay -- a reverse cascade on the way
+ *    out looks like the page is unloading, not like it is animating.
  * 3. **It only ever touches `opacity` and `transform`,** so it cannot move
  *    layout and cannot contribute to CLS -- which is what dragged this site's
  *    performance score from 96 to 75 once already (see Sprint 8). The revealed
@@ -74,19 +83,23 @@ export const useScrollReveal = <T extends HTMLElement = HTMLDivElement>(
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setRevealed(true);
-          observer.disconnect();
-        }
+        const entry = entries[entries.length - 1];
+        // Reversible: it fades back out on the way up, so this tracks the
+        // observer rather than latching on the first reveal.
+        if (entry) setRevealed(entry.isIntersecting);
       },
       {
-        // threshold 0 + a fixed bottom inset, rather than a ratio. A ratio
-        // looks tidier but cannot be satisfied by an element taller than
+        // threshold 0 + a bottom inset, rather than a ratio. A ratio looks
+        // tidier but cannot be satisfied by an element taller than
         // `viewport / ratio`, so a long section would never reveal at all. The
-        // inset only requires the element's top edge to clear a line 64px
-        // above the viewport bottom, which any section or footer can do.
+        // inset only asks the element's top edge to clear a line partway up
+        // the viewport, which any section or footer can do at any height.
+        //
+        // 25% rather than a pixel count so the wait scales with the window:
+        // the element has to come about a scroll and a half past the bottom
+        // edge before it starts, instead of firing the moment it peeks in.
         threshold: 0,
-        rootMargin: '0px 0px -64px 0px',
+        rootMargin: `0px 0px -${REVEAL_INSET_PERCENT}% 0px`,
       },
     );
 
@@ -116,26 +129,39 @@ export const useScrollReveal = <T extends HTMLElement = HTMLDivElement>(
             opacity: 0,
             transform: hiddenTransform,
             transition,
-            transitionDelay: `${delay}ms`,
+            // No delay on the way out. A delayed fade-out leaves the element
+            // sitting there after it should already be going.
+            transitionDelay: '0ms',
             willChange: 'opacity, transform',
           };
     }
 
     // Stagger mode: the container itself stays untouched and its children carry
     // the effect, so the container's own layout role (grid, flex) is unchanged.
+    // Delays apply on the way in only -- see above.
     const childDelays: Record<string, { transitionDelay: string }> = {};
-    for (let i = 0; i < staggerCap; i++) {
-      childDelays[`& > *:nth-of-type(${i + 1})`] = { transitionDelay: `${delay + i * stagger}ms` };
+    if (revealed) {
+      for (let i = 0; i < staggerCap; i++) {
+        childDelays[`& > *:nth-of-type(${i + 1})`] = {
+          transitionDelay: `${delay + i * stagger}ms`,
+        };
+      }
+      // Everything past the cap lands with the last staggered child.
+      childDelays[`& > *:nth-of-type(n + ${staggerCap + 1})`] = {
+        transitionDelay: `${delay + (staggerCap - 1) * stagger}ms`,
+      };
     }
-    // Everything past the cap lands with the last staggered child.
-    childDelays[`& > *:nth-of-type(n + ${staggerCap + 1})`] = {
-      transitionDelay: `${delay + (staggerCap - 1) * stagger}ms`,
-    };
 
     return {
       '& > *': revealed
         ? { opacity: 1, transform: 'none', transition }
-        : { opacity: 0, transform: hiddenTransform, transition, willChange: 'opacity, transform' },
+        : {
+            opacity: 0,
+            transform: hiddenTransform,
+            transition,
+            transitionDelay: '0ms',
+            willChange: 'opacity, transform',
+          },
       ...childDelays,
     };
   }, [canAnimate, revealed, delay, distance, stagger, staggerCap]);
