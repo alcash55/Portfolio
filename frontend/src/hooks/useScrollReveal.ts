@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import useMediaQuery from '@mui/material/useMediaQuery';
+// From the barrel, like every other MUI import in this codebase. The deep path
+// (`@mui/material/useMediaQuery`) is a separate entry for Vite's dependency
+// pre-bundling, and adding it mid-session made the dev server re-optimize and
+// serve a module graph with two copies of React in it -- `useMediaQuery` then
+// read `useContext` off a null React internals object and took the page down.
+import { useMediaQuery } from '@mui/material';
 
 export interface ScrollRevealOptions {
   /** ms to wait after the element enters before it starts moving. Use to offset
