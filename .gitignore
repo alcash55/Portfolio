@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Playwright (frontend/e2e)
+frontend/e2e/test-results
+frontend/e2e/playwright-report
+frontend/blob-report
+frontend/playwright/.cache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -23,3 +29,4 @@ dist-ssr
 *.sln
 *.sw?
 .env
+frontend/test-results

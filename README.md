@@ -162,13 +162,22 @@ Tests:
 cd frontend
 bun run test         # Vitest, single run
 bun run test:watch   # Vitest, watch mode
+bun run test:e2e     # Playwright smoke test, against a production build
 ```
+
+`test:e2e` (`frontend/e2e/`) is a small suite of real-Chromium checks for the class of bug that
+lint, `tsc --noEmit`, Vitest, and `vite build` all pass on: layout/rendering and runtime-only
+failures. It builds the app and serves it with `vite preview` (not the dev server) before running.
+Needs the Playwright Chromium browser once: `bunx playwright install chromium` (cached at
+`~/.cache/ms-playwright`; CI caches the same path so it isn't re-downloaded every run).
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` is a reusable workflow (`workflow_call`) that runs on every pull
-request: lint, `tsc --noEmit`, `bun run test`, and `bun run build` for the frontend; `go vet`,
-`go test ./... -race`, and `go build` for the backend.
+request: lint, `tsc --noEmit`, `bun run test`, and `bun run build` for the frontend; the Playwright
+smoke test (`frontend/e2e/`) against a production build, in its own job so a smoke failure reads
+as distinct from a unit-test failure; and `go vet`, `go test ./... -race`, and `go build` for the
+backend.
 
 `.github/workflows/deploy.yml` (push to `main`) calls that same `ci.yml` as a gate before
 deploying the frontend to GitHub Pages — a push to `main` only deploys if CI passes. The backend
