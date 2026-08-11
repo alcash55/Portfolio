@@ -1,4 +1,6 @@
-/// <reference types="vitest/config" />
+// The `vitest/config` import below carries the `test` block's types, so the
+// triple-slash reference this file used to need is redundant (and is an
+// eslint error under @typescript-eslint/triple-slash-reference).
 import { defineConfig } from 'vite';
 import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
