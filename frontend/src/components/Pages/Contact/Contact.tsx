@@ -27,11 +27,14 @@ const Contact = () => {
   };
   // primary.light, not the MuiLink/ListItem default of primary.main: on every
   // dark-mode theme (dark/blue/red/purple/green) lightening `main` only raises
-  // its contrast against `paper`, and blue's `main` alone falls short of AA
-  // (see blueTheme.ts). In light theme, `light` is pinned equal to `main`
-  // rather than auto-lightened toward white, specifically so it clears AA
-  // there too (see lightTheme.ts). Same choice as Footer's and About's link
-  // colour, for the same reason.
+  // its contrast against `paper`, so these links keep headroom over the 4.5:1
+  // AA floor instead of sitting on it. Blue is the tightest of the five and
+  // sets the margin -- `main` 4.99:1 vs `light` 6.12:1 on `paper`. (Before
+  // Sprint 15 blue's `main` measured 3.98:1 and genuinely failed AA; it no
+  // longer does, so `light` here is headroom, not a rescue.) In light theme,
+  // `light` is pinned equal to `main` rather than auto-lightened toward white,
+  // specifically so it clears AA there too -- 6.16:1 on white (lightTheme.ts).
+  // Same choice as Footer's and About's link colour, for the same reason.
   const listLinkSx = { width: 'fit-content', p: 0, color: 'primary.light' };
   const headerStyles = {
     fontSize: largeMobile ? '1.5rem' : '2rem',
