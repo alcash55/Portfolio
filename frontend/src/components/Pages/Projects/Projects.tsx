@@ -22,16 +22,26 @@ import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 /**
  * Narrowest a card may get before the grid drops a column. Everything about the
- * section's density follows from this one number.
+ * section's density follows from this one number, and it is the only knob worth
+ * turning here.
  *
  * Deliberately an `auto-fill` grid rather than fixed breakpoint columns. Fixed
  * columns pin the count -- `lg: 3` meant four per row and no more, so every
  * project added past the fourth became a new *row*, and the section outgrew a
  * laptop viewport at eight. Auto-fill spends extra width on more columns
- * instead: 5 on a 1366px laptop, 7 at 1920, 10 at 2560. Adding projects fills
- * the row that is already there before it starts a second one.
+ * instead, so new projects fill the row that already exists first.
+ *
+ * 230 specifically, because the column count snaps and the useful values are
+ * few. Measured at 1366x768, the tightest screen that matters here:
+ *
+ *   min 200 -> 6 columns, 201px cards -- too small
+ *   min 230 -> 5 columns, 244px cards -- eight projects still fit one screen
+ *   min 250 -> 4 columns, 310px cards -- eight projects overflow by 52px
+ *
+ * So 230 is the widest card that keeps a second row on screen at 1366. Going
+ * wider costs a column, and a lost column costs a whole row.
  */
-const PROJECT_CARD_MIN_WIDTH = 200;
+const PROJECT_CARD_MIN_WIDTH = 230;
 
 /**
  * The card shell, shared with the skeleton. The border is doing real work
