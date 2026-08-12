@@ -4,7 +4,6 @@ import {
   CardContent,
   CardHeader,
   CardMedia,
-  Grid,
   IconButton,
   Skeleton,
   Stack,
@@ -22,19 +21,17 @@ import useProjects, { type ApiProject } from './useProjects';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
 /**
- * One column split, shared by the real card and its skeleton so the two can
- * never drift and cause the swap to jump. Four across on a wide screen, which
- * is what the current project count fills exactly -- at `md: 4` the fourth card
- * wrapped onto a row of its own and sat there centred, looking like a mistake.
+ * Narrowest a card may get before the grid drops a column. Everything about the
+ * section's density follows from this one number.
+ *
+ * Deliberately an `auto-fill` grid rather than fixed breakpoint columns. Fixed
+ * columns pin the count -- `lg: 3` meant four per row and no more, so every
+ * project added past the fourth became a new *row*, and the section outgrew a
+ * laptop viewport at eight. Auto-fill spends extra width on more columns
+ * instead: 5 on a 1366px laptop, 7 at 1920, 10 at 2560. Adding projects fills
+ * the row that is already there before it starts a second one.
  */
-const PROJECT_GRID_SIZE = { xs: 12, sm: 6, md: 4, lg: 3 };
-
-/**
- * Caps how wide the grid may get. On a 1918px window the cards were 602px wide
- * with a 339px image -- one project taking up most of the screen. The section
- * card itself still spans the full width; only the grid inside it is bounded.
- */
-const PROJECT_GRID_MAX_WIDTH = 1200;
+const PROJECT_CARD_MIN_WIDTH = 200;
 
 /**
  * The card shell, shared with the skeleton. The border is doing real work
@@ -143,29 +140,25 @@ const Projects = () => {
             width: '100%',
             height: '100%',
             display: 'flex',
-            // The grid is width-capped, so this positions the capped box itself
-            // -- centring it here is what pushed the cards away from the
-            // section's left-aligned heading.
             justifyContent: 'flex-start',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             flexGrow: 1,
           }}
         >
-          <Grid
-            container
-            spacing={2}
+          <Box
             ref={cards.ref}
             sx={[
               {
                 width: '100%',
-                maxWidth: PROJECT_GRID_MAX_WIDTH,
-                // Left-aligned rather than centred: the section's "Projects"
-                // heading sits at the left edge, and a centred grid inside a
-                // full-width section card left a wide gutter that made the
-                // cards look detached from their own heading.
-                justifyContent: 'flex-start',
-                // Every card in a row gets the row's height; see the Grid item
-                // in ProjectCard for why this matters.
+                display: 'grid',
+                // `auto-fill` (not `auto-fit`): with few projects on a very wide
+                // screen, auto-fit would stretch them to fill the row and undo
+                // the whole point of a compact card. auto-fill keeps the column
+                // width and leaves the empty tracks empty.
+                gridTemplateColumns: `repeat(auto-fill, minmax(${PROJECT_CARD_MIN_WIDTH}px, 1fr))`,
+                gap: 2,
+                // CSS grid stretches items to their row's height on its own, so
+                // cards line up without the flex plumbing this needed before.
                 alignItems: 'stretch',
               },
               cards.sx,
@@ -178,7 +171,7 @@ const Projects = () => {
               : displayProjects.map((project) => (
                   <ProjectCard key={project.repoName} project={project} largeMobile={largeMobile} />
                 ))}
-          </Grid>
+          </Box>
         </CardContent>
       </Card>
     </Stack>
@@ -195,15 +188,13 @@ const ProjectCard = ({
   const updatedAt = project.live?.updatedAt ? formatUpdatedAt(project.live.updatedAt) : null;
 
   return (
-    <Grid
+    <Box
       data-testid="project-grid-item"
-      // `display: flex` is what lets the Card below stretch to the height of
-      // the tallest card in its row. Without it each card sized to its own
-      // content and the row bottoms came out ragged -- 20px apart on desktop
-      // and 72px on mobile, where a two-line description on one card and a
-      // one-line on the next is the whole difference.
+      // `display: flex` is what passes the grid row's height down to the Card.
+      // Without it each card sized to its own content and the row bottoms came
+      // out ragged -- 20px apart on desktop and 72px on mobile, where a
+      // two-line description against a one-line one is the whole difference.
       sx={{ display: 'flex' }}
-      size={PROJECT_GRID_SIZE}
     >
       {/* Still no fixed height on the card -- `height: 300` plus a `height:
           '50%'` image and a `maxHeight: '60%'` CardContent once looked like a
@@ -261,7 +252,12 @@ const ProjectCard = ({
               loading="lazy"
               sx={{
                 width: '100%',
-                aspectRatio: '16 / 9',
+                // 2:1 rather than the images' own 16:9. The image is the single
+                // biggest contributor to card height, and height is what
+                // decides whether a second row of projects still fits on one
+                // screen: at 16:9 two rows came to 665px against the 657px a
+                // 1366x768 laptop actually has. This buys back ~13px a card.
+                aspectRatio: '2 / 1',
                 // `contain`, not `cover`: two of these are logos and one is a
                 // marketplace listing, all of which lose their subject when
                 // cropped. The tinted panel behind makes the resulting
@@ -275,7 +271,9 @@ const ProjectCard = ({
             <Box
               sx={{
                 width: '100%',
-                aspectRatio: '16 / 9',
+                // Matches the real image's ratio so a project without a
+                // screenshot is the same height as one with.
+                aspectRatio: '2 / 1',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -284,19 +282,32 @@ const ProjectCard = ({
             >
               <CodeIcon
                 sx={{
-                  fontSize: 120,
+                  // Was 120px, set when the image box was 339px tall; it
+                  // now overflows a ~100px box.
+                  fontSize: 56,
                   color: 'action.disabled',
                 }}
               />
             </Box>
           )}
           <CardContent
-            sx={{ width: '100%', flexGrow: 1, display: 'flex', flexDirection: 'column' }}
+            sx={{
+              width: '100%',
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              // Tighter than MUI's default 16px/24px. At a 200px column that
+              // padding was a meaningful share of the card's width.
+              p: 1.5,
+              '&:last-child': { pb: 1.5 },
+            }}
           >
             <Typography
-              variant="h6"
+              variant="subtitle1"
               component="div"
               sx={{
+                // `h6` (20px) was set when cards were 288px wide; at 200px it
+                // pushed most names onto the second line.
                 fontWeight: 600,
                 // No `gutterBottom`: the reserved two lines below already
                 // separate the title from the body on one-line names.
@@ -368,7 +379,7 @@ const ProjectCard = ({
           </CardContent>
         </CardActionArea>
       </Card>
-    </Grid>
+    </Box>
   );
 };
 
@@ -378,7 +389,7 @@ const ProjectCard = ({
  * stay on screen a while -- it needs to read as "loading", not "broken".
  */
 const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
-  <Grid data-testid="project-grid-item" sx={{ display: 'flex' }} size={PROJECT_GRID_SIZE}>
+  <Box data-testid="project-grid-item" sx={{ display: 'flex' }}>
     <Card sx={projectCardSx}>
       <Box
         sx={{
@@ -389,7 +400,7 @@ const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
         }}
       >
         {!largeMobile && (
-          <Skeleton variant="rectangular" width="100%" sx={{ aspectRatio: '16 / 9' }} />
+          <Skeleton variant="rectangular" width="100%" sx={{ aspectRatio: '2 / 1' }} />
         )}
         <CardContent sx={{ width: '100%' }}>
           {/* Two description lines, matching ProjectCard's clamp, so the swap
@@ -400,7 +411,7 @@ const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
         </CardContent>
       </Box>
     </Card>
-  </Grid>
+  </Box>
 );
 
 export default Projects;
