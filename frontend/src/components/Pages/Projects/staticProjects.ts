@@ -2,25 +2,35 @@ import vsCodeTheme from '../../../assets/images/vsCodeTheme.webp';
 import littleTown from '../../../assets/images/littleTown.webp';
 import compositeActions from '../../../assets/images/compositeActions.webp';
 import portfolio from '../../../assets/images/portfolio.webp';
+import theCliperEr from '../../../assets/images/theCliperEr.webp';
 
 /**
  * Hand-written project card: display name, copy, image, and link. This is
- * the override layer the live API is never allowed to clobber -- two of
- * these (littletown.gay, the VS Code Marketplace listing) don't even link
- * to GitHub.
+ * the override layer the live API is never allowed to clobber -- three of
+ * these (littletown.gay, the VS Code Marketplace listing, The Cliper-er's
+ * YouTube channel) don't link to GitHub at all.
  *
- * `repoName` is the GitHub repo name (owner `alcash55`), used only to match
- * this entry against `GET /api/v1/projects` results for live metadata
- * (stars, language, updatedAt). It has no bearing on what's shown or linked
- * -- e.g. the Royalty theme card still links to the Marketplace even though
- * its repoName matches a real GitHub repo.
+ * `repoName` never decides what is shown or linked, only what the API is
+ * matched against -- e.g. the Royalty theme card still links to the
+ * Marketplace even though its repoName matches a real GitHub repo.
  */
 export interface StaticProject {
-  repoName: string;
+  /**
+   * GitHub repo name (owner `alcash55`), used *only* to match this entry
+   * against `GET /api/v1/projects` for live metadata.
+   *
+   * Omitted for projects that don't live on GitHub at all (The Cliper-er
+   * is private and local-only). Such an entry simply never matches the API and
+   * renders from this file alone -- it is not a lookup that fails, so it must
+   * not be given a placeholder repo name to keep the type happy.
+   */
+  repoName?: string;
   name: string;
-  img: string;
+  /** Omitted when there's no screenshot; the card draws a placeholder panel. */
+  img?: string;
   href: string;
-  alt: string;
+  /** Only meaningful alongside `img` -- there is nothing else to describe. */
+  alt?: string;
   description: string;
 }
 
@@ -69,5 +79,20 @@ export const staticProjects: StaticProject[] = [
     alt: 'Portfolio website built with React, TypeScript, and Material UI',
     description:
       'A website built to showcase my skills and experiences using modern web technologies',
+  },
+  {
+    // No `repoName`: the code is private and local-only, so there is no API
+    // entry to match and the card renders from this entry alone. The link
+    // goes to the channel the pipeline publishes to -- the output is the only
+    // public face this project has.
+    name: 'The Cliper-er',
+    // The channel's own logo, masked to a transparent circle (the source is a
+    // square JPEG whose white corners would have shown as a white box against
+    // the dark themes' tinted image panel).
+    img: theCliperEr,
+    href: 'https://www.youtube.com/@TheCliper-er',
+    alt: "The Cliper-er's channel logo: a play button being cut by scissors",
+    description:
+      'An automation pipeline that turns YouTube and Twitch clips into captioned, upload-ready YouTube Shorts',
   },
 ];

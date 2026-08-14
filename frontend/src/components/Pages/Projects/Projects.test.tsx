@@ -124,6 +124,53 @@ describe('Projects', () => {
     expect(screen.getByText('VS Code Royalty Theme')).toBeInTheDocument();
   });
 
+  it('links every card somewhere, including the projects that are not on GitHub', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse([apiProject()])));
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('The Cliper-er')).toBeInTheDocument());
+
+    // A card whose link is missing or empty still renders a focusable
+    // CardActionArea, so it would look and behave like a link while going
+    // nowhere -- exactly the failure a keyboard user hits and a screenshot
+    // doesn't show.
+    for (const project of staticProjects) {
+      const card = screen.getByText(project.name).closest('[data-testid="project-grid-item"]');
+      const anchor = card!.querySelector('a');
+      expect(anchor, `expected the "${project.name}" card to be a link`).not.toBeNull();
+      expect(anchor!.getAttribute('href'), `"${project.name}" must link somewhere real`).toMatch(
+        /^https?:\/\//,
+      );
+    }
+
+    // The Cliper-er has no GitHub repo, so its link is the channel it
+    // publishes to rather than source code.
+    const clipper = screen.getByText('The Cliper-er').closest('[data-testid="project-grid-item"]');
+    expect(clipper!.querySelector('a')!.getAttribute('href')).toBe(
+      'https://www.youtube.com/@TheCliper-er',
+    );
+  });
+
+  it('never merges live metadata onto a project that has no repoName, even for a nameless API entry', async () => {
+    // A partial/garbled API entry is the failure this guards: with a plain
+    // `find`, `p.name === project.repoName` would be `undefined === undefined`
+    // -- true -- and this entry's stars would land on every non-GitHub card.
+    const nameless = { ...apiProject(), name: undefined } as unknown as ApiProject;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse([nameless])));
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('The Cliper-er')).toBeInTheDocument());
+
+    const repoless = staticProjects.filter((p) => !p.repoName).map((p) => p.name);
+    expect(repoless, 'The Cliper-er is the project with no GitHub repo').toEqual(['The Cliper-er']);
+
+    const card = screen.getByText('The Cliper-er').closest('[data-testid="project-grid-item"]');
+    expect(
+      card!.textContent,
+      "the nameless API entry's stars must not appear on The Cliper-er card",
+    ).not.toMatch(/42|TypeScript/);
+  });
+
   it('falls back to the static list, indistinguishable from today, on a 502 (F3)', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.stubGlobal(
