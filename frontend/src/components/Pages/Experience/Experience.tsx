@@ -8,10 +8,10 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import LinkIcon from '@mui/icons-material/Link';
 import { experienceData } from './experienceData';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
+import { hoverGlow } from '../../../layout/Theme/hoverGlow';
 
 const Experience = () => {
   const reveal = useScrollReveal();
@@ -187,16 +187,7 @@ const Experience = () => {
                       border: `2px solid ${theme.palette.divider}`,
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        // Theme-derived, not a hardcoded blue: the fixed
-                        // `rgb(18, 72, 116)` read fine in the original dark theme but was
-                        // still a navy glow under the red/purple/green themes and fought
-                        // the light theme's bright background. Same offset/blur/spread
-                        // geometry as before -- only the hue (and its alpha, standing in
-                        // for the fixed color's implied darkness) now follows
-                        // `primary.main`. Alpha 0.55 matches Skills.tsx's identical glow
-                        // so hovering a Skills chip and an Experience card read as the
-                        // same effect.
-                        boxShadow: `0px 25px 20px -20px ${alpha(theme.palette.primary.main, 0.55)}`,
+                        boxShadow: hoverGlow(theme),
                       },
                     }}
                   >

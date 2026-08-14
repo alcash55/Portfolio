@@ -19,6 +19,7 @@ import { type Theme } from '@mui/material/styles';
 import { staticProjects, type StaticProject } from './staticProjects';
 import useProjects, { type ApiProject } from './useProjects';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
+import { hoverGlow } from '../../../layout/Theme/hoverGlow';
 
 /**
  * Narrowest a card may get before the grid drops a column. Everything about the
@@ -75,7 +76,14 @@ interface DisplayProject extends StaticProject {
 }
 
 const mergeProject = (project: StaticProject, apiProjects: ApiProject[] | null): DisplayProject => {
-  const live = apiProjects?.find((p) => p.name === project.repoName) ?? null;
+  // An entry with no `repoName` isn't on GitHub, so there is nothing to match.
+  // Guarded explicitly rather than left to `find` -- `p.name === undefined`
+  // would be false for every real repo today, but that's an accident of the
+  // data, not a rule, and a single API entry with a missing name would quietly
+  // attach itself to every non-GitHub project.
+  const live = project.repoName
+    ? (apiProjects?.find((p) => p.name === project.repoName) ?? null)
+    : null;
   return {
     ...project,
     description: project.description || live?.description || '',
@@ -174,12 +182,14 @@ const Projects = () => {
               cards.sx,
             ]}
           >
+            {/* Keyed by `name`, not `repoName`: names are unique and always
+                present, while a project that isn't on GitHub has no repo. */}
             {isLoading
               ? staticProjects.map((project) => (
-                  <ProjectCardSkeleton key={project.repoName} largeMobile={largeMobile} />
+                  <ProjectCardSkeleton key={project.name} largeMobile={largeMobile} />
                 ))
               : displayProjects.map((project) => (
-                  <ProjectCard key={project.repoName} project={project} largeMobile={largeMobile} />
+                  <ProjectCard key={project.name} project={project} largeMobile={largeMobile} />
                 ))}
           </Box>
         </CardContent>
@@ -215,18 +225,19 @@ const ProjectCard = ({
         sx={{
           ...projectCardSx,
           transition: (theme: Theme) =>
-            theme.transitions.create(['transform', 'box-shadow', 'border-color'], {
+            theme.transitions.create(['transform', 'box-shadow'], {
               duration: theme.transitions.duration.shorter,
             }),
           '&:hover': {
-            // Border + lift + shadow rather than MUI's default wash, which is a
-            // flat tint of `text.primary` and reads completely differently per
-            // theme: 4% black on the light theme's near-white card was all but
-            // invisible, against 8% white on dark. Primary is defined per theme
-            // and is guaranteed to contrast with the surface, so the same rule
-            // works in all six.
-            borderColor: 'primary.main',
-            boxShadow: 6,
+            // Lift + glow, and deliberately *not* a border swap. The card used
+            // to also flip `borderColor` to `primary.main`, which was doing the
+            // work of signalling hover back when the shadow was MUI's neutral
+            // elevation 6 and read as almost nothing. `hoverGlow` carries the
+            // primary hue now, so the outline was a second, louder statement of
+            // the same thing. The resting `divider` border stays -- it is what
+            // gives the card an edge against the light theme's near-white
+            // section, and it never changes on hover.
+            boxShadow: (theme: Theme) => hoverGlow(theme),
             transform: 'translateY(-4px)',
           },
           '@media (prefers-reduced-motion: reduce)': {
