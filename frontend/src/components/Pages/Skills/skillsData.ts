@@ -19,6 +19,9 @@ import Supabase from '../../../assets/icons/Supabase';
 import Snowflake from '../../../assets/icons/Snowflake';
 import Couchbase from '../../../assets/icons/Couchbase';
 import Postgresql from '../../../assets/icons/Postgresql';
+import Grafana from '../../../assets/icons/Grafana';
+import GithubActions from '../../../assets/icons/GithubActions';
+import Sql from '../../../assets/icons/Sql';
 
 export interface SkillItem {
   label: string;
@@ -50,8 +53,14 @@ export interface SkillCategory {
  * in here. None are wordmarks -- every one is an abstract glyph (bolt,
  * wave, elephant, crossed bars...) that doesn't spell the product name, so
  * `wordmark` is left unset on all seven and the chip renders icon + text
- * label, same as Bun/React/Docker/GitHub. Single-SPA, GitHub Actions, REST
- * APIs and CI/CD still have no icon component built; out of scope here.
+ * label, same as Bun/React/Docker/GitHub. Single-SPA, REST APIs and CI/CD
+ * still have no icon component built; out of scope here.
+ *
+ * Grafana joins DevOps & CI/CD (it's observability tooling, not a database or
+ * a framework) with its own icon -- an abstract flame glyph, so no `wordmark`.
+ * GitHub Actions and SQL picked up icons at the same time: Actions' brand
+ * workflow-graph mark, and for SQL -- which has no vendor and so no brand
+ * mark -- the generic database-cylinder glyph in `currentColor`.
  */
 export const skillCategories: SkillCategory[] = [
   {
@@ -60,7 +69,7 @@ export const skillCategories: SkillCategory[] = [
       { label: 'TypeScript', icon: Typescript },
       { label: 'Go', icon: Go, wordmark: true },
       { label: 'JavaScript', icon: Javascript },
-      { label: 'SQL' },
+      { label: 'SQL', icon: Sql },
     ],
   },
   {
@@ -93,7 +102,8 @@ export const skillCategories: SkillCategory[] = [
       { label: 'Docker', icon: Docker },
       { label: 'Git', icon: Git, wordmark: true },
       { label: 'GitHub', icon: Github },
-      { label: 'GitHub Actions' },
+      { label: 'GitHub Actions', icon: GithubActions },
+      { label: 'Grafana', icon: Grafana },
       { label: 'REST APIs' },
       { label: 'CI/CD' },
     ],
