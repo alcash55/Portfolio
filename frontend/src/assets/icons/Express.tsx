@@ -1,8 +1,25 @@
 import { SvgIcon, SvgIconProps } from '@mui/material';
 
+/**
+ * The Express logotype is a hairline wordmark -- its strokes are ~2 units in a
+ * 250-unit-tall viewBox, which at the chip's 16px lands well under one device
+ * pixel. Filled alone it anti-aliases to grey and reads as washed out on
+ * every theme, worst on the dark ones (the fill really is `currentColor`, i.e.
+ * pure white there; it just never covers a whole pixel).
+ *
+ * Stroking the path in the same colour thickens it by half a stroke-width on
+ * each side: 18 units is ~1.15px at render, enough to make it solid. Heavier
+ * values (26+) start closing the counters of the `e` and `s`, which is what
+ * makes it look bold-but-mushy rather than legible. `strokeLinejoin="round"`
+ * keeps the sharp corners of the letterforms from spiking.
+ */
 const Express = (props: SvgIconProps) => {
   const svg = (
     <svg
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth={18}
+      strokeLinejoin="round"
       xmlns="http://www.w3.org/2000/svg"
       className="express-logo"
       viewBox="0 0 1120.322 250"

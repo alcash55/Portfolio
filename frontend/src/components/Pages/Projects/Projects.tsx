@@ -15,6 +15,7 @@ import {
 import LinkIcon from '@mui/icons-material/Link';
 import CodeIcon from '@mui/icons-material/Code';
 import StarIcon from '@mui/icons-material/StarBorder';
+import CachedIcon from '@mui/icons-material/CachedOutlined';
 import { type Theme } from '@mui/material/styles';
 import { staticProjects, type StaticProject } from './staticProjects';
 import useProjects, { type ApiProject } from './useProjects';
@@ -106,7 +107,7 @@ const Projects = () => {
   const cards = useScrollReveal({ stagger: 80, distance: 18 });
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(600));
-  const { apiProjects, isLoading } = useProjects();
+  const { apiProjects, isLoading, stale } = useProjects();
 
   const displayProjects = staticProjects.map((project) => mergeProject(project, apiProjects));
 
@@ -135,6 +136,13 @@ const Projects = () => {
           m: 0,
         }}
       >
+        {/* The backend answers with `stale: true` when it served cache after a
+            failed refresh -- the stars and dates are real but can be hours old.
+            Shown as a quiet subheader rather than an alert: the data is still
+            worth reading, and a visitor who never notices has lost nothing.
+            Deliberately absent when the API is unreachable altogether, where
+            the section falls back to static data and is meant to be
+            indistinguishable from a normal render. */}
         <CardHeader
           sx={{
             width: '100%',
@@ -145,6 +153,7 @@ const Projects = () => {
             </IconButton>
           }
           title="Projects"
+          subheader={stale ? <StaleNotice /> : undefined}
           slotProps={{
             title: {
               variant: 'h4',
@@ -403,6 +412,22 @@ const ProjectCard = ({
     </Box>
   );
 };
+
+/**
+ * The cached-data hint. Worded to inform without alarming -- and deliberately
+ * free of the words "error", "failed" and "unavailable", which the fallback
+ * tests assert never reach the screen.
+ */
+const StaleNotice = () => (
+  <Stack
+    direction="row"
+    spacing={0.5}
+    sx={{ alignItems: 'center', color: 'text.secondary', mt: 0.5 }}
+  >
+    <CachedIcon sx={{ fontSize: 14 }} />
+    <Typography variant="caption">Showing cached GitHub data</Typography>
+  </Stack>
+);
 
 /**
  * Skeleton (F2) matching ProjectCard's layout so the section doesn't jump

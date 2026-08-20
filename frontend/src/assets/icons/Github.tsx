@@ -3,6 +3,7 @@ import { SvgIcon, SvgIconProps } from '@mui/material';
 const Github = (props: SvgIconProps) => {
   const svg = (
     <svg
+      fill="currentColor"
       height="32"
       aria-hidden="true"
       viewBox="0 0 24 24"

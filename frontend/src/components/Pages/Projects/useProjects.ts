@@ -38,11 +38,17 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
  * useConnectForm: branch on status code, never on the response body's error
  * string, and never surface upstream failure to the visitor beyond one
  * console.error.
- * @returns {{ apiProjects: ApiProject[] | null, isLoading: boolean }}
+ *
+ * `stale` mirrors the backend's own flag: true when it answered from cache
+ * after failing to refresh, so the numbers on screen are real but may be
+ * hours old. It is only ever true alongside data -- a fallback to the static
+ * list leaves it false, because there is no live data to qualify.
+ * @returns {{ apiProjects: ApiProject[] | null, isLoading: boolean, stale: boolean }}
  */
 const useProjects = () => {
   const [apiProjects, setApiProjects] = useState<ApiProject[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [stale, setStale] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +80,13 @@ const useProjects = () => {
         }
 
         const data = (await response.json()) as ApiProjectsResponse;
-        if (!cancelled) setApiProjects(data.projects);
+        if (!cancelled) {
+          setApiProjects(data.projects);
+          // Coerced rather than trusted: the field is documented as a boolean
+          // but this is the one value the UI shows the visitor directly, and
+          // an older backend that omits it must read as fresh, not truthy.
+          setStale(data.stale === true);
+        }
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') {
           if (timedOut) {
@@ -102,7 +114,7 @@ const useProjects = () => {
     };
   }, []);
 
-  return { apiProjects, isLoading };
+  return { apiProjects, isLoading, stale };
 };
 
 export default useProjects;

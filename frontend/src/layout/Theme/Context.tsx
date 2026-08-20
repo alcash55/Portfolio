@@ -1,5 +1,6 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { ThemeProvider } from '@mui/material';
+import type { ThemeOptions } from '@mui/material/styles';
 import { darkTheme } from './darkTheme';
 import { blueTheme } from './blueTheme';
 import { lightTheme } from './lightTheme';
@@ -42,6 +43,41 @@ const resolveInitialThemeName = (): ThemeName => {
 };
 
 /**
+ * Writes a `<meta name>` tag, creating it if the document doesn't have one.
+ * `index.html` ships both of the tags below, but a test renderer mounts this
+ * provider into a bare document, so neither can be assumed to exist.
+ */
+const setMeta = (name: string, content: string) => {
+  let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  if (!tag) {
+    tag = document.createElement('meta');
+    tag.name = name;
+    document.head.appendChild(tag);
+  }
+  tag.content = content;
+};
+
+/**
+ * Keeps the *browser-painted* UI in step with the active theme -- the parts
+ * the page cannot style itself.
+ *
+ * `index.html` hardcodes `color-scheme: dark` and `theme-color: #1a1a1a`,
+ * which is right for five of the six themes and wrong for `light`: the UA
+ * keeps painting scrollbars and native form controls (the Contact form's
+ * inputs) dark on a page that has gone white. `color-scheme` follows
+ * `palette.mode`, which every theme declares, and `theme-color` -- the colour
+ * mobile browsers tint their own chrome with -- follows the theme's own
+ * background instead of a fixed near-black.
+ */
+const syncBrowserChrome = (theme: ThemeOptions) => {
+  // The theme modules export `ThemeOptions`, not `Theme`, so both of these are
+  // optional to the type system even though all six themes set them.
+  setMeta('color-scheme', theme.palette?.mode ?? 'dark');
+  const background = theme.palette?.background?.default;
+  if (background) setMeta('theme-color', background);
+};
+
+/**
  *  ToggleColorMode component that provides the color mode context and a function to toggle the color mode
  * @param {PropsWithChildren} children
  * @returns {JSX.Element}
@@ -60,6 +96,10 @@ export default function ToggleColorMode({ children }: PropsWithChildren) {
     // Only ever needs to run once, to clean up whatever was on disk at mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    syncBrowserChrome(themes[themeName]);
+  }, [themeName]);
 
   const toggleColorMode = (name: ThemeName) => {
     setThemeName(name);

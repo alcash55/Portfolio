@@ -171,6 +171,46 @@ describe('Projects', () => {
     ).not.toMatch(/42|TypeScript/);
   });
 
+  it('tells the visitor when the API served cached data (stale: true)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ projects: [apiProject()], stale: true }),
+      } as unknown as Response),
+    );
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('Showing cached GitHub data')).toBeInTheDocument());
+
+    // The live numbers still render -- cached data is real data, just older.
+    expect(screen.getByText('42')).toBeInTheDocument();
+  });
+
+  it('says nothing about caching when the data is fresh (stale: false)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse([apiProject()])));
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('Game Competition Website')).toBeInTheDocument());
+
+    expect(screen.queryByText(/cached/i), 'a fresh response must not mention caching').toBeNull();
+  });
+
+  it('says nothing about caching when the API is unreachable, since there is no live data to qualify', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('Game Competition Website')).toBeInTheDocument());
+
+    // The static fallback is meant to be indistinguishable from a normal
+    // render -- a "cached" note here would be both wrong (nothing was served
+    // from cache) and a tell that something broke.
+    expect(screen.queryByText(/cached/i)).toBeNull();
+    consoleError.mockRestore();
+  });
+
   it('falls back to the static list, indistinguishable from today, on a 502 (F3)', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.stubGlobal(
