@@ -66,11 +66,11 @@ clicked the least interesting-looking card.
 
 ## Done when
 
-- [ ] Home screen/hero section renders in all themes and the two layouts, top nav and side nav. If the user is on mobile then it does not show the other layouts
-- [ ] Each theme and layout button is keyboard-reachable with visible focus, labelled for screen readers
-- [ ] No horizontal overflow at 320px
-- [ ] The theme and layout buttons are tab-able and fully A11y compliant
-- [ ] New tests are generated and are all green
+- [x] Home screen/hero section renders in all themes and the two layouts, top nav and side nav. If the user is on mobile then it does not show the other layouts
+- [x] Each theme and layout button is keyboard-reachable with visible focus, labelled for screen readers
+- [x] No horizontal overflow at 320px
+- [x] The theme and layout buttons are tab-able and fully A11y compliant
+- [x] New tests are generated and are all green
 
 ## Risks
 
