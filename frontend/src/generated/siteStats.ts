@@ -14,14 +14,11 @@ export interface SiteStats {
   unitTests: number;
   /** Playwright specs collected by `playwright test --list`. */
   browserTests: number;
-  /** ISO timestamp of the build that produced these numbers. */
-  generatedAt: string;
 }
 
 export const siteStats: SiteStats = {
   unitTests: 126,
   browserTests: 24,
-  generatedAt: '2026-08-24T22:28:19.755Z',
 };
 
 export default siteStats;

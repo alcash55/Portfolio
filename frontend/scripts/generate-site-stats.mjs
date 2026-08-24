@@ -155,21 +155,28 @@ export interface SiteStats {
   unitTests: number;
   /** Playwright specs collected by \`playwright test --list\`. */
   browserTests: number;
-  /** ISO timestamp of the build that produced these numbers. */
-  generatedAt: string;
 }
 
 export const siteStats: SiteStats = {
   unitTests: ${unitTests},
   browserTests: ${browserTests},
-  generatedAt: '${new Date().toISOString()}',
 };
 
 export default siteStats;
 `;
 
-mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-writeFileSync(OUT_PATH, file);
-console.log(
-  `[generate-site-stats] wrote ${OUT_PATH}: ${unitTests} unit tests, ${browserTests} browser tests`,
-);
+// Deliberately no build timestamp in the output, and deliberately a no-op
+// write when nothing changed. A file that differs on every build is a file
+// that leaves `git status` dirty after every build and conflicts between two
+// branches that both ran one -- for a number that did not move.
+if (existsSync(OUT_PATH) && readFileSync(OUT_PATH, 'utf8') === file) {
+  console.log(
+    `[generate-site-stats] unchanged: ${unitTests} unit tests, ${browserTests} browser tests`,
+  );
+} else {
+  mkdirSync(path.dirname(OUT_PATH), { recursive: true });
+  writeFileSync(OUT_PATH, file);
+  console.log(
+    `[generate-site-stats] wrote ${OUT_PATH}: ${unitTests} unit tests, ${browserTests} browser tests`,
+  );
+}
