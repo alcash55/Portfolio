@@ -1,13 +1,7 @@
 import { Box, ButtonBase, Typography } from '@mui/material';
-import type { Theme } from '@mui/material/styles';
 import Check from '@mui/icons-material/Check';
-import { ThemeName, useColorMode } from '../../../layout/Theme/ColorModeContext';
-import { darkTheme } from '../../../layout/Theme/darkTheme';
-import { blueTheme } from '../../../layout/Theme/blueTheme';
-import { lightTheme } from '../../../layout/Theme/lightTheme';
-import { redTheme } from '../../../layout/Theme/redTheme';
-import { purpleTheme } from '../../../layout/Theme/purpleTheme';
-import { greenTheme } from '../../../layout/Theme/greenTheme';
+import { useColorMode } from '../../../layout/Theme/ColorModeContext';
+import { THEME_OPTIONS } from './themeOptions';
 
 // Sprint 12: six themes made the old row of text `Button`s (built for three)
 // cramped at 320px, so each option is now a small swatch previewing its own
@@ -16,19 +10,9 @@ import { greenTheme } from '../../../layout/Theme/greenTheme';
 // treatment later; the swatch markup lives entirely in this one component,
 // keyed off `THEME_OPTIONS`, so that's a local change, not a theme-file one.
 //
-// Every theme file is typed `ThemeOptions` (createTheme's *input* shape,
-// optional fields throughout) even though `createTheme` always returns a
-// full `Theme` at runtime -- see each theme file. The cast below reflects
-// that runtime reality so `background.default/paper` and `getContrastText`
-// are usable without fighting the optional-everything input type.
-const THEME_OPTIONS: { name: ThemeName; label: string; theme: Theme }[] = [
-  { name: 'dark', label: 'Dark', theme: darkTheme as Theme },
-  { name: 'blue', label: 'Blue', theme: blueTheme as Theme },
-  { name: 'light', label: 'Light', theme: lightTheme as Theme },
-  { name: 'red', label: 'Red', theme: redTheme as Theme },
-  { name: 'purple', label: 'Purple', theme: purpleTheme as Theme },
-  { name: 'green', label: 'Green', theme: greenTheme as Theme },
-];
+// `THEME_OPTIONS` itself moved out to `themeOptions.ts` once the hero grew its
+// own picker (Pages/Landing/HeroControls.tsx) -- two components offering "the
+// themes" must not each keep their own idea of what those are.
 
 export const ThemeButton = () => {
   const { toggleColorMode, themeName } = useColorMode();
