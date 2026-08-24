@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProjectClipToggle, ProjectMediaPlayer } from './ProjectMediaPlayer';
@@ -168,7 +168,7 @@ describe('ProjectMediaPlayer', () => {
       expect(video()?.className, 'the clip must render into the still image’s box').toBe(stillClass);
     });
 
-    it('is pauseable, and stays paused while the pointer stays on the card', async () => {
+    it('is pauseable from the keyboard, and stays paused while the pointer stays on the card', async () => {
       const user = userEvent.setup();
       render(<CardHarness media={fakeMedia} />);
 
@@ -176,7 +176,15 @@ describe('ProjectMediaPlayer', () => {
       await user.hover(card);
       await waitFor(() => expect(play).toHaveBeenCalledTimes(1));
 
-      await user.click(screen.getByRole('button', { name: /^Pause the .* preview$/ }));
+      // Activated by keyboard rather than `user.click`, for two reasons. It is
+      // the path worth pinning -- an overlay control that only works with a
+      // mouse is the failure this whole component is trying to avoid -- and
+      // user-event's pointer model emits a spurious mouseleave/mouseenter pair
+      // on the card when the pointer moves onto a child, which a real browser
+      // does not. (Pointer-driven pause is verified in Chromium instead.)
+      const toggle = screen.getByRole('button', { name: /^Pause the .* preview$/ });
+      toggle.focus();
+      await user.keyboard('{Enter}');
 
       await waitFor(() => expect(pause).toHaveBeenCalled());
       expect(
@@ -232,8 +240,10 @@ describe('ProjectMediaPlayer', () => {
       render(<CardHarness media={fakeMedia} />);
 
       await user.hover(screen.getByTestId('card'));
-      const element = video() as HTMLVideoElement;
-      element.dispatchEvent(new Event('error'));
+      // `fireEvent` rather than a raw `dispatchEvent`: the handler sets state,
+      // and an unwrapped update makes React log an act() warning -- which is a
+      // second console.error, and this test counts them.
+      fireEvent.error(video() as HTMLVideoElement);
 
       await waitFor(() => expect(video()).toBeNull());
       expect(
