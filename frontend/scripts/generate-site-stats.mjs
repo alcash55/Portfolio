@@ -107,7 +107,9 @@ const countBrowserTests = () => {
     const count = countSpecs(report.suites ?? []);
     return count > 0 ? count : null;
   } catch (error) {
-    console.warn(`[generate-site-stats] could not parse the Playwright list JSON: ${error.message}`);
+    console.warn(
+      `[generate-site-stats] could not parse the Playwright list JSON: ${error.message}`,
+    );
     return null;
   }
 };

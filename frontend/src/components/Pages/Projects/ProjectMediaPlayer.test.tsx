@@ -142,9 +142,10 @@ describe('ProjectMediaPlayer', () => {
       // what makes the still -> clip swap invisible.
       expect(element).toHaveAttribute('poster', fakeMedia.poster);
       expect(element).toHaveAttribute('preload', 'none');
-      expect(element, 'a card clip must not loop; it is a preview, not a background').not.toHaveAttribute(
-        'loop',
-      );
+      expect(
+        element,
+        'a card clip must not loop; it is a preview, not a background',
+      ).not.toHaveAttribute('loop');
       expect((element as HTMLVideoElement).muted, 'autoplay is only allowed muted').toBe(true);
       expect(element).toHaveAttribute('playsinline');
       expect(element).toHaveAttribute('aria-label', fakeMedia.caption);
@@ -165,7 +166,9 @@ describe('ProjectMediaPlayer', () => {
       render(<CardHarness media={fakeMedia} />);
       await user.hover(screen.getByTestId('card'));
 
-      expect(video()?.className, 'the clip must render into the still image’s box').toBe(stillClass);
+      expect(video()?.className, 'the clip must render into the still image’s box').toBe(
+        stillClass,
+      );
     });
 
     it('is pauseable from the keyboard, and stays paused while the pointer stays on the card', async () => {

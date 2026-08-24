@@ -101,9 +101,9 @@ test.describe('opening and closing', () => {
       expect(labelledBy, `${project.name}: dialog has no accessible name`).toBeTruthy();
       await expect(page.locator(`#${labelledBy}`)).toHaveText(new RegExp(project.name));
 
-      const hrefs = await dialog(page).getByRole('link').evaluateAll((links) =>
-        links.map((link) => link.getAttribute('href')),
-      );
+      const hrefs = await dialog(page)
+        .getByRole('link')
+        .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
       expect(hrefs, `${project.name}: wrong outbound links`).toEqual(project.links);
 
       await page.keyboard.press('Escape');
@@ -158,13 +158,38 @@ test.describe('opening and closing', () => {
     // keyboard.
     for (let i = 0; i < 8; i += 1) {
       await page.keyboard.press('Tab');
-      expect(await focusIsInsideDialog(), `focus escaped the dialog after ${i + 1} tabs`).toBe(true);
+      expect(await focusIsInsideDialog(), `focus escaped the dialog after ${i + 1} tabs`).toBe(
+        true,
+      );
     }
 
     await page.keyboard.press('Escape');
     await expect(dialog(page)).toBeHidden();
     await expect(card, 'focus was not handed back to the card').toBeFocused();
   });
+});
+
+test('the long-form body can be scrolled with the keyboard, not just a mouse', async ({ page }) => {
+  // The Portfolio dialog is taller than any window, and until a project has a
+  // demo clip there is nothing focusable inside its body -- so without an
+  // explicit tab stop on the scrolling region, arrow keys have nothing to act
+  // on and half the content is mouse-only. axe calls this
+  // `scrollable-region-focusable`, and it is a Lighthouse accessibility audit.
+  await page.setViewportSize(DESKTOP);
+  await gotoHome(page);
+  await openDialog(page, 'portfolio-website');
+
+  const body = dialog(page).locator('.MuiDialogContent-root');
+  await expect(body).toHaveAttribute('tabindex', '0');
+
+  await body.focus();
+  await expect(body).toBeFocused();
+  const before = await body.evaluate((element) => element.scrollTop);
+  await page.keyboard.press('PageDown');
+  await page.waitForTimeout(200);
+  const after = await body.evaluate((element) => element.scrollTop);
+
+  expect(after, 'the dialog body did not scroll from the keyboard').toBeGreaterThan(before);
 });
 
 test.describe('the shareable link', () => {

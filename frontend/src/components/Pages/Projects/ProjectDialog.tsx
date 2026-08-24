@@ -197,7 +197,16 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers>
+      <DialogContent
+        dividers
+        // Focusable because it scrolls. Without this, the long-form dialogs
+        // (which are taller than any window) can be scrolled with a mouse and
+        // not with a keyboard: there is nothing focusable inside the body
+        // until a project has a clip, so arrow keys have nothing to act on.
+        // axe flags exactly this as `scrollable-region-focusable`, serious --
+        // caught by auditing the open dialog rather than the page behind it.
+        tabIndex={0}
+      >
         {project && (
           <>
             <ProjectMediaPlayer
@@ -208,6 +217,10 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
               // recorded from a browser window letterboxes into 16:9 with far
               // less dead space than into the card's strip.
               aspectRatio="16 / 9"
+              // Measured: without this the media ran to ~470px on a 1280x800
+              // window and the first line of the story sat below the fold, on
+              // the one panel whose entire purpose is the story.
+              maxHeight="40vh"
               controls
               loop
             />
@@ -292,7 +305,18 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
       {/* The links the card used to carry. Wrapping is allowed because at
           320px two buttons do not fit on one line, and a button pushed off the
           edge is a link that does not exist. */}
-      <DialogActions sx={{ flexWrap: 'wrap', gap: 1, px: 3, py: 2 }}>
+      <DialogActions
+        sx={{
+          flexWrap: 'wrap',
+          gap: 1,
+          px: { xs: 2, sm: 3 },
+          py: 2,
+          // Below sm the buttons stack full-width instead of wrapping into a
+          // ragged right-aligned column: at 320px two of them do not fit on a
+          // line, and a full-width button is also the bigger tap target.
+          justifyContent: { xs: 'stretch', sm: 'flex-end' },
+        }}
+      >
         {links.map((link, index) => (
           <Button
             key={link.href}
@@ -303,10 +327,9 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
             rel="noopener noreferrer"
             variant={index === 0 ? 'contained' : 'outlined'}
             endIcon={<OpenInNewIcon />}
-            // Overrides MUI's default of pushing DialogActions children to the
-            // right edge only -- with `flexWrap` on, a lone wrapped button
-            // should not jump alignment.
-            sx={{ ml: 0 }}
+            // MUI's `DialogActions` adds a left margin to every child after
+            // the first, which on a wrapped row indents the second line.
+            sx={{ ml: 0, flexGrow: { xs: 1, sm: 0 } }}
           >
             {link.label}
             {/* Announced by a screen reader, invisible on screen: the icon is

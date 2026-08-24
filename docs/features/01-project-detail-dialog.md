@@ -100,7 +100,7 @@ Recommendation: full-screen dialog below `sm`, per MUI's `fullScreen` breakpoint
 
 - [x] Clicking any card opens its dialog; Escape, the backdrop, and a close button all dismiss it
 - [x] Focus moves into the dialog on open and back to the card on close
-- [ ] Every project's outbound link is reachable from inside the dialog
+- [x] Every project's outbound link is reachable from inside the dialog
 - [x] The rewritten link test still fails if a project's link goes missing
 - [x] No horizontal overflow at 320px; e2e stays green (`zero console errors`, section visibility)
 - [x] Lighthouse accessibility stays at 100

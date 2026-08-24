@@ -16,9 +16,7 @@ import type { ApiProject } from './useProjects';
  * two things the moment a dialog is open.
  */
 const cardFor = (project: StaticProject | { name: string }): HTMLElement => {
-  const card = document.querySelector<HTMLElement>(
-    `[data-project-slug="${projectSlug(project)}"]`,
-  );
+  const card = document.querySelector<HTMLElement>(`[data-project-slug="${projectSlug(project)}"]`);
   if (!card) throw new Error(`no project card found for "${project.name}"`);
   return card;
 };
@@ -445,14 +443,20 @@ describe('the project dialog', () => {
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await waitFor(() =>
-      expect(cardFor({ name: 'Portfolio Website' }), 'focus was dropped after Escape').toHaveFocus(),
+      expect(
+        cardFor({ name: 'Portfolio Website' }),
+        'focus was dropped after Escape',
+      ).toHaveFocus(),
     );
 
     // 2. The backdrop.
     await user.click(cardFor({ name: 'Portfolio Website' }));
     await screen.findByRole('dialog');
     const backdrop = document.querySelector('.MuiBackdrop-root');
-    expect(backdrop, 'a modal with no backdrop cannot be dismissed by clicking away').not.toBeNull();
+    expect(
+      backdrop,
+      'a modal with no backdrop cannot be dismissed by clicking away',
+    ).not.toBeNull();
     await user.click(backdrop as Element);
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await waitFor(() =>
@@ -540,7 +544,9 @@ describe('the project dialog', () => {
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(window.history.length, 'closing must replace, not push').toBe(before + 1);
-    expect(window.location.hash, 'closing should leave the section anchor behind').toBe('#projects');
+    expect(window.location.hash, 'closing should leave the section anchor behind').toBe(
+      '#projects',
+    );
   });
 
   it('gives the long-form treatment to exactly the two finished projects, and a paragraph to the rest', async () => {
@@ -560,7 +566,9 @@ describe('the project dialog', () => {
         .map((heading) => heading.textContent);
 
       if (LONG_FORM.includes(project.name)) {
-        expect(headings, `"${project.name}" should carry the full three sections`).toEqual(HEADINGS);
+        expect(headings, `"${project.name}" should carry the full three sections`).toEqual(
+          HEADINGS,
+        );
       } else {
         expect(
           headings,
@@ -624,7 +632,10 @@ describe('the project dialog', () => {
     // Stars are the unambiguous one: the language appears twice on purpose,
     // once as a hand-written "built with" chip and once as the repo's live
     // primary language, and those two are allowed to disagree.
-    expect(within(dialog).getByText('42'), 'the live star count never made it in').toBeInTheDocument();
+    expect(
+      within(dialog).getByText('42'),
+      'the live star count never made it in',
+    ).toBeInTheDocument();
     expect(dialog.textContent, 'the live "last updated" date never made it in').toMatch(/Updated /);
     expect(within(dialog).getAllByText('TypeScript').length).toBeGreaterThan(0);
   });

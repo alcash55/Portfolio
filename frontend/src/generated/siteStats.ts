@@ -19,9 +19,9 @@ export interface SiteStats {
 }
 
 export const siteStats: SiteStats = {
-  unitTests: 102,
-  browserTests: 9,
-  generatedAt: '2026-08-24T18:13:39.765Z',
+  unitTests: 126,
+  browserTests: 24,
+  generatedAt: '2026-08-24T22:28:19.755Z',
 };
 
 export default siteStats;

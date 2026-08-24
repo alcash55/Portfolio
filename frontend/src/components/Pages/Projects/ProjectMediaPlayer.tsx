@@ -18,6 +18,14 @@ export interface ProjectMediaPlayerProps {
    * clip must never change it.
    */
   aspectRatio: string;
+  /**
+   * Ceiling on the media's height, for the dialog. At `16 / 9` across a `md`
+   * panel the media came out ~470px tall and pushed the first paragraph off
+   * the bottom of a 800px window -- so the visitor who clicked for the story
+   * had to scroll before seeing any of it. Capping the height letterboxes the
+   * media sideways instead, which the tinted panel already handles.
+   */
+  maxHeight?: string;
   /** Dialog only: native controls, so pause/mute/scrub are all reachable. */
   controls?: boolean;
   /** Dialog only: loop the clip rather than stopping on the last frame. */
@@ -39,6 +47,7 @@ export const ProjectMediaPlayer = ({
   image,
   alt,
   aspectRatio,
+  maxHeight,
   controls = false,
   loop = false,
 }: ProjectMediaPlayerProps) => {
@@ -47,6 +56,7 @@ export const ProjectMediaPlayer = ({
   const boxSx = {
     width: '100%',
     aspectRatio,
+    maxHeight,
     // `contain`, not `cover`: two of these are logos and one is a marketplace
     // listing, all of which lose their subject when cropped. The tinted panel
     // behind makes the resulting letterboxing look deliberate rather than like
@@ -130,7 +140,9 @@ export const ProjectClipToggle = ({ clip, active = false }: ProjectClipTogglePro
   const { clip: media, playing, toggle } = clip;
   if (!media) return null;
 
-  const label = playing ? `Pause the ${media.caption} preview` : `Play the ${media.caption} preview`;
+  const label = playing
+    ? `Pause the ${media.caption} preview`
+    : `Play the ${media.caption} preview`;
 
   return (
     <Tooltip title={label}>
