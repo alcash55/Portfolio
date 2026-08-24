@@ -10,9 +10,11 @@ import theCliperEr from '../../../assets/images/theCliperEr.webp';
  * these (littletown.gay, the VS Code Marketplace listing, The Cliper-er's
  * YouTube channel) don't link to GitHub at all.
  *
- * `repoName` never decides what is shown or linked, only what the API is
- * matched against -- e.g. the Royalty theme card still links to the
- * Marketplace even though its repoName matches a real GitHub repo.
+ * `repoName` never decides what is *shown*. It is matched against the API for
+ * live metadata, and `projectLinks.ts` derives the dialog's GitHub button from
+ * it -- the `href` here stays whatever the project's own public face is (a
+ * live site, a Marketplace listing, a YouTube channel) and is offered
+ * alongside the repo rather than replaced by it.
  */
 export interface StaticProject {
   /**
@@ -29,6 +31,16 @@ export interface StaticProject {
   /** Omitted when there's no screenshot; the card draws a placeholder panel. */
   img?: string;
   href: string;
+  /**
+   * What `href` points at, used as the label of its button inside the project
+   * dialog. Written out rather than derived from the hostname: "Live site",
+   * "Marketplace listing" and "YouTube channel" are three different promises
+   * and only the person who wrote the entry knows which one this is.
+   *
+   * Unused for an entry whose `href` is already its GitHub repo -- the dialog
+   * links that from `repoName` and drops the duplicate.
+   */
+  hrefLabel?: string;
   /** Only meaningful alongside `img` -- there is nothing else to describe. */
   alt?: string;
   description: string;
@@ -42,8 +54,8 @@ export interface StaticProject {
  * unavailable, so nothing here may depend on a response arriving.
  *
  * Note two entries deliberately link somewhere other than their GitHub repo
- * (a live site and a Marketplace listing), which is why `href` is never
- * derived from the API's `url`.
+ * (a live site and a Marketplace listing), and one has no repo at all, which
+ * is why `href` is never derived from the API's `url`.
  */
 export const staticProjects: StaticProject[] = [
   {
@@ -51,6 +63,7 @@ export const staticProjects: StaticProject[] = [
     name: 'Game Competition Website',
     img: littleTown,
     href: 'https://littletown.gay/',
+    hrefLabel: 'Live site',
     alt: 'Fullstack game competition platform with tournament management',
     description:
       'A fullstack website for video game competitions built with React, featuring real-time tournament management and user engagement',
@@ -68,6 +81,7 @@ export const staticProjects: StaticProject[] = [
     name: 'VS Code Royalty Theme',
     img: vsCodeTheme,
     href: 'https://marketplace.visualstudio.com/items?itemName=Alcash55.royaltytheme',
+    hrefLabel: 'Marketplace listing',
     alt: 'Royalty VS Code Theme',
     description: 'A custom theme for VS Code inspired by the colors of royalty',
   },
@@ -91,6 +105,7 @@ export const staticProjects: StaticProject[] = [
     // the dark themes' tinted image panel).
     img: theCliperEr,
     href: 'https://www.youtube.com/@TheCliper-er',
+    hrefLabel: 'YouTube channel',
     alt: "The Cliper-er's channel logo: a play button being cut by scissors",
     description:
       'An automation pipeline that turns YouTube and Twitch clips into captioned, upload-ready YouTube Shorts',

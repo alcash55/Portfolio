@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
-    "build": "tsc && vite build && bun run generate:sitemap",
+    "generate:site-stats": "node scripts/generate-site-stats.mjs",
+    "build": "bun run generate:site-stats && tsc && vite build && bun run generate:sitemap",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "preview": "vite preview",
