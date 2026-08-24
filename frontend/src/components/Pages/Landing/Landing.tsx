@@ -8,14 +8,14 @@ import ArrowDownward from '@mui/icons-material/ArrowDownward';
 import GitHub from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
-import Menu from '@mui/icons-material/Menu';
 import { navLinks } from '../../AppShell/InternalComponents/navLinks';
 import { SCROLL_INDICATOR_ATTR } from '../../AppShell/InternalComponents/useShowNavBar';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
+import { HeroControls } from './HeroControls';
 
 const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const { layout, openSettingDrawer } = useAppShellLayout();
+  const { layout } = useAppShellLayout();
   const theme = useTheme();
 
   // Every "white" on the hero below used to be a literal `rgba(255,255,255,…)`/
@@ -177,10 +177,16 @@ const Landing = () => {
           />
         </Box>
 
-        {/* Floating Particles - skipped entirely for prefers-reduced-motion */}
+        {/* Floating Particles - skipped entirely for prefers-reduced-motion.
+            22, not the original 30: eight of these dots are now the theme and
+            layout controls drifting in the same field (HeroControls.tsx). These
+            22 are the ones that stayed decorative, which is why they can still
+            be skipped wholesale when motion is unwelcome and still be placed
+            with `Math.random()` -- neither is true of the eight that became
+            buttons. */}
         {!prefersReducedMotion && (
           <Box sx={{ position: 'absolute', inset: 0 }}>
-            {[...Array(30)].map((_, i) => (
+            {[...Array(22)].map((_, i) => (
               <Box
                 key={i}
                 sx={{
@@ -200,6 +206,28 @@ const Landing = () => {
         )}
       </Box>
 
+      {/* The theme/layout controls: eight of the hero's floating dots, grown
+          into real buttons (see HeroControls.tsx for the whole design).
+
+          Deliberately its own full-bleed layer rather than a child of the
+          content column below:
+
+          - `position: absolute` means it costs zero layout height. The hero is
+            `height: 100vh` with `overflow: hidden`, so it does not scroll --
+            anything that does not fit is cut off, starting with the
+            scroll-indicator arrow at the bottom that `useShowNavBar` measures.
+            An in-flow control bar pushed that arrow a further 10px past the
+            fold at 1280x800; this pushes nothing.
+          - It sits *before* the content column in the DOM so the controls come
+            first in the tab order, matching where they are painted (the hero's
+            top-left and right edges, ahead of the nav links). `zIndex: 11`
+            then puts them back on top of the content column, which would
+            otherwise cover them.
+          - It renders its own full-bleed, click-through layer (see
+            HeroControls) rather than being given one here, because it also
+            measures that layer to decide where the hero's empty space is. */}
+      <HeroControls />
+
       <Box
         sx={{
           position: 'relative',
@@ -210,7 +238,17 @@ const Landing = () => {
         }}
       >
         {/* Navigation -- only in the `default` layout; `sideNav` and `mobile`
-            already render their own persistent nav (see showInlineNav above). */}
+            already render their own persistent nav (see showInlineNav above).
+
+            The settings-drawer hamburger that used to end this row is gone. It
+            was the only way into that drawer while the viewport was on the hero
+            in this layout (`useShowNavBar` hides the global NavBar, and its
+            gear, until the hero's arrow has left), but the drawer contains
+            nothing except `ThemeButton` and `LayoutButton` -- and both of those
+            are now floating in the hero itself. Removing it takes no capability
+            with it, and every other way in still works: NavBar's gear once you
+            have scrolled, `AppShellLayout`'s Fab in sideNav, `MobileChrome`'s
+            Fab on mobile. `openSettingDrawer` stays on the context for those. */}
         {showInlineNav && (
           <Box
             component="nav"
@@ -252,25 +290,6 @@ const Landing = () => {
                 </Button>
               ))}
             </Box>
-            {/* H2: the only settings-drawer trigger while the viewport is on the hero
-                in the `default` layout -- `useShowNavBar` hides the global NavBar (and
-                its gear) here, and `mobile`/`sideNav` already have their own trigger
-                (MobileChrome's Fab, AppShellLayout's Fab), so this only needs to exist
-                where `showInlineNav` is true. Opens the same drawer NavBar's gear does,
-                via the shared `openSettingDrawer` lifted onto AppShellLayoutContext.
-                Focus ring comes from the theme-wide MuiButtonBase override
-                (muiButtonBaseOverrides.ts), which every IconButton already gets for
-                free in all six themes. */}
-            <IconButton
-              aria-label="Open Settings Drawer"
-              onClick={openSettingDrawer}
-              sx={{
-                color: heroTextReadable,
-                '&:hover': { color: 'text.primary' },
-              }}
-            >
-              <Menu />
-            </IconButton>
           </Box>
         )}
 
