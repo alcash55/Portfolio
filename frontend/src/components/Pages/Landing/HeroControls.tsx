@@ -25,6 +25,12 @@ import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
  *   instead to the lower half of the hero, which is clear of every piece of
  *   text at every width down to 320px.
  *
+ * The top row of the field sits at 61% rather than hard against the social
+ * links above it because the hero's content column is centred: while the
+ * webfonts are still loading, fallback metrics push that column ~96px further
+ * down a 320px-wide screen, and a tighter row would spend that first moment
+ * sitting on the social icons.
+ *
  * Overlapping the bento photographs down there is allowed and deliberate: they
  * are decorative, they are already behind a 0.5-alpha black scrim, and the
  * decorative particles have always drifted over them. Overlapping *text*, the
@@ -63,9 +69,9 @@ interface FloatingControl {
  * each time you look at it.
  */
 const THEME_PLACEMENTS: Placement[] = [
-  { gutter: { left: '4%', top: '12%' }, field: { left: '4%', top: '58%' } },
-  { gutter: { left: '7.5%', top: '23%' }, field: { left: '30%', top: '58%' } },
-  { gutter: { left: '3%', top: '34%' }, field: { left: '66%', top: '58%' } },
+  { gutter: { left: '4%', top: '12%' }, field: { left: '4%', top: '61%' } },
+  { gutter: { left: '7.5%', top: '23%' }, field: { left: '30%', top: '61%' } },
+  { gutter: { left: '3%', top: '34%' }, field: { left: '66%', top: '61%' } },
   { gutter: { left: '7%', top: '45%' }, field: { left: '12%', top: '72%' } },
   { gutter: { left: '3.5%', top: '56%' }, field: { left: '44%', top: '72%' } },
   { gutter: { left: '7.5%', top: '67%' }, field: { left: '80%', top: '72%' } },
@@ -243,10 +249,7 @@ export const HeroControls = () => {
     // the nav links, the social icons or the images underneath it; each
     // control opts itself back in. See Landing.tsx for why it is stacked and
     // ordered where it is.
-    <Box
-      ref={layerRef}
-      sx={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none' }}
-    >
+    <Box ref={layerRef} sx={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none' }}>
       {THEME_OPTIONS.map(({ name, label, theme: optionTheme }, index) => {
         const selected = themeName === name;
         // Computed against the swatch it sits on, per theme: a check readable
@@ -296,7 +299,13 @@ export const HeroControls = () => {
                 />
                 {selected && (
                   <Check
-                    sx={{ position: 'absolute', inset: 0, m: 'auto', fontSize: 16, color: markColor }}
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      m: 'auto',
+                      fontSize: 16,
+                      color: markColor,
+                    }}
                   />
                 )}
               </Box>
