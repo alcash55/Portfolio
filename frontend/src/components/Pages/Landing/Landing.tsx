@@ -47,6 +47,16 @@ const layoutTop = (el: HTMLElement): number => {
 };
 
 /**
+ * The vertical band the scroll-indicator button owns at the bottom of the hero:
+ * its own 42px height plus the 24px it sits above the hero's bottom edge.
+ *
+ * Named once because two places need the same number -- the indicator's
+ * position and the content column's reserved space for it -- and they must not
+ * drift apart.
+ */
+const SCROLL_INDICATOR_BAND_PX = 66;
+
+/**
  * Breathing room left between the sticky bar's bottom edge (or the top of the
  * window, in a layout with no bar) and the heading of the section scrolled to.
  * Small on purpose: enough that the heading is not touching the chrome, not so
@@ -320,6 +330,24 @@ const Landing = () => {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
+          // The band the scroll indicator occupies at the bottom of the hero,
+          // held open even though the indicator itself is no longer in this
+          // column (it is absolutely positioned below, so the hero's clipping
+          // cannot eat it).
+          //
+          // Taking it out of the flow without reserving its space handed those
+          // 66px back to the centred content above, which then sat 33px lower
+          // -- measured at 900x800 in the sideNav layout, where that drop put
+          // the social links under the floating Dark-theme control, and 8px
+          // lower at 320x700. The hero's floating controls are placed as
+          // percentages of the hero, so they do not move with the content:
+          // anything that shifts the content changes those clearances. The
+          // reserve keeps the content where the controls were placed around it,
+          // and keeps the hero's own text from running under the arrow.
+          //
+          // 66 = the 42px indicator button plus the 24px of bottom padding it
+          // used to carry, i.e. exactly the footprint it had in this column.
+          pb: `${SCROLL_INDICATOR_BAND_PX}px`,
         }}
       >
         {/* Navigation -- only in the `default` layout; `sideNav` and `mobile`

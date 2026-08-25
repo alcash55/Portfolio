@@ -181,6 +181,22 @@ describe('Landing scroll indicator (Sprint 16)', () => {
     expect(scrollTo).toHaveBeenCalledWith({ top: 884, behavior: 'instant' });
   });
 
+  it('keeps the indicator out of the content column but keeps its space reserved', () => {
+    // The arrow is absolutely positioned against the hero now, so the hero's
+    // own clipping cannot eat it. Taking it out of the column's flow without
+    // holding its space open handed those 66px back to the centred content,
+    // which dropped 33px -- far enough at 900x800 in the sideNav layout to put
+    // the social links under one of the hero's floating controls, which are
+    // placed as percentages of the hero and so do not move with the content.
+    mountAboutSection(900);
+    const arrow = renderHero();
+    const column = screen.getByRole('heading', { level: 1 }).closest('#landing > div');
+
+    expect(column, 'the hero content column is gone').not.toBeNull();
+    expect(column?.contains(arrow), 'the indicator is back in the column flow').toBe(false);
+    expect(column).toHaveStyle({ paddingBottom: '66px' });
+  });
+
   it('keeps the attribute the nav bar measures on the button itself', () => {
     // Load-bearing, not a test hook: `useShowNavBar` and the arrow's own target
     // both key off this element. It stays on the button rather than on the
