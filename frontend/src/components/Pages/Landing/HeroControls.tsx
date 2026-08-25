@@ -75,25 +75,29 @@ interface FloatingControl {
  * rather than as dots.
  *
  * So the numbers below were generated once, offline, by a seeded scatter run
- * against the hero geometry measured in a real browser at all nine viewports
- * the e2e suite checks -- rejecting any point that lands on text, on the social
- * links, on the scroll arrow, off an edge, or within 10px of another control at
- * *any* of those widths, plus a shape filter: no two controls sharing a
- * horizontal rule, no two gaps between successive tops within 1.5% of each
- * other, and no side-to-side alternation. The winning set was then pasted here.
- * What ships is fixed; only the search that found it was random.
+ * against the hero geometry measured in a real browser in all ninety-six
+ * combinations of nine viewports, both switchable layouts and all six themes
+ * (each theme ships its own font, and at 320px four of the six wrap the h1 to
+ * a second line, which pushes the social links 96px down the hero) --
+ * rejecting any point that lands on text, on the social links, on the scroll
+ * arrow, on the app chrome painted over the hero from outside it (the mobile
+ * settings Fab and bottom navigation bar, the sideNav Fab), off an edge, or
+ * within 8px of another control's drift envelope in *any* of them; plus a shape filter: no two controls sharing a horizontal rule, no two
+ * gaps between successive tops within 1.5% of each other, and no side-to-side
+ * alternation. The winning set was then pasted here. What ships is fixed; only
+ * the search that found it was random.
  *
  * DOM order is top-to-bottom in both regimes (loose rows, left-to-right, in the
  * field), so tabbing still walks the field in a reading order even though the
  * positions do not line up.
  */
 const THEME_PLACEMENTS: Placement[] = [
-  { gutter: { left: '7.5%', top: '6%' }, field: { left: '44.5%', top: '56.5%' } },
-  { gutter: { left: '2%', top: '23.5%' }, field: { left: '73%', top: '52.5%' } },
-  { gutter: { left: '14.5%', top: '33.5%' }, field: { left: '5.5%', top: '62.5%' } },
-  { gutter: { left: '23.5%', top: '48.5%' }, field: { left: '55%', top: '70.5%' } },
-  { gutter: { left: '12%', top: '62%' }, field: { left: '32.5%', top: '84%' } },
-  { gutter: { left: '17%', top: '85.5%' }, field: { left: '78%', top: '81.5%' } },
+  { gutter: { left: '21%', top: '3%' }, field: { left: '32.5%', top: '62.5%' } },
+  { gutter: { left: '2%', top: '16%' }, field: { left: '78%', top: '61%' } },
+  { gutter: { left: '3%', top: '40%' }, field: { left: '8%', top: '68%' } },
+  { gutter: { left: '24.5%', top: '47.5%' }, field: { left: '72%', top: '70.5%' } },
+  { gutter: { left: '4%', top: '73%' }, field: { left: '18.5%', top: '80.5%' } },
+  { gutter: { left: '22.5%', top: '90%' }, field: { left: '43%', top: '77%' } },
 ];
 
 /**
@@ -141,14 +145,14 @@ const LAYOUT_CONTROLS: (FloatingControl & {
     mode: 'default',
     label: 'Top nav layout',
     Icon: WebAsset,
-    place: { gutter: { left: '78.5%', top: '38%' }, field: { left: '29%', top: '70%' } },
+    place: { gutter: { left: '75%', top: '59.5%' }, field: { left: '59.5%', top: '64%' } },
   },
   {
     id: 'sideNav',
     mode: 'sideNav',
     label: 'Side nav layout',
     Icon: VerticalSplit,
-    place: { gutter: { left: '95%', top: '58%' }, field: { left: '64%', top: '88.5%' } },
+    place: { gutter: { left: '91.5%', top: '79.5%' }, field: { left: '34.5%', top: '87%' } },
   },
 ];
 
