@@ -250,6 +250,45 @@ describe('Projects', () => {
     expect(links[0]).toHaveTextContent('YouTube channel');
   });
 
+  it('renders no clip play button below 600px, where the card has no media for it to control', async () => {
+    // QA found a dead "Play" button floating over the card *title* on a phone:
+    // the media player is gated on `!largeMobile` (the card drops its image
+    // below 600px), but the toggle that drives it was rendered
+    // unconditionally. So every clip-bearing card showed a control with no
+    // video behind it -- it did nothing, and it sat on top of the title.
+    //
+    // MUI reads the breakpoint through `matchMedia`, so the viewport has to be
+    // faked here rather than assumed: jsdom reports no matches at all by
+    // default, which is the *desktop* answer and would let this bug through.
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        // `useMediaQuery(theme.breakpoints.down(600))` compiles to a
+        // `max-width` query -- matching it is what puts the card in its
+        // small-screen mode.
+        matches: query.includes('max-width'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse([apiProject()])));
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('Portfolio Website')).toBeInTheDocument());
+
+    // Portfolio Website is one of the three projects that has a clip, so this
+    // is the card that grew the stray button.
+    expect(
+      screen.queryByRole('button', { name: /^(Play|Pause) the .* preview$/ }),
+      'a phone card has no media, so it must not offer a control for it',
+    ).toBeNull();
+  });
+
   it('never merges live metadata onto a project that has no repoName, even for a nameless API entry', async () => {
     // A partial/garbled API entry is the failure this guards: with a plain
     // `find`, `p.name === project.repoName` would be `undefined === undefined`

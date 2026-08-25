@@ -407,8 +407,18 @@ const ProjectCard = ({
           </CardContent>
         </CardActionArea>
         {/* Outside the CardActionArea on purpose -- see ProjectClipToggle.
-            Renders nothing at all for a project with no clip. */}
-        <ProjectClipToggle clip={clip} active={active} projectName={project.name} />
+            Renders nothing at all for a project with no clip.
+
+            Gated on `!largeMobile` for the same reason the player above is:
+            below 600px the card drops its media entirely, and a play button
+            with no video behind it is worse than no button. It rendered
+            unconditionally at first, which put a dead control on top of the
+            card's title on every phone -- the media player and this toggle are
+            two halves of one feature and have to appear and disappear
+            together. */}
+        {!largeMobile && (
+          <ProjectClipToggle clip={clip} active={active} projectName={project.name} />
+        )}
       </Card>
     </Box>
   );
