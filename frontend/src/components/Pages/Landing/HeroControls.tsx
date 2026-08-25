@@ -174,8 +174,8 @@ const SIZE = 44;
  *
  * ── Making a drifting target actually usable ──
  * A control that moves is a control you have to chase, and that is a genuine
- * problem for anyone whose pointer is not steady. Three things keep it
- * hittable:
+ * problem for anyone whose pointer is not steady. Two things keep it
+ * hittable, and neither of them is a slow lap:
  *
  *  1. Hover and keyboard focus both pause the animation outright
  *     (`animation-play-state: paused`, which freezes it where it is rather than
@@ -187,8 +187,8 @@ const SIZE = 44;
  *     a moment ago still lands inside it, which is what the e2e suite checks
  *     rather than taking the arithmetic on trust.
  *
- * The first version of this file tried to buy that hittability with speed
- * instead -- 6px of travel over 20-28s, about 0.3px per second. That is slow
+ * The first version of this file tried to buy that hittability by barely
+ * moving at all -- 6px of travel over 20-28s, about 0.3px per second. That is slow
  * enough that the browser spends seconds at a time on the same rendered
  * position and then jumps to the next one, which is exactly what reads as
  * choppy. The drift now covers 65-82px of path per lap in 13.4-18.3s (~4-6px
