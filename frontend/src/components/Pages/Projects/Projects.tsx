@@ -408,7 +408,7 @@ const ProjectCard = ({
         </CardActionArea>
         {/* Outside the CardActionArea on purpose -- see ProjectClipToggle.
             Renders nothing at all for a project with no clip. */}
-        <ProjectClipToggle clip={clip} active={active} />
+        <ProjectClipToggle clip={clip} active={active} projectName={project.name} />
       </Card>
     </Box>
   );

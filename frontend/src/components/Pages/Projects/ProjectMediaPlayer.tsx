@@ -118,6 +118,19 @@ export interface ProjectClipToggleProps {
   clip: ProjectClip;
   /** True while the card is hovered or holds focus -- raises the control. */
   active?: boolean;
+  /**
+   * The project's `StaticProject.name`, used to name this button.
+   *
+   * Deliberately not `media.caption`: a caption is a sentence describing what
+   * the clip shows, which is right for the video element's own description and
+   * badly wrong for a button. It produced accessible names like "Play the This
+   * site's Settings drawer cycling all six themes, then switching from top nav
+   * to a side nav layout preview" -- a mouthful for a screen reader, and
+   * ambiguous besides: the Portfolio caption contains the words "side nav
+   * layout", so this button collided with the hero's "Side nav layout" control
+   * under any substring-matching lookup.
+   */
+  projectName: string;
 }
 
 /**
@@ -136,13 +149,15 @@ export interface ProjectClipToggleProps {
  * card, the control unmounts, focus lands on the next card), and at rest it is
  * the one visible sign that this card has something to play.
  */
-export const ProjectClipToggle = ({ clip, active = false }: ProjectClipToggleProps) => {
+export const ProjectClipToggle = ({
+  clip,
+  active = false,
+  projectName,
+}: ProjectClipToggleProps) => {
   const { clip: media, playing, toggle } = clip;
   if (!media) return null;
 
-  const label = playing
-    ? `Pause the ${media.caption} preview`
-    : `Play the ${media.caption} preview`;
+  const label = playing ? `Pause the ${projectName} preview` : `Play the ${projectName} preview`;
 
   return (
     <Tooltip title={label}>

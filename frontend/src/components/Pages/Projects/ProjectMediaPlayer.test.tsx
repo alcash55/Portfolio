@@ -42,7 +42,7 @@ const CardHarness = ({ media }: { media?: ProjectMedia }) => {
       }}
     >
       <ProjectMediaPlayer clip={clip} image={STILL} alt="a screenshot" aspectRatio="2 / 1" />
-      <ProjectClipToggle clip={clip} active={active} />
+      <ProjectClipToggle clip={clip} active={active} projectName="Portfolio Website" />
     </div>
   );
 };
@@ -191,7 +191,7 @@ describe('ProjectMediaPlayer', () => {
 
       await waitFor(() => expect(pause).toHaveBeenCalled());
       expect(
-        screen.getByRole('button', { name: `Play the ${fakeMedia.caption} preview` }),
+        screen.getByRole('button', { name: `Play the Portfolio Website preview` }),
         'the control has to say what it will do next, not what it just did',
       ).toBeInTheDocument();
       // Still hovered, so it must not quietly start itself again.

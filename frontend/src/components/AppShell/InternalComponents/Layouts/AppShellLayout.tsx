@@ -1,11 +1,12 @@
 import { PropsWithChildren } from 'react';
-import { Box, Fab, Stack } from '@mui/material';
+import { Box, Fab, Stack, useMediaQuery } from '@mui/material';
 import Menu from '@mui/icons-material/Menu';
 import { AppShellLayoutMode } from '../../AppShellLayoutContext';
 import { NavBar } from '../NavBar';
 import { SettingsDrawer } from '../SettingsDrawer';
 import { SidebarNav } from '../SidebarNav';
 import { MobileChrome } from './MobileChrome';
+import { useShowNavBar } from '../useShowNavBar';
 
 interface AppShellLayoutProps extends PropsWithChildren {
   mode: AppShellLayoutMode;
@@ -36,6 +37,21 @@ export const AppShellLayout = ({
   setSettingDrawer,
 }: AppShellLayoutProps) => {
   const isSideNav = mode === 'sideNav';
+  // The sideNav Fab follows exactly the same rule as the `default` layout's
+  // NavBar: stay out of the way while the viewport is still on the hero, and
+  // arrive as the hero's down arrow leaves the top of the screen. Reusing the
+  // hook rather than re-deriving the rule is the point -- `useShowNavBar`
+  // measures the arrow's own rect, and a second implementation here would be
+  // free to drift away from the bar's timing.
+  //
+  // The hero carries its own theme and layout controls (see HeroControls), so
+  // nothing is unreachable while the Fab is hidden -- which is what makes
+  // hiding it safe rather than merely tidier.
+  const showFab = useShowNavBar();
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  // Matches NavBar's 220ms in / 160ms out, for the same reason: this is
+  // chrome, so it should keep up with the scroll rather than perform.
+  const fabDuration = prefersReducedMotion ? 0 : showFab ? 220 : 160;
 
   return (
     <Stack
@@ -59,7 +75,24 @@ export const AppShellLayout = ({
           color="secondary"
           aria-label="open settings drawer"
           onClick={() => setSettingDrawer(true)}
-          sx={{ position: 'fixed', bottom: 20, right: 20 }}
+          sx={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            opacity: showFab ? 1 : 0,
+            transform: showFab || prefersReducedMotion ? 'none' : 'translateY(10px)',
+            // `visibility`, not a conditional render: it takes the hidden Fab
+            // out of the tab order and off the hit-testing surface, while
+            // leaving the element mounted so the transition has something to
+            // animate. Delayed to the end of the exit so the button does not
+            // vanish mid-fade.
+            visibility: showFab ? 'visible' : 'hidden',
+            transition: (theme) =>
+              `${theme.transitions.create(['opacity', 'transform'], {
+                duration: fabDuration,
+              })}, visibility 0s linear ${showFab ? 0 : fabDuration}ms`,
+            pointerEvents: showFab ? 'auto' : 'none',
+          }}
         >
           <Menu />
         </Fab>
