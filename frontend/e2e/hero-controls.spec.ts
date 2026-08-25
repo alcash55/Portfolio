@@ -30,6 +30,7 @@ const THEME_CONTROLS = [
   'Green theme',
 ];
 const LAYOUT_CONTROLS = ['Top nav layout', 'Side nav layout'];
+const THEME_NAMES = ['dark', 'blue', 'light', 'red', 'purple', 'green'];
 const ALL_CONTROLS = [...THEME_CONTROLS, ...LAYOUT_CONTROLS];
 
 /**
@@ -244,10 +245,19 @@ test.describe('placement', () => {
     // Runs in the page: returns each control's rect alongside the rects of
     // everything a control must not cover.
     ({
+      // Measured at rest, with the lap switched off for the length of one
+      // reflow and then put back. The slack below is measured *from* the
+      // resting position, so reading a control mid-lap would count its drift
+      // twice and demand 26px of clearance instead of 14 -- which is exactly
+      // how this first failed once the lap grew.
       controls: Array.from(document.querySelectorAll('#landing [aria-pressed]')).map((element) => {
-        const box = element.getBoundingClientRect();
+        const control = element as HTMLElement;
+        const running = control.style.animation;
+        control.style.animation = 'none';
+        const box = control.getBoundingClientRect();
+        control.style.animation = running;
         return {
-          name: element.getAttribute('aria-label') ?? '?',
+          name: control.getAttribute('aria-label') ?? '?',
           x: box.x,
           y: box.y,
           right: box.right,
@@ -288,6 +298,25 @@ test.describe('placement', () => {
           .forEach((element, index) =>
             add(`interactive[${index}]`, element.getBoundingClientRect()),
           );
+        // App chrome that is painted *over* the hero from outside it, and so
+        // was invisible to a sweep that only looked inside `#landing`: the
+        // mobile settings Fab and bottom navigation bar, the sideNav Fab. All
+        // of them sit above the controls' layer, so a control underneath one is
+        // both hidden and unclickable -- which is exactly what happened to a
+        // control at 390px until this was added.
+        const hero = (document.getElementById('landing') as HTMLElement).getBoundingClientRect();
+        document.querySelectorAll('body *').forEach((element) => {
+          if (element.closest('#landing')) return;
+          const style = getComputedStyle(element);
+          if (!['fixed', 'absolute', 'sticky'].includes(style.position)) return;
+          if (style.visibility === 'hidden' || parseFloat(style.opacity) === 0) return;
+          const box = element.getBoundingClientRect();
+          if (box.width < 4 || box.height < 4) return;
+          const clearOfHero =
+            box.right < hero.x || box.x > hero.right || box.bottom < hero.y || box.y > hero.bottom;
+          if (clearOfHero) return;
+          add(`chrome:${element.getAttribute('aria-label') ?? element.tagName.toLowerCase()}`, box);
+        });
         return found;
       })(),
       viewportWidth: window.innerWidth,
@@ -295,10 +324,74 @@ test.describe('placement', () => {
         .bottom,
     });
 
-  // Drift is +-6px from the resting position, so every control is checked with
-  // that much slack in each direction: a control that only clears the text at
-  // rest is a control that lands on it three seconds later.
-  const DRIFT = 7;
+  // The lap carries a control up to 12px from its resting point (the keyframes
+  // are checked against this number in `the drift itself` below), so every
+  // control is checked with 14px of slack in each direction: a control that
+  // only clears the text at rest is a control that lands on it four seconds
+  // later. This grew from 7 when the drift stopped being a 6px twitch -- the
+  // slack tracks the travel, it does not excuse it.
+  const DRIFT = 14;
+
+  /**
+   * Puts the page in `themeName` by clicking the control for it, then waits for
+   * the font that theme ships to land.
+   *
+   * Themes are not just colour here: each one names its own font family, and at
+   * 320px four of the six wrap the h1 onto a second line, which pushes the
+   * social links 96px down the hero. A sweep in one theme therefore proves
+   * nothing about the other five -- a control that cleared the mail button in
+   * dark sat right beside it in green. Clicked rather than reloaded because it
+   * is faster and it is what a visitor actually does.
+   */
+  async function wearTheme(page: Page, themeName: string) {
+    const label = `${themeName[0].toUpperCase()}${themeName.slice(1)} theme`;
+    await page.evaluate((selector) => {
+      (document.querySelector(selector) as HTMLElement).click();
+    }, `#landing [aria-label="${label}"]`);
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+  }
+
+  /** Asserts no control touches anything it must not, at whatever the page is wearing. */
+  async function expectClear(page: Page, where: string) {
+    const { controls, obstacles, viewportWidth, heroBottom } = await page.evaluate(geometry);
+
+    expect(controls.length, `${where}: no controls rendered`).toBeGreaterThan(0);
+    for (const control of controls) {
+      for (const obstacle of obstacles) {
+        const overlapping =
+          control.x - DRIFT < obstacle.right &&
+          control.right + DRIFT > obstacle.x &&
+          control.y - DRIFT < obstacle.bottom &&
+          control.bottom + DRIFT > obstacle.y;
+        expect(
+          overlapping,
+          `${where}: ${control.name} [${Math.round(control.x)},${Math.round(control.y)} ` +
+            `${Math.round(control.right)},${Math.round(control.bottom)}] sits on top of ` +
+            `${obstacle.kind} [${Math.round(obstacle.x)},${Math.round(obstacle.y)} ` +
+            `${Math.round(obstacle.right)},${Math.round(obstacle.bottom)}]`,
+        ).toBe(false);
+      }
+      // A control that hangs off the right edge is both unreachable and a
+      // source of the horizontal scrollbar `smoke.spec.ts` forbids.
+      expect(
+        control.right + DRIFT,
+        `${where}: ${control.name} hangs off the right edge`,
+      ).toBeLessThanOrEqual(viewportWidth);
+      expect(
+        control.x - DRIFT,
+        `${where}: ${control.name} hangs off the left edge`,
+      ).toBeGreaterThanOrEqual(0);
+      // The hero clips its own overflow, so a control below its bottom edge
+      // is simply invisible.
+      expect(
+        control.bottom + DRIFT,
+        `${where}: ${control.name} is clipped by the hero`,
+      ).toBeLessThanOrEqual(heroBottom);
+    }
+  }
 
   for (const size of [
     { width: 1920, height: 1080 },
@@ -311,52 +404,90 @@ test.describe('placement', () => {
     MOBILE,
     TINY,
   ]) {
-    test(`nothing is covered, and nothing overflows, at ${size.width}x${size.height}`, async ({
-      page,
-    }) => {
+    test(`nothing is covered, in any theme, at ${size.width}x${size.height}`, async ({ page }) => {
       await page.setViewportSize(size);
       await gotoHome(page);
 
-      const { controls, obstacles, viewportWidth, heroBottom } = await page.evaluate(geometry);
-
-      expect(controls.length).toBeGreaterThan(0);
-      for (const control of controls) {
-        for (const obstacle of obstacles) {
-          const overlapping =
-            control.x - DRIFT < obstacle.right &&
-            control.right + DRIFT > obstacle.x &&
-            control.y - DRIFT < obstacle.bottom &&
-            control.bottom + DRIFT > obstacle.y;
-          expect(
-            overlapping,
-            `${control.name} [${Math.round(control.x)},${Math.round(control.y)} ` +
-              `${Math.round(control.right)},${Math.round(control.bottom)}] sits on top of ` +
-              `${obstacle.kind} [${Math.round(obstacle.x)},${Math.round(obstacle.y)} ` +
-              `${Math.round(obstacle.right)},${Math.round(obstacle.bottom)}]`,
-          ).toBe(false);
-        }
-        // A control that hangs off the right edge is both unreachable and a
-        // source of the horizontal scrollbar `smoke.spec.ts` forbids.
-        expect(
-          control.right + DRIFT,
-          `${control.name} hangs off the right edge`,
-        ).toBeLessThanOrEqual(viewportWidth);
-        expect(control.x - DRIFT, `${control.name} hangs off the left edge`).toBeGreaterThanOrEqual(
-          0,
-        );
-        // The hero clips its own overflow, so a control below its bottom edge
-        // is simply invisible.
-        expect(
-          control.bottom + DRIFT,
-          `${control.name} is clipped by the hero`,
-        ).toBeLessThanOrEqual(heroBottom);
+      for (const themeName of THEME_NAMES) {
+        await wearTheme(page, themeName);
+        await expectClear(page, `${themeName} at ${size.width}x${size.height}`);
       }
     });
   }
+
+  // The sideNav layout is reachable from the hero itself, and it is not a
+  // variation on the same geometry: the sidebar takes 248px off the left, so a
+  // 1280px window has a 960px hero -- the narrow regime, at a width that is in
+  // the wide one without it -- and it parks a Fab in the hero's bottom-right
+  // corner. None of that was covered while every test here ran in `default`.
+  for (const size of [{ width: 1440, height: 900 }, DESKTOP, NARROW_DESKTOP]) {
+    test(`nothing is covered in the sideNav layout at ${size.width}x${size.height}`, async ({
+      page,
+    }) => {
+      await page.addInitScript(() => localStorage.setItem('layout', 'sideNav'));
+      await page.setViewportSize(size);
+      await gotoHome(page);
+
+      for (const themeName of THEME_NAMES) {
+        await wearTheme(page, themeName);
+        await expectClear(page, `sideNav ${themeName} at ${size.width}x${size.height}`);
+      }
+    });
+  }
+
+  test('the drift itself stays inside the slack this suite allows it', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await gotoHome(page);
+
+    // Read back the keyframes the component actually shipped. Every check above
+    // is only honest if the lap really is bounded by DRIFT, and that bound
+    // lives in a CSS rule no other test can see.
+    const laps = await page.evaluate(() =>
+      Array.from(document.styleSheets)
+        .flatMap((sheet) => {
+          try {
+            return Array.from(sheet.cssRules);
+          } catch {
+            return [];
+          }
+        })
+        .filter(
+          (rule): rule is CSSKeyframesRule =>
+            rule instanceof CSSKeyframesRule && rule.name.startsWith('heroControlDrift'),
+        )
+        .map((rule) => {
+          const offsets = Array.from(rule.cssRules).map((frame) => {
+            const [x, y] = /translate\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px\s*\)/
+              .exec((frame as CSSKeyframeRule).style.transform)
+              ?.slice(1)
+              .map(Number) ?? [NaN, NaN];
+            return Math.hypot(x, y);
+          });
+          return { name: rule.name, stops: offsets.length, furthest: Math.max(...offsets) };
+        }),
+    );
+
+    expect(laps.length, 'the drift keyframes are gone').toBeGreaterThanOrEqual(1);
+    for (const lap of laps) {
+      expect(
+        lap.furthest,
+        `${lap.name} drifts further than the geometry slack`,
+      ).toBeLessThanOrEqual(DRIFT);
+      // The other direction, which is the regression that was actually
+      // reported: a lap this small is travelled so slowly that the rendered
+      // position steps between whole pixels instead of moving.
+      expect(lap.furthest, `${lap.name} is too small a lap to read as motion`).toBeGreaterThan(6);
+      // Four stops make a lap four straight legs and four hard turns; twelve
+      // make it a curve.
+      expect(lap.stops, `${lap.name} has too few stops to read as a curve`).toBeGreaterThanOrEqual(
+        10,
+      );
+    }
+  });
 });
 
 test.describe('a moving target', () => {
-  test('drifts slowly, stops under the pointer, and can still be clicked while moving', async ({
+  test('drifts continuously, stops under the pointer, and can still be clicked while moving', async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP);
@@ -368,27 +499,70 @@ test.describe('a moving target', () => {
     const centre = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
 
     // It is animating, on its own keyframes rather than the decorative field's
-    // `float` (which throws a dot 30px around in as little as five seconds).
+    // `float` -- same character, different job.
     const animation = await control.evaluate((element) => {
       const style = getComputedStyle(element);
       return {
         name: style.animationName,
         duration: parseFloat(style.animationDuration),
+        delay: parseFloat(style.animationDelay),
+        easing: style.animationTimingFunction,
+        willChange: style.willChange,
         state: style.animationPlayState,
       };
     });
-    expect(animation.name).toBe('heroControlDrift');
+    expect(animation.name).toMatch(/^heroControlDrift[ABC]$/);
     expect(animation.name).not.toBe('float');
-    expect(animation.duration).toBeGreaterThanOrEqual(20);
+    // Fast enough to be seen moving, slow enough not to be a distraction: this
+    // window is where the reported choppiness was fixed. The previous 20-28s
+    // lap moved ~0.3px a second, which the browser renders as a jump to the
+    // next pixel every few seconds.
+    expect(animation.duration).toBeGreaterThanOrEqual(12);
+    expect(animation.duration).toBeLessThanOrEqual(20);
+    // Constant speed, so nothing decelerates into a corner and reverses.
+    expect(animation.easing).toBe('linear');
+    // Already mid-lap on the first frame rather than parked at rest for
+    // several seconds after load.
+    expect(animation.delay).toBeLessThan(0);
+    expect(animation.willChange).toBe('transform');
     expect(animation.state).toBe('running');
 
-    // How far it actually travels while someone is reaching for it. Anything
-    // approaching the button's own size would make it a chase.
-    const before = await control.boundingBox();
-    await page.waitForTimeout(1500);
-    const after = await control.boundingBox();
-    const travelled = Math.hypot(after!.x - before!.x, after!.y - before!.y);
-    expect(travelled, 'the drift is too fast to aim at').toBeLessThan(3);
+    // How far it actually moves while someone is reaching for it, measured as
+    // path travelled rather than as start-to-end distance -- a lap that doubles
+    // back would flatter itself on the latter. Sampled in the page so the reads
+    // are 100ms apart rather than a round trip apart.
+    const trace = await control.evaluate(
+      (element) =>
+        new Promise<{ arc: number; longestStep: number; stillFrames: number }>((resolve) => {
+          const first = element.getBoundingClientRect();
+          let previous = { x: first.x, y: first.y };
+          let arc = 0;
+          let longestStep = 0;
+          let stillFrames = 0;
+          let taken = 0;
+          const tick = () => {
+            const now = element.getBoundingClientRect();
+            const step = Math.hypot(now.x - previous.x, now.y - previous.y);
+            arc += step;
+            longestStep = Math.max(longestStep, step);
+            if (step === 0) stillFrames += 1;
+            previous = { x: now.x, y: now.y };
+            if ((taken += 1) >= 18) resolve({ arc, longestStep, stillFrames });
+            else setTimeout(tick, 100);
+          };
+          setTimeout(tick, 100);
+        }),
+    );
+
+    // ~4-6px a second, so roughly 7-11px over this 1.8s window. The floor is
+    // the point: under the old keyframes this measured about 0.5px, which is
+    // the arithmetic behind "very choppy and not at all fluid".
+    expect(trace.arc, 'the drift is back to being too slow to read as motion').toBeGreaterThan(2.5);
+    expect(trace.arc, 'the drift has become a chase').toBeLessThan(22);
+    // And it is moving on every sample rather than holding a position and
+    // jumping -- continuous motion, not steps.
+    expect(trace.stillFrames, 'the control holds still and then jumps').toBe(0);
+    expect(trace.longestStep, 'the control jumps rather than drifts').toBeLessThan(3);
 
     // Hovering pauses it outright, so it is stationary by the time a pointer
     // has arrived. `mouse.move` rather than `locator.hover()` on purpose:
@@ -403,8 +577,8 @@ test.describe('a moving target', () => {
       .toBe('paused');
 
     // And a raw click at the coordinates it occupied *before* the pointer got
-    // there still lands on it -- the real test of whether the drift is small
-    // enough. No actionability waiting involved.
+    // there still lands on it. This is what makes a moving control hittable --
+    // the pause, not a slow lap. No actionability waiting involved.
     await page.mouse.click(centre.x, centre.y);
     await expect(control).toHaveAttribute('aria-pressed', 'true');
     expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('blue');

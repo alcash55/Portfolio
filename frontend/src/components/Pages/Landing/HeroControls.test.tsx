@@ -247,7 +247,7 @@ describe('HeroControls — motion', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('drifts by default, on its own slow keyframes rather than the decorative ones', () => {
+  it('drifts on its own keyframes, fast enough to read as motion rather than as steps', () => {
     renderControls();
 
     // jsdom does not expand the `animation` shorthand into its longhands, so
@@ -255,12 +255,45 @@ describe('HeroControls — motion', () => {
     const animation = getComputedStyle(
       screen.getByRole('button', { name: 'Dark theme' }),
     ).animation;
-    expect(animation).toContain('heroControlDrift');
-    // Not the particle field's `float`, which throws a dot 30px around in as
-    // little as 5s -- unhittable for a control.
+    expect(animation).toMatch(/heroControlDrift[ABC]/);
+    // Not the particle field's `float`: same character, different job, and the
+    // two must not start sharing values.
     expect(animation).not.toContain('float');
-    const seconds = Number(/ (\d+(?:\.\d+)?)s /.exec(animation)?.[1]);
-    expect(seconds).toBeGreaterThanOrEqual(20);
+
+    const [, seconds, easing, delay] =
+      /heroControlDrift[ABC] (\d+(?:\.\d+)?)s (\S+) (-?\d+(?:\.\d+)?)s/.exec(animation) ?? [];
+    // The lap used to be 20-28s for 6px of travel -- about 0.3px a second,
+    // which is slow enough that the rendered position holds still for seconds
+    // and then jumps, and that stepping is what reads as choppy. A lap of
+    // 65-82px in this window is 4-6px a second.
+    expect(Number(seconds)).toBeGreaterThanOrEqual(12);
+    expect(Number(seconds)).toBeLessThanOrEqual(20);
+    // Constant speed: the curve does the easing, so nothing decelerates into a
+    // corner and reverses.
+    expect(easing).toBe('linear');
+    // Negative, so the control is already mid-lap on the first frame instead of
+    // sitting still for the first few seconds after load.
+    expect(Number(delay)).toBeLessThan(0);
+    // Hinted to the compositor, so a frame is a layer transform and not a
+    // repaint of the disc, its border and its shadow.
+    expect(getComputedStyle(screen.getByRole('button', { name: 'Dark theme' })).willChange).toBe(
+      'transform',
+    );
+  });
+
+  it('gives the eight controls different paths and periods, so they never march in step', () => {
+    renderControls();
+
+    const shorthands = screen
+      .getAllByRole('button')
+      .map((button) => getComputedStyle(button).animation);
+    const paths = new Set(shorthands.map((value) => /heroControlDrift([ABC])/.exec(value)?.[1]));
+    const periods = new Set(shorthands.map((value) => /Drift[ABC] (\S+)/.exec(value)?.[1]));
+
+    // Eight controls on one path at one speed is one shape sliding around the
+    // hero, which is what the decorative field deliberately is not.
+    expect(paths.size).toBeGreaterThanOrEqual(3);
+    expect(periods.size).toBe(shorthands.length);
   });
 
   it('stops moving entirely for a visitor who prefers reduced motion, but still renders', () => {
@@ -273,6 +306,8 @@ describe('HeroControls — motion', () => {
     expect(buttons).toHaveLength(EXPECTED_FOCUS_ORDER.length);
     buttons.forEach((button) => {
       expect(getComputedStyle(button).animation).toBe('none');
+      // And no compositor layer hinted for a transform that never changes.
+      expect(getComputedStyle(button).willChange).toBe('auto');
     });
   });
 });
