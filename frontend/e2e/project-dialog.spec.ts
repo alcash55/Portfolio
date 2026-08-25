@@ -78,6 +78,27 @@ async function gotoHome(page: Page, hash = '') {
   await expect(page.locator('h1')).toHaveText('Alex Cash');
 }
 
+/**
+ * Waits for the window to stop scrolling.
+ *
+ * `global.css` sets `scroll-behavior: smooth` on the document, so following a
+ * fragment link starts a ~260ms animation rather than jumping. Reading the
+ * target's rect straight after the click therefore measures a frame partway
+ * through that animation, and which frame depends on how busy the machine is:
+ * measured here, the anchor comes to rest 40.4px from the top of the window
+ * every time, while the un-waited read landed anywhere from 40 to 361px
+ * depending on how many workers were running. That is what a `toBeLessThan`
+ * against a resting position needs to wait for -- the tolerance below is not
+ * the loose part, the sampling was.
+ */
+async function settleScroll(page: Page) {
+  await page.waitForFunction(() => {
+    const previous = (window as unknown as { __lastScrollY?: number }).__lastScrollY;
+    (window as unknown as { __lastScrollY?: number }).__lastScrollY = window.scrollY;
+    return previous === window.scrollY;
+  });
+}
+
 const cardFor = (page: Page, slug: string) => page.locator(`[data-project-slug="${slug}"]`);
 const dialog = (page: Page) => page.getByRole('dialog');
 
@@ -215,6 +236,7 @@ test.describe('the shareable link', () => {
     // the browser has already looked for the fragment -- so that is deliberately
     // not what is asserted here.)
     await page.getByRole('link', { name: /navigate to projects/i }).click();
+    await settleScroll(page);
     const sectionTop = await page
       .locator('#projects')
       .evaluate((section) => section.getBoundingClientRect().top);

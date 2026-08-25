@@ -1,6 +1,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useShowNavBar, SCROLL_INDICATOR_ATTR } from './useShowNavBar';
+import {
+  useShowNavBar,
+  SCROLL_INDICATOR_ATTR,
+  stickyTopOffset,
+  navBarRevealScrollY,
+} from './useShowNavBar';
 
 /**
  * These pin the two bugs the browser measurements found, both of which are
@@ -14,6 +19,22 @@ const mountIndicator = (bottom: number) => {
   el.getBoundingClientRect = vi.fn(() => ({ bottom }) as DOMRect);
   document.body.appendChild(el);
   return el;
+};
+
+/**
+ * Stand-in for the rendered `NavBar`. jsdom lays nothing out, so the height has
+ * to be stated -- 64px is a MUI `Toolbar` above the `sm` breakpoint, which is
+ * the only place the `default` layout (and therefore this bar) exists.
+ *
+ * The tests above deliberately mount no bar: with none in the DOM the offset is
+ * 0 and the threshold is the plain `bottom <= 0` they were written against, so
+ * they still assert exactly what they always did.
+ */
+const mountBar = (height: number) => {
+  const bar = document.createElement('header');
+  bar.getBoundingClientRect = vi.fn(() => ({ height }) as DOMRect);
+  document.body.appendChild(bar);
+  return bar;
 };
 
 /**
@@ -101,6 +122,33 @@ describe('useShowNavBar', () => {
     expect(result.current).toBe(true);
   });
 
+  it('shows once the arrow reaches the bar it is about to reveal, not only once it clears the window', async () => {
+    // The reason the threshold is the bar's footprint rather than y=0. About's
+    // heading sits 32px below the hero's bottom edge while the bar is 64px
+    // tall, so with a y=0 threshold there is no scroll position that both puts
+    // the arrow above the window and leaves the heading clear of the bar --
+    // the arrow click had to fail one or the other, which was the bug. An
+    // arrow inside the opaque bar's own footprint is already out of sight.
+    mountBar(64);
+    mountIndicator(40);
+    const { result } = renderHook(() => useShowNavBar());
+    await flushFrame();
+
+    expect(result.current).toBe(true);
+  });
+
+  it('stays hidden with the arrow at that same position when no bar is rendered', async () => {
+    // Same 40px, opposite answer: `sideNav` and `mobile` render no top bar, so
+    // nothing is covering the arrow and it is still plainly on screen. Pins
+    // that the offset comes from the bar actually in the DOM rather than a
+    // constant that would have leaked into the layouts without one.
+    mountIndicator(40);
+    const { result } = renderHook(() => useShowNavBar());
+    await flushFrame();
+
+    expect(result.current).toBe(false);
+  });
+
   it('removes its listeners on unmount', () => {
     mountIndicator(400);
     const remove = vi.spyOn(window, 'removeEventListener');
@@ -111,5 +159,58 @@ describe('useShowNavBar', () => {
     expect(removed).toContain('scroll');
     expect(removed).toContain('resize');
     remove.mockRestore();
+  });
+});
+
+describe('stickyTopOffset', () => {
+  it('is 0 in a layout with no top bar', () => {
+    // `sideNav` and `mobile` render none -- a side rail and a *bottom* nav.
+    expect(stickyTopOffset()).toBe(0);
+  });
+
+  it('is the bar\'s own measured height, not a written-down one', () => {
+    // Measured rather than hardcoded because a MUI Toolbar is 56px or 64px by
+    // breakpoint, and this project has already shipped one bug from a chrome
+    // height written into the source (`scrollY > innerHeight - 14`). 56 here
+    // precisely because it is *not* the value the desktop bar happens to have.
+    mountBar(56);
+    expect(stickyTopOffset()).toBe(56);
+  });
+});
+
+describe('navBarRevealScrollY', () => {
+  /**
+   * This is the number Landing's arrow aims past. It only means anything if it
+   * agrees with the hook's own threshold -- the whole bug was the two sides
+   * deciding separately whether a scroll position counted as "the bar is up".
+   */
+  const setScrollY = (value: number) =>
+    Object.defineProperty(window, 'scrollY', { value, configurable: true });
+
+  afterEach(() => setScrollY(0));
+
+  it('is null when there is no indicator to measure', () => {
+    // The error page, and any shell rendered without Landing.
+    expect(navBarRevealScrollY()).toBeNull();
+  });
+
+  it('reports the scroll position at which the hook flips, bar included', () => {
+    setScrollY(500);
+    mountBar(64);
+    // 300px below the window top, so 800px down the document.
+    mountIndicator(300);
+
+    // 800 - 64: at that scroll position the indicator's bottom sits exactly on
+    // the bar's bottom edge, which is where the hook starts returning true.
+    expect(navBarRevealScrollY()).toBe(736);
+  });
+
+  it('rounds up, so the value it returns actually satisfies the threshold', () => {
+    setScrollY(0);
+    mountIndicator(100.4);
+    // The hook's comparison is `<=`, so at a fractional edge the first integer
+    // scroll position that satisfies it is the ceiling, not the floor --
+    // 100 would leave the indicator 0.4px short and the bar hidden.
+    expect(navBarRevealScrollY()).toBe(101);
   });
 });
