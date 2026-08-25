@@ -395,8 +395,16 @@ test.describe('placement', () => {
 
   for (const size of [
     { width: 1920, height: 1080 },
+    { width: 1600, height: 900 },
     { width: 1440, height: 900 },
     DESKTOP,
+    { width: 1152, height: 720 },
+    // The narrowest window that still gets the gutter regime: `#landing` is
+    // 48px narrower than the window, so 1072 leaves a hero of exactly 1024 and
+    // the side bands are as thin as they are ever allowed to be. The nearest
+    // width the sweep used to check was 1280, which left a 1232px hero -- 200px
+    // of slack that hid whatever happens at the boundary.
+    { width: 1072, height: 700 },
     { width: 1024, height: 768 },
     NARROW_DESKTOP,
     { width: 768, height: 1024 },
@@ -420,7 +428,13 @@ test.describe('placement', () => {
   // 1280px window has a 960px hero -- the narrow regime, at a width that is in
   // the wide one without it -- and it parks a Fab in the hero's bottom-right
   // corner. None of that was covered while every test here ran in `default`.
-  for (const size of [{ width: 1440, height: 900 }, DESKTOP, NARROW_DESKTOP]) {
+  for (const size of [
+    { width: 1920, height: 1080 },
+    { width: 1600, height: 900 },
+    { width: 1440, height: 900 },
+    DESKTOP,
+    NARROW_DESKTOP,
+  ]) {
     test(`nothing is covered in the sideNav layout at ${size.width}x${size.height}`, async ({
       page,
     }) => {
@@ -434,6 +448,190 @@ test.describe('placement', () => {
       }
     });
   }
+
+  /**
+   * Each control's resting centre as a fraction of the hero's width and
+   * height, measured with the lap switched off. Fractions rather than pixels
+   * because the whole point is which *band* a control is in, and the hero is a
+   * different width in every case this file sweeps.
+   */
+  const restingCentres = () => {
+    const hero = (document.getElementById('landing') as HTMLElement).getBoundingClientRect();
+    return Array.from(document.querySelectorAll('#landing [aria-pressed]')).map((element) => {
+      const control = element as HTMLElement;
+      const running = control.style.animation;
+      control.style.animation = 'none';
+      const box = control.getBoundingClientRect();
+      control.style.animation = running;
+      return {
+        name: control.getAttribute('aria-label') ?? '?',
+        x: (box.x + box.width / 2 - hero.x) / hero.width,
+        y: (box.y + box.height / 2 - hero.y) / hero.height,
+      };
+    });
+  };
+
+  const LEFT_BAND = ['Blue theme', 'Dark theme', 'Light theme', 'Red theme'];
+  const RIGHT_BAND = ['Green theme', 'Purple theme', 'Side nav layout', 'Top nav layout'];
+
+  /**
+   * Four a side, which is the thing that was actually asked for -- six down the
+   * left and two at the bottom right is what this replaced. Asserted per theme
+   * and per layout because a control's resting place is a percentage of a hero
+   * whose width the sidebar changes, and because each theme ships its own font
+   * and so moves the content column the bands have to keep clear of.
+   */
+  test.describe('four a side, wherever the hero is wide enough to have sides', () => {
+    const wide = [
+      { layout: 'default', size: { width: 1920, height: 1080 } },
+      { layout: 'default', size: DESKTOP },
+      { layout: 'default', size: { width: 1072, height: 700 } },
+      { layout: 'sideNav', size: { width: 1920, height: 1080 } },
+      { layout: 'sideNav', size: { width: 1440, height: 900 } },
+    ];
+
+    for (const { layout, size } of wide) {
+      test(`${layout} at ${size.width}x${size.height}`, async ({ page }) => {
+        await page.addInitScript((value) => localStorage.setItem('layout', value), layout);
+        await page.setViewportSize(size);
+        await gotoHome(page);
+
+        for (const themeName of THEME_NAMES) {
+          await wearTheme(page, themeName);
+          const centres = await page.evaluate(restingCentres);
+          const where = `${layout} ${themeName} at ${size.width}x${size.height}`;
+
+          expect(centres.map((c) => c.name).sort()).toEqual([...ALL_CONTROLS].sort());
+          expect(
+            centres
+              .filter((c) => c.x < 0.5)
+              .map((c) => c.name)
+              .sort(),
+            `${where}: left band`,
+          ).toEqual(LEFT_BAND);
+          expect(
+            centres
+              .filter((c) => c.x >= 0.5)
+              .map((c) => c.name)
+              .sort(),
+            `${where}: right band`,
+          ).toEqual(RIGHT_BAND);
+        }
+      });
+    }
+  });
+
+  /**
+   * Tab order is DOM order, and DOM order is fixed; what this checks is that
+   * the *positions* still agree with it. Within each band the controls have to
+   * descend in the order they are tabbed, or a keyboard user's focus ring jumps
+   * back up the page part-way down a band.
+   */
+  test('each band descends in tab order', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await gotoHome(page);
+
+    const centres = await page.evaluate(restingCentres);
+    const order = await controlNames(page);
+    expect(order).toEqual(ALL_CONTROLS);
+
+    const centreOf = (name: string | null) => centres.find((c) => c.name === name)!;
+    for (const [side, band] of [
+      ['left', order.filter((n) => centreOf(n).x < 0.5)],
+      ['right', order.filter((n) => centreOf(n).x >= 0.5)],
+    ] as const) {
+      expect(band, `${side} band is not four controls`).toHaveLength(4);
+      for (let i = 1; i < band.length; i++)
+        expect(
+          centreOf(band[i]).y,
+          `${side} band: ${band[i]} tabs after ${band[i - 1]} but sits above it`,
+        ).toBeGreaterThan(centreOf(band[i - 1]).y);
+    }
+  });
+
+  /**
+   * The shape rules, read back off the rendered page. Two earlier attempts at
+   * this control field were rejected on looks -- once as a docked pill toolbar,
+   * once as an evenly-ruled zig-zag ladder -- and moving two controls into a
+   * band that already had two is exactly how a band turns into a tidy column.
+   * These are the properties that separate "scattered" from "ruled", and none
+   * of them is visible to a test that only checks nothing overlaps.
+   */
+  test('neither band is a ruled column', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await gotoHome(page);
+
+    const centres = await page.evaluate(restingCentres);
+    const bands = {
+      left: centres.filter((c) => c.x < 0.5).sort((a, b) => a.y - b.y),
+      right: centres.filter((c) => c.x >= 0.5).sort((a, b) => a.y - b.y),
+    };
+
+    for (const [side, band] of Object.entries(bands)) {
+      expect(band, `${side} band is not four controls`).toHaveLength(4);
+
+      // Not a column: the depths into the band have to differ by more than a
+      // rendering rounding error.
+      const depths = band.map((c) => c.x);
+      expect(
+        Math.max(...depths) - Math.min(...depths),
+        `${side} band: every control sits at the same depth`,
+      ).toBeGreaterThan(0.05);
+
+      // No three of them on a line. Twice the triangle area, in hero fractions:
+      // three dots on a line read as a ruled edge whatever their spacing.
+      for (let i = 0; i < band.length; i++)
+        for (let j = i + 1; j < band.length; j++)
+          for (let k = j + 1; k < band.length; k++) {
+            const [a, b, c] = [band[i], band[j], band[k]];
+            const area = Math.abs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+            expect(
+              area,
+              `${side} band: ${a.name}, ${b.name} and ${c.name} are on a line`,
+            ).toBeGreaterThan(0.008);
+          }
+    }
+
+    // And no vertical rhythm across the set as a whole: evenly-stepped tops are
+    // what made the rejected version read as a ladder.
+    const tops = centres.map((c) => c.y).sort((a, b) => a - b);
+    const gaps = tops.slice(1).map((t, i) => t - tops[i]);
+    for (let i = 0; i < gaps.length; i++)
+      for (let j = i + 1; j < gaps.length; j++)
+        expect(
+          Math.abs(gaps[i] - gaps[j]),
+          `two vertical gaps share a rhythm: ${gaps[i].toFixed(3)} and ${gaps[j].toFixed(3)}`,
+        ).toBeGreaterThan(0.01);
+  });
+
+  /**
+   * The other half of the ask, and the half that is easy to get wrong: below a
+   * 1024px hero there are no side bands to even up. The controls scatter across
+   * the lower half, which is the only region clear of text at every width down
+   * to 320px, so anything that pushed them out to two edges there would put
+   * them straight back on the subtitle.
+   */
+  test('the narrow regime stays a scatter, with no sides to balance', async ({ page }) => {
+    for (const size of [MOBILE, TINY, { width: 700, height: 700 }]) {
+      await page.setViewportSize(size);
+      await gotoHome(page);
+
+      const centres = await page.evaluate(restingCentres);
+      const where = `${size.width}x${size.height}`;
+      expect(centres.length, `${where}: no controls rendered`).toBeGreaterThanOrEqual(6);
+
+      // At least one control resting in the middle third is what makes this a
+      // field rather than two columns.
+      expect(
+        centres.filter((c) => c.x > 0.33 && c.x < 0.67).length,
+        `${where}: the controls have been pushed out to the edges`,
+      ).toBeGreaterThan(0);
+
+      // And all of them below the hero's midline, clear of the text above.
+      for (const control of centres)
+        expect(control.y, `${where}: ${control.name} left the lower half`).toBeGreaterThan(0.5);
+    }
+  });
 
   test('the drift itself stays inside the slack this suite allows it', async ({ page }) => {
     await page.setViewportSize(DESKTOP);

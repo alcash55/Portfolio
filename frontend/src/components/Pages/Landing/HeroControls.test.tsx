@@ -34,8 +34,9 @@ const EXPECTED_FOCUS_ORDER = [
 /**
  * Installs a `window.matchMedia` whose `matches` is decided by `predicate`.
  * jsdom answers `false` to every query, which is fine for the default case but
- * leaves the two branches this component actually has -- below the 650px
- * layout breakpoint, and `prefers-reduced-motion` -- untestable.
+ * leaves the branches this component actually has -- below the 650px layout
+ * breakpoint, `prefers-reduced-motion`, and the 1024px hero width that decides
+ * which placement regime is live -- untestable.
  */
 const stubMatchMedia = (predicate: (query: string) => boolean) => {
   vi.stubGlobal(
@@ -127,6 +128,110 @@ describe('HeroControls — every control is a real, named, toggleable button', (
     await user.keyboard('[Enter]');
     expect(red).toHaveAttribute('aria-pressed', 'true');
     expect(localStorage.getItem('theme')).toBe('red');
+  });
+});
+
+/**
+ * Reads a control's resting placement back out of the CSS the component
+ * shipped. jsdom does no layout, so nothing here can say where a control ends
+ * up on a page -- but the `left`/`top` percentages are the inputs to that, and
+ * they are what a careless edit to the placement tables changes. Where those
+ * percentages actually land, and what they land on, is `e2e/hero-controls.spec.ts`.
+ */
+const placementOf = (button: HTMLElement) => {
+  const style = getComputedStyle(button);
+  return { left: parseFloat(style.left), top: parseFloat(style.top) };
+};
+
+const placements = () =>
+  screen.getAllByRole('button').map((button) => ({
+    name: button.getAttribute('aria-label') ?? '?',
+    ...placementOf(button),
+  }));
+
+describe('HeroControls — four a side, once the hero is wide enough to have sides', () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('puts four controls in each band, and the right four in each', () => {
+    // The gutter regime is chosen by hero width, and its first-paint value
+    // comes from this media query -- jsdom has no ResizeObserver, so this is
+    // the only branch it can take.
+    stubMatchMedia((query) => query.includes('min-width') && query.includes('1024'));
+    renderControls();
+
+    const all = placements();
+    expect(all).toHaveLength(EXPECTED_FOCUS_ORDER.length);
+    expect(
+      all
+        .filter((c) => c.left < 50)
+        .map((c) => c.name)
+        .sort(),
+    ).toEqual(['Blue theme', 'Dark theme', 'Light theme', 'Red theme']);
+    expect(
+      all
+        .filter((c) => c.left >= 50)
+        .map((c) => c.name)
+        .sort(),
+    ).toEqual(['Green theme', 'Purple theme', 'Side nav layout', 'Top nav layout']);
+  });
+
+  it('orders each band top-to-bottom in the order it is tabbed', () => {
+    // DOM order is the tab order and it is column-major: the whole left band,
+    // then the whole right band. If a placement edit ever moves a control past
+    // one of its band-mates without moving it in the DOM, focus would jump back
+    // up the page part-way down a band.
+    stubMatchMedia((query) => query.includes('min-width') && query.includes('1024'));
+    renderControls();
+
+    const all = placements();
+    expect(all.map((c) => c.name)).toEqual(EXPECTED_FOCUS_ORDER);
+
+    for (const band of [all.filter((c) => c.left < 50), all.filter((c) => c.left >= 50)]) {
+      expect(band).toHaveLength(4);
+      band.forEach((control, index) => {
+        if (index === 0) return;
+        expect(
+          control.top,
+          `${control.name} tabs after ${band[index - 1].name} but sits above it`,
+        ).toBeGreaterThan(band[index - 1].top);
+      });
+    }
+  });
+
+  it('leaves the narrow regime a scatter with no sides at all', () => {
+    // Below a 1024px hero there is no band down either edge to balance -- the
+    // subtitle runs to within ~35px of both -- so the controls sit across the
+    // lower half instead. Forcing a left/right split here would put them back
+    // on the text, which is the mistake this guards.
+    renderControls(); // jsdom answers `false` to every query: the field regime.
+
+    const all = placements();
+    expect(
+      all.every((c) => c.top > 50),
+      'a control left the lower half',
+    ).toBe(true);
+    expect(
+      all.some((c) => c.left > 33 && c.left < 67),
+      'the narrow regime has been pushed out to two edges',
+    ).toBe(true);
+  });
+
+  it('keeps the vertical spacing uneven, so the set cannot read as a ladder', () => {
+    // An evenly-ruled ladder is one of the two designs already rejected here.
+    stubMatchMedia((query) => query.includes('min-width') && query.includes('1024'));
+    renderControls();
+
+    const tops = placements()
+      .map((c) => c.top)
+      .sort((a, b) => a - b);
+    const gaps = tops.slice(1).map((top, index) => top - tops[index]);
+    for (let i = 0; i < gaps.length; i++)
+      for (let j = i + 1; j < gaps.length; j++)
+        expect(
+          Math.abs(gaps[i] - gaps[j]),
+          `gaps ${gaps[i]}% and ${gaps[j]}% share a rhythm`,
+        ).toBeGreaterThan(1);
   });
 });
 
