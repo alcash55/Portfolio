@@ -64,6 +64,40 @@ interface FloatingControl {
  * Where the six theme controls rest, in the order they are painted and in the
  * order they take focus.
  *
+ * ── Four a side, in the gutter regime ──
+ * Six controls down the left and two at the bottom right is what the hero used
+ * to look like, and it read as lopsided -- the right band opened with a 59.5%
+ * stretch of nothing above the first layout button. So purple and green moved
+ * across, giving four a side: dark, blue, light and red down the left, purple,
+ * green and the two layout buttons down the right.
+ *
+ * Red moved too, from 47.5% to 68.5%. That is not scope creep, it is the other
+ * half of the same fix: with purple and green gone the left band had all four
+ * of its remaining controls above its midpoint and a 47.5% hole beneath them,
+ * which is the same lopsidedness reflected. Dropping red into the space purple
+ * vacated leaves the worst empty stretch at 28.5% on the left and 22.5% on
+ * the right, against 25.5% and 59.5% before. Dark, blue and light did not move at
+ * all.
+ *
+ * `field` is deliberately untouched. Below a 1024px hero there is no left and
+ * no right -- the controls are scattered across the lower half, which is the
+ * only region clear of text at every width down to 320px -- so there is no
+ * left/right split there to even up, and forcing one would put controls back
+ * on the subtitle.
+ *
+ * ── Tab order ──
+ * DOM order is unchanged, and it is now column-major: the whole left band
+ * top-to-bottom (dark, blue, light, red), then the whole right band
+ * top-to-bottom (purple, green, top nav, side nav). Two bands separated by the
+ * entire width of the hero are read one after the other, not zig-zagged
+ * between -- a row-major order would send focus flying left-right-left-right
+ * across ~1200px eight times. It also keeps the six themes contiguous in the
+ * tab order rather than interleaving the two layout buttons among them, so the
+ * `aria-pressed` set is still walked as one group. The placements were chosen
+ * to fit that order rather than the other way round: purple and green sit
+ * above both layout buttons precisely so the right band reads top-to-bottom in
+ * the order the DOM already held.
+ *
  * ── Irregular, and fixed ──
  * These are constants, not `Math.random()` calls like the decorative particles
  * in Landing.tsx. DOM order is the tab order, so randomising positions would
@@ -75,29 +109,40 @@ interface FloatingControl {
  * rather than as dots.
  *
  * So the numbers below were generated once, offline, by a seeded scatter run
- * against the hero geometry measured in a real browser in all ninety-six
- * combinations of nine viewports, both switchable layouts and all six themes
- * (each theme ships its own font, and at 320px four of the six wrap the h1 to
- * a second line, which pushes the social links 96px down the hero) --
- * rejecting any point that lands on text, on the social links, on the scroll
- * arrow, on the app chrome painted over the hero from outside it (the mobile
- * settings Fab and bottom navigation bar, the sideNav Fab), off an edge, or
- * within 8px of another control's drift envelope in *any* of them; plus a shape filter: no two controls sharing a horizontal rule, no two
- * gaps between successive tops within 1.5% of each other, and no side-to-side
- * alternation. The winning set was then pasted here. What ships is fixed; only
- * the search that found it was random.
+ * against hero geometry measured in a real browser across every viewport x
+ * layout x theme combination the e2e suite sweeps (each theme ships its own
+ * font, and at 320px four of the six wrap the h1 to a second line, which
+ * pushes the social links 96px down the hero) -- rejecting any point that
+ * lands on text, on the social links, on the scroll arrow, on the app chrome
+ * painted over the hero from outside it (the mobile settings Fab and bottom
+ * navigation bar, the sideNav Fab), off an edge, or within 8px of another
+ * control's drift envelope in *any* of them; plus a shape filter: no two
+ * controls sharing a horizontal rule, no two gaps between successive tops
+ * within 1.5% of each other, and no run of more than four side-to-side
+ * alternations, with at least one same-side neighbour in each band so the set
+ * cannot read as a ladder. The winning set was then pasted here. What ships is
+ * fixed; only the search that found it was random.
  *
- * DOM order is top-to-bottom in both regimes (loose rows, left-to-right, in the
- * field), so tabbing still walks the field in a reading order even though the
- * positions do not line up.
+ * The four-and-four re-scatter re-ran that search over the gutter regime with
+ * dark, blue, light and the two layout buttons held fixed, adding one more
+ * filter: minimise the largest empty stretch down each band, since that is the
+ * number the old arrangement was actually failing on.
+ *
+ * DOM order is top-to-bottom within each band, so tabbing walks a reading
+ * order in both regimes (loose rows, left-to-right, in the field) even though
+ * the positions do not line up.
  */
 const THEME_PLACEMENTS: Placement[] = [
+  // Dark, Blue, Light: the left band, unchanged.
   { gutter: { left: '21%', top: '3%' }, field: { left: '32.5%', top: '62.5%' } },
   { gutter: { left: '2%', top: '16%' }, field: { left: '78%', top: '61%' } },
   { gutter: { left: '3%', top: '40%' }, field: { left: '8%', top: '68%' } },
-  { gutter: { left: '24.5%', top: '47.5%' }, field: { left: '72%', top: '70.5%' } },
-  { gutter: { left: '4%', top: '73%' }, field: { left: '18.5%', top: '80.5%' } },
-  { gutter: { left: '22.5%', top: '90%' }, field: { left: '43%', top: '77%' } },
+  // Red drops down the left band to where purple used to be -- see the
+  // four-and-four note above.
+  { gutter: { left: '24.5%', top: '68.5%' }, field: { left: '72%', top: '70.5%' } },
+  // Purple and green, now in the right band above the two layout buttons.
+  { gutter: { left: '86.5%', top: '22.5%' }, field: { left: '18.5%', top: '80.5%' } },
+  { gutter: { left: '83%', top: '44.5%' }, field: { left: '43%', top: '77%' } },
 ];
 
 /**
@@ -134,7 +179,11 @@ const DRIFT: { path: 'A' | 'B' | 'C'; seconds: number; offset: number }[] = [
  * Both regimes place them clear of the scroll-indicator arrow, which lives in
  * the middle ~10% of the hero's width, and clear of the six theme controls at
  * every width where these two render (>= 650px) -- the same offline scatter
- * that placed the swatches placed these, with the swatches held fixed.
+ * that placed the swatches placed these. These two did not move for the
+ * four-and-four re-scatter: they were already in the right band and already
+ * clear, so the search held them fixed and placed purple and green around
+ * them. They are last in DOM order, and they are the bottom two of the right
+ * band, which is the same thing (see the tab-order note above).
  */
 const LAYOUT_CONTROLS: (FloatingControl & {
   mode: 'default' | 'sideNav';
