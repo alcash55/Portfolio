@@ -36,10 +36,22 @@ export default defineConfig({
     // warnings and HMR make the dev server noisy and slow for this. Rebuilds
     // on every run so the suite always exercises current code; `bun run
     // build` is ~15-20s even on this mount.
-    command: 'bun run build && bunx vite preview --port 4173 --strictPort',
+    // `SKIP_SITE_STATS=1` keeps the committed counts instead of regenerating
+    // them. Regeneration shells out to `vitest list` and `playwright test
+    // --list`, which is ~90s on this mount -- on top of the build that pushed
+    // the whole webServer step past its timeout, so the suite could not start
+    // at all. The suite has no use for freshly-counted stats: the generated
+    // file is committed, and the committed values are what ships. `bun run
+    // build` still regenerates them everywhere else, which is what keeps the
+    // numbers from rotting.
+    command:
+      'SKIP_SITE_STATS=1 bun run build && bunx vite preview --port 4173 --strictPort',
     cwd: path.resolve(e2eDir, '..'),
     url: BASE_URL,
-    timeout: 120_000,
+    // Generous because `bun run build` on this /mnt/c mount is slow, and a
+    // suite that times out before it starts reports as a wall of unrelated
+    // failures.
+    timeout: 240_000,
     reuseExistingServer: !process.env.CI,
   },
 });
