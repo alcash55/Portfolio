@@ -1,9 +1,9 @@
+import { useRef, useState } from 'react';
 import {
   Card,
   CardActionArea,
   CardContent,
   CardHeader,
-  CardMedia,
   IconButton,
   Skeleton,
   Stack,
@@ -13,12 +13,19 @@ import {
   Box,
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
-import CodeIcon from '@mui/icons-material/Code';
 import StarIcon from '@mui/icons-material/StarBorder';
 import CachedIcon from '@mui/icons-material/CachedOutlined';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { type Theme } from '@mui/material/styles';
 import { staticProjects, type StaticProject } from './staticProjects';
-import useProjects, { type ApiProject } from './useProjects';
+import useProjects from './useProjects';
+import { formatUpdatedAt, mergeProject, type DisplayProject } from './displayProject';
+import { projectSlug } from './projectSlug';
+import { projectMedia } from './projectMedia';
+import { ProjectClipToggle, ProjectMediaPlayer } from './ProjectMediaPlayer';
+import { useProjectClip } from './useProjectClip';
+import { useProjectDialog } from './useProjectDialog';
+import ProjectDialog from './ProjectDialog';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
 import { hoverGlow } from '../../../layout/Theme/hoverGlow';
 
@@ -65,40 +72,6 @@ const projectCardSx = {
 };
 
 /**
- * A static project entry merged with live metadata (F1). The static entry
- * always wins for name/img/href/alt -- `description` falls back to the
- * live entry's only when the static one is blank, which none of the
- * current four are. `live` is `null` when there is no matching API entry,
- * the API is unreachable, or the request is still in flight -- any of
- * which means "render this card from static data alone".
- */
-interface DisplayProject extends StaticProject {
-  live: ApiProject | null;
-}
-
-const mergeProject = (project: StaticProject, apiProjects: ApiProject[] | null): DisplayProject => {
-  // An entry with no `repoName` isn't on GitHub, so there is nothing to match.
-  // Guarded explicitly rather than left to `find` -- `p.name === undefined`
-  // would be false for every real repo today, but that's an accident of the
-  // data, not a rule, and a single API entry with a missing name would quietly
-  // attach itself to every non-GitHub project.
-  const live = project.repoName
-    ? (apiProjects?.find((p) => p.name === project.repoName) ?? null)
-    : null;
-  return {
-    ...project,
-    description: project.description || live?.description || '',
-    live,
-  };
-};
-
-const formatUpdatedAt = (iso: string): string | null => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-};
-
-/**
  * @see https://mui-treasury.com/?path=/story/card-solidgame--solid-game
  */
 const Projects = () => {
@@ -108,8 +81,20 @@ const Projects = () => {
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(600));
   const { apiProjects, isLoading, stale } = useProjects();
+  const dialog = useProjectDialog();
 
   const displayProjects = staticProjects.map((project) => mergeProject(project, apiProjects));
+
+  const activeProject = dialog.project
+    ? (displayProjects.find((project) => project.name === dialog.project?.name) ?? null)
+    : null;
+  // The dialog's content has to outlive `open` going false, or the whole body
+  // blanks out for the length of the exit transition and the panel appears to
+  // empty itself before it fades. Holding the last one shown is enough: only
+  // one dialog is ever open, and a modal cannot be swapped for another without
+  // closing first.
+  const lastShown = useRef<DisplayProject | null>(null);
+  if (activeProject) lastShown.current = activeProject;
 
   return (
     <Stack id="projects" component={'section'} ref={reveal.ref} sx={reveal.sx}>
@@ -198,11 +183,25 @@ const Projects = () => {
                   <ProjectCardSkeleton key={project.name} largeMobile={largeMobile} />
                 ))
               : displayProjects.map((project) => (
-                  <ProjectCard key={project.name} project={project} largeMobile={largeMobile} />
+                  <ProjectCard
+                    key={project.name}
+                    project={project}
+                    largeMobile={largeMobile}
+                    onOpen={dialog.open}
+                  />
                 ))}
           </Box>
         </CardContent>
       </Card>
+
+      {/* Rendered once, outside the grid, because only one can be open. It
+          portals to the end of the body, so the section's scroll-reveal
+          transform never becomes its containing block. */}
+      <ProjectDialog
+        project={activeProject ?? lastShown.current}
+        open={Boolean(activeProject)}
+        onClose={dialog.close}
+      />
     </Stack>
   );
 };
@@ -210,11 +209,21 @@ const Projects = () => {
 const ProjectCard = ({
   project,
   largeMobile,
+  onOpen,
 }: {
   project: DisplayProject;
   largeMobile: boolean;
+  onOpen: (project: StaticProject) => void;
 }) => {
   const updatedAt = project.live?.updatedAt ? formatUpdatedAt(project.live.updatedAt) : null;
+  // Hover *or* focus, so the clip plays for a keyboard user too -- a preview
+  // that only exists for people with a mouse is a preview half the point of
+  // which is missing. `onFocus`/`onBlur` here are the bubbling focusin/focusout
+  // pair, so they cover the action area and the pause button both, and the
+  // `relatedTarget` guard stops focus moving *between* those two from reading
+  // as leaving the card.
+  const [active, setActive] = useState(false);
+  const clip = useProjectClip({ media: projectMedia[project.name], active });
 
   return (
     <Box
@@ -231,8 +240,16 @@ const ProjectCard = ({
           default `overflow: hidden` swallowed the excess silently. Cards match
           each other by stretching within the row, not by being told a height. */}
       <Card
+        onMouseEnter={() => setActive(true)}
+        onMouseLeave={() => setActive(false)}
+        onFocus={() => setActive(true)}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setActive(false);
+        }}
         sx={{
           ...projectCardSx,
+          // The pause button for a demo clip is positioned against this.
+          position: 'relative',
           transition: (theme: Theme) =>
             theme.transitions.create(['transform', 'box-shadow'], {
               duration: theme.transitions.duration.shorter,
@@ -256,8 +273,20 @@ const ProjectCard = ({
         }}
       >
         <CardActionArea
-          href={project.href}
-          target="_blank"
+          // The breaking change: this used to be `href={project.href}
+          // target="_blank"`, i.e. the card *was* the outbound link. It is a
+          // button now and the links moved inside the dialog, because two of
+          // the five cards led somewhere that was not their source code and
+          // there was nowhere on this page to reach the rest.
+          onClick={() => onOpen(project)}
+          // Tells a screen reader that activating this opens a dialog rather
+          // than navigating, which is the one thing the visible text cannot
+          // say on its own.
+          aria-haspopup="dialog"
+          // How the dialog finds this card again to hand focus back on close,
+          // including when it was opened from a `#projects/<slug>` link and
+          // this card was never touched.
+          data-project-slug={projectSlug(project)}
           sx={{
             width: '100%',
             // Fills the stretched card so the whole surface stays clickable,
@@ -274,51 +303,19 @@ const ProjectCard = ({
             '&:hover .MuiCardActionArea-focusHighlight': { opacity: 0 },
           }}
         >
-          {!largeMobile && project.img && (
-            <CardMedia
-              component="img"
-              alt={project.alt}
+          {!largeMobile && (
+            <ProjectMediaPlayer
+              clip={clip}
               image={project.img}
-              loading="lazy"
-              sx={{
-                width: '100%',
-                // 2:1 rather than the images' own 16:9. The image is the single
-                // biggest contributor to card height, and height is what
-                // decides whether a second row of projects still fits on one
-                // screen: at 16:9 two rows came to 665px against the 657px a
-                // 1366x768 laptop actually has. This buys back ~13px a card.
-                aspectRatio: '2 / 1',
-                // `contain`, not `cover`: two of these are logos and one is a
-                // marketplace listing, all of which lose their subject when
-                // cropped. The tinted panel behind makes the resulting
-                // letterboxing look deliberate rather than like a gap.
-                objectFit: 'contain',
-                bgcolor: 'action.hover',
-              }}
+              alt={project.alt}
+              // 2:1 rather than the images' own 16:9. The image is the single
+              // biggest contributor to card height, and height is what decides
+              // whether a second row of projects still fits on one screen: at
+              // 16:9 two rows came to 665px against the 657px a 1366x768 laptop
+              // actually has. This buys back ~13px a card, and a demo clip
+              // letterboxes into the same box rather than resizing it.
+              aspectRatio="2 / 1"
             />
-          )}
-          {!largeMobile && !project.img && (
-            <Box
-              sx={{
-                width: '100%',
-                // Matches the real image's ratio so a project without a
-                // screenshot is the same height as one with.
-                aspectRatio: '2 / 1',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                bgcolor: 'action.hover',
-              }}
-            >
-              <CodeIcon
-                sx={{
-                  // Was 120px, set when the image box was 339px tall; it
-                  // now overflows a ~100px box.
-                  fontSize: 56,
-                  color: 'action.disabled',
-                }}
-              />
-            </Box>
           )}
           <CardContent
             sx={{
@@ -372,46 +369,111 @@ const ProjectCard = ({
             >
               {project.description}
             </Typography>
-            {/* Live metadata (F1): only rendered once the API has actually
-                matched this repo, so a fallback or still-static card never
-                shows a stray "0 stars" for a repo we have no data for. */}
-            {project.live && (
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  color: 'text.secondary',
-                  // Pinned to the bottom of the stretched card so the metadata
-                  // rows line up across a row instead of floating at whatever
-                  // height each description happens to end at.
-                  mt: 'auto',
-                  pt: 1,
-                }}
-              >
-                {project.live.language && (
-                  <Typography variant="caption">{project.live.language}</Typography>
-                )}
+            {/* Pinned to the bottom of the stretched card so these rows line
+                up across a grid row instead of floating at whatever height
+                each description happens to end at. */}
+            <Box sx={{ mt: 'auto', pt: 1 }}>
+              {/* Live metadata (F1): only rendered once the API has actually
+                  matched this repo, so a fallback or still-static card never
+                  shows a stray "0 stars" for a repo we have no data for. */}
+              {project.live && (
                 <Stack
                   direction="row"
-                  spacing={0.25}
+                  spacing={1}
                   sx={{
                     alignItems: 'center',
+                    flexWrap: 'wrap',
+                    color: 'text.secondary',
                   }}
                 >
-                  <StarIcon sx={{ fontSize: 14 }} />
-                  <Typography variant="caption">{project.live.stars}</Typography>
+                  {project.live.language && (
+                    <Typography variant="caption">{project.live.language}</Typography>
+                  )}
+                  <Stack
+                    direction="row"
+                    spacing={0.25}
+                    sx={{
+                      alignItems: 'center',
+                    }}
+                  >
+                    <StarIcon sx={{ fontSize: 14 }} />
+                    <Typography variant="caption">{project.live.stars}</Typography>
+                  </Stack>
+                  {updatedAt && <Typography variant="caption">Updated {updatedAt}</Typography>}
                 </Stack>
-                {updatedAt && <Typography variant="caption">Updated {updatedAt}</Typography>}
-              </Stack>
-            )}
+              )}
+              <DetailsAffordance />
+            </Box>
           </CardContent>
         </CardActionArea>
+        {/* Outside the CardActionArea on purpose -- see ProjectClipToggle.
+            Renders nothing at all for a project with no clip.
+
+            Gated on `!largeMobile` for the same reason the player above is:
+            below 600px the card drops its media entirely, and a play button
+            with no video behind it is worse than no button. It rendered
+            unconditionally at first, which put a dead control on top of the
+            card's title on every phone -- the media player and this toggle are
+            two halves of one feature and have to appear and disappear
+            together. */}
+        {!largeMobile && (
+          <ProjectClipToggle clip={clip} active={active} projectName={project.name} />
+        )}
       </Card>
     </Box>
   );
 };
+
+/**
+ * The card's "there is more behind this" signal.
+ *
+ * The section's real risk is depth nobody opens: the outbound link just moved
+ * one click further away, so if the card does not say that something happens
+ * when you press it, the trade was a straight loss. Three things make this the
+ * affordance rather than, say, a hover overlay:
+ *
+ * - **It is always visible.** A hint that appears on hover does not exist on a
+ *   phone, which is where a good share of the traffic is.
+ * - **It is text, not an icon.** "Details" plus an arrow says what the press
+ *   does; a lone chevron could equally mean "expand" or "next".
+ * - **It costs the same height on every card**, so the grid rows stay aligned.
+ *
+ * Only the arrow moves on hover, and only by 3px -- enough to read as a
+ * response, small enough not to be a second animation competing with the
+ * card's own lift.
+ */
+const DetailsAffordance = () => (
+  <Stack
+    direction="row"
+    spacing={0.5}
+    sx={{
+      alignItems: 'center',
+      pt: 0.5,
+      // `primary.light`, not `primary.main`: `light` is the token every theme
+      // here guarantees against paper for accent text (main measured 3.98:1 in
+      // the blue theme, under AA's 4.5:1 for body text).
+      color: 'primary.light',
+    }}
+  >
+    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+      Details
+    </Typography>
+    <ArrowForwardIcon
+      sx={{
+        fontSize: 14,
+        transition: (theme: Theme) =>
+          theme.transitions.create('transform', {
+            duration: theme.transitions.duration.shorter,
+          }),
+        '.MuiCard-root:hover &': { transform: 'translateX(3px)' },
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
+          '.MuiCard-root:hover &': { transform: 'none' },
+        },
+      }}
+    />
+  </Stack>
+);
 
 /**
  * The cached-data hint. Worded to inform without alarming -- and deliberately
@@ -454,6 +516,9 @@ const ProjectCardSkeleton = ({ largeMobile }: { largeMobile: boolean }) => (
           <Skeleton variant="text" width="60%" height={28} />
           <Skeleton variant="text" width="90%" />
           <Skeleton variant="text" width="75%" />
+          {/* The "Details" row the real card carries, so the swap doesn't
+              change its height either. */}
+          <Skeleton variant="text" width="30%" />
         </CardContent>
       </Box>
     </Card>
