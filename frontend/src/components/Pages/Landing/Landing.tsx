@@ -9,9 +9,63 @@ import GitHub from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
 import Mail from '@mui/icons-material/Mail';
 import { navLinks } from '../../AppShell/InternalComponents/navLinks';
-import { SCROLL_INDICATOR_ATTR } from '../../AppShell/InternalComponents/useShowNavBar';
+import {
+  SCROLL_INDICATOR_ATTR,
+  navBarRevealScrollY,
+  stickyTopOffset,
+} from '../../AppShell/InternalComponents/useShowNavBar';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 import { HeroControls } from './HeroControls';
+
+/**
+ * `el`'s top edge in document coordinates, ignoring every CSS transform on the
+ * way up.
+ *
+ * `getBoundingClientRect()` is the obvious tool and the wrong one here. Every
+ * section on this page is wrapped in `useScrollReveal`, which holds it
+ * `translateY(24px)` below its laid-out position until it has revealed -- and
+ * the section being scrolled to has not revealed yet at the moment the click
+ * is handled, by definition. A rect read then reports where the section is
+ * *sitting*, not where it will come to rest, so the scroll lands 24px too far
+ * down and the reveal then slides the heading up under the nav bar. That 24px
+ * is precisely the 8px of covered heading measured at 1920x1080, 1366x768,
+ * 1440x650 and 820x1180 (24px of drift against 16px of intended clearance).
+ *
+ * The offset chain reports the laid-out position instead, because `offsetTop`
+ * is a layout value and transforms are a paint-time effect. It assumes the
+ * document is the only scroll container between `el` and the root, which holds
+ * on this page -- no section sits inside a nested scroller.
+ */
+const layoutTop = (el: HTMLElement): number => {
+  let top = 0;
+  let node: HTMLElement | null = el;
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  return top;
+};
+
+/**
+ * Breathing room left between the sticky bar's bottom edge (or the top of the
+ * window, in a layout with no bar) and the heading of the section scrolled to.
+ * Small on purpose: enough that the heading is not touching the chrome, not so
+ * much that the section appears to have been scrolled past.
+ */
+const HEADING_CLEARANCE_PX = 16;
+
+/**
+ * Where the window has to be scrolled for `section` to read as "arrived at".
+ *
+ * Measured to the section's *heading* rather than its top edge. The heading is
+ * the thing a visitor checks to know where they are, and it sits 16px inside
+ * the section's Card -- aligning the section's own top edge instead spends that
+ * 16px and leaves the heading that much closer to the bar.
+ */
+const sectionScrollTarget = (section: HTMLElement): number => {
+  const heading = section.querySelector('h2') ?? section;
+  return Math.max(0, layoutTop(heading as HTMLElement) - stickyTopOffset() - HEADING_CLEARANCE_PX);
+};
 
 const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
@@ -55,10 +109,41 @@ const Landing = () => {
     },
   };
 
+  // `'instant'` rather than `'auto'` for the reduced-motion path. `'auto'`
+  // means "defer to the scrolling box's `scroll-behavior`", and global.css sets
+  // `scroll-behavior: smooth` on html/body -- so `'auto'` here animated the
+  // scroll for exactly the visitors who asked it not to. `'instant'` is the
+  // value that actually means no animation.
+  const scrollBehavior: ScrollBehavior = prefersReducedMotion ? 'instant' : 'smooth';
+
   const scrollToSection = (id: string) => {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    const section = document.getElementById(id);
+    if (!section) return;
+    // Not `scrollIntoView()`: it aligns the target's top with the top of the
+    // window and knows nothing about the sticky bar that appears at that same
+    // moment. (`scroll-padding: 64px` in global.css does offset it, but that is
+    // a hardcoded copy of the bar's height, applies in the two layouts that
+    // have no bar at all, and still cannot see the reveal transform.)
+    window.scrollTo({ top: sectionScrollTarget(section), behavior: scrollBehavior });
+  };
+
+  /**
+   * The scroll-indicator arrow's own handler, which has one requirement the
+   * nav links do not: it is the click that hands navigation over from the
+   * hero's inline nav to the global bar, so it must not stop anywhere the bar
+   * is still hidden. Landing short leaves a visitor with no navigation at all
+   * -- the hero's nav has scrolled away and the global one has not arrived.
+   *
+   * `sectionScrollTarget` alone is normally already past that point (by 40px at
+   * every size measured). The floor is here because "normally" is what broke
+   * last time: it makes the requirement explicit and self-healing if the gap
+   * between the arrow and About's heading ever changes.
+   */
+  const scrollPastHero = (id: string) => {
+    const section = document.getElementById(id);
+    if (!section) return;
+    const top = Math.max(sectionScrollTarget(section), navBarRevealScrollY() ?? 0);
+    window.scrollTo({ top, behavior: scrollBehavior });
   };
 
   // Landing IS the "landing" section, so a link back to it would be a no-op;
@@ -464,45 +549,80 @@ const Landing = () => {
           </Box>
         </Box>
 
-        {/* Scroll Indicator */}
-        <Stack
-          sx={{
-            pb: 3,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-          }}
-        >
-          {/* The attribute is load-bearing, not a test hook: `useShowNavBar`
-              measures this element so the global NavBar appears as the arrow
-              leaves the viewport.
-
-              It sits here rather than on the Stack, which adds 24px of bottom
-              padding and so stays on screen well after the arrow has visibly
-              gone; and rather than on the arrow glyph itself, which is the
-              tightest box but is running the `bounce` animation -- a 6px
-              oscillation would drag the measured edge back and forth across
-              the threshold and flicker the bar. This button is the tightest
-              box that holds still. */}
-          <IconButton
-            {...{ [SCROLL_INDICATOR_ATTR]: true }}
-            size={'large'}
-            onClick={() => nextSection && scrollToSection(nextSection.id)}
-            aria-label={
-              nextSection ? `Scroll to ${nextSection.label} section` : 'Scroll to next section'
-            }
-          >
-            <ArrowDownward
-              sx={{
-                width: 18,
-                height: 18,
-                color: heroScrollIcon,
-                animation: prefersReducedMotion ? 'none' : 'bounce 1.5s infinite',
-              }}
-            />
-          </IconButton>
-        </Stack>
       </Box>
+
+      {/* Scroll Indicator -- a direct child of the hero section, not of the
+          content column above it. */}
+      <Stack
+        sx={{
+          // Pinned to the hero's own bottom edge instead of riding at the end
+          // of the content column, and that is the fix for "the arrow is only
+          // somewhat visible".
+          //
+          // The hero is `height: 100vh; overflow: hidden` while its content
+          // column is `minHeight: 100vh`, so as soon as that content needs more
+          // than one viewport -- which it does at every laptop height -- the
+          // column grows past the hero's box and the last thing in it, this
+          // arrow, is clipped away. Measured: the arrow's bottom edge fell
+          // 28.7px past the hero's bottom at 1280x800, 60.7px at 1366x768,
+          // 178.7px at 1440x650, 41.6px at 320x700. Invisible, unclickable, and
+          // still the element `useShowNavBar` measures its threshold against --
+          // which is how the bar's timing came to depend on window height again
+          // by a second route, after the hook had already fixed the first.
+          //
+          // It has to be positioned against the *hero* (`position: relative`),
+          // which is the box that clips, rather than against the content column
+          // (also `position: relative`) that grows past it -- hence living out
+          // here as a sibling of that column rather than inside it. `zIndex`
+          // matches the column's so it still sits above the hero's animated
+          // background, which it did as a descendant.
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          // Clear of `MobileChrome`'s bottom nav in the `mobile` layout. That
+          // bar is `position: fixed` at the bottom of the *window* and 56px
+          // tall, so 24px put the arrow entirely behind it -- measured, the
+          // whole 42px button sat under the bar at both 390x844 and 320x700,
+          // which is the one layout where the arrow is the only way forward
+          // that the hero itself offers. 72 = the bar's 56 plus the same 16px
+          // of clearance used everywhere else here. It does not collide with
+          // MobileChrome's settings Fab, which is off to the right while this
+          // is centred.
+          bottom: layout === 'mobile' ? 72 : 24,
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+        }}
+      >
+        {/* The attribute is load-bearing, not a test hook: `useShowNavBar`
+            measures this element so the global NavBar appears as the arrow
+            leaves the viewport.
+
+            It sits here rather than on the Stack, which is stretched full-width
+            and so is a much looser box than the button; and rather than on the
+            arrow glyph itself, which is the tightest box but is running the
+            `bounce` animation -- a 6px oscillation would drag the measured edge
+            back and forth across the threshold and flicker the bar. This button
+            is the tightest box that holds still. */}
+        <IconButton
+          {...{ [SCROLL_INDICATOR_ATTR]: true }}
+          size={'large'}
+          onClick={() => nextSection && scrollPastHero(nextSection.id)}
+          aria-label={
+            nextSection ? `Scroll to ${nextSection.label} section` : 'Scroll to next section'
+          }
+        >
+          <ArrowDownward
+            sx={{
+              width: 18,
+              height: 18,
+              color: heroScrollIcon,
+              animation: prefersReducedMotion ? 'none' : 'bounce 1.5s infinite',
+            }}
+          />
+        </IconButton>
+      </Stack>
 
       {/* CSS for animations */}
       <style>{`

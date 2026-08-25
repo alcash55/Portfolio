@@ -240,6 +240,17 @@ for (const vp of VIEWPORTS) {
         g.arrow.bottom,
         `the hero clips ${g.arrow.bottom - g.heroBottom}px off the bottom of its own arrow`,
       ).toBeLessThanOrEqual(g.heroBottom);
+      // On screen is not the same as reachable. `MobileChrome`'s bottom nav is
+      // `position: fixed` over the bottom of the window, and the whole arrow
+      // sat behind it at both phone sizes -- which a viewport check cannot see,
+      // and which a Playwright `.click()` hides too, because it scrolls the
+      // target out from under the bar before clicking.
+      if (g.bottomNavTop !== null) {
+        expect(
+          g.arrow.bottom,
+          `the mobile bottom nav covers ${g.arrow.bottom - g.bottomNavTop}px of the arrow`,
+        ).toBeLessThanOrEqual(g.bottomNavTop);
+      }
     });
 
     test('clicking the arrow lands on About with the nav in place', async ({ page }) => {
