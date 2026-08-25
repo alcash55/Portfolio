@@ -77,7 +77,8 @@ export const navBarRevealScrollY = (): number | null => {
  * being gone arrives at a rect position that shifts with viewport height
  * (measured: the arrow's rect was still 27px inside the viewport at 800px tall,
  * and still *below* the viewport top at 700px, which left the bar stuck hidden
- * forever). `bottom <= 0` is the unambiguous version of the same question.
+ * forever). Comparing the arrow's own bottom edge to a stated line is the
+ * unambiguous version of the same question.
  *
  * Falls back to the old offset rule when there is no indicator in the DOM (the
  * error page, and any test that renders the shell without Landing), so the bar

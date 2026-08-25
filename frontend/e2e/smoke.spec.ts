@@ -172,6 +172,22 @@ test('the nav bar appears as the hero arrow leaves, not before or long after', a
   // must stay out of the way.
   expect(await navVisibility()).toBe('hidden');
 
+  // Still hidden 200px short of that, with the arrow plainly in view and the
+  // hero still owning the screen. Added in Sprint 16: the threshold moved from
+  // "the arrow has cleared the window" to "the arrow has reached the sticky
+  // bar's own footprint", which is 64px earlier, and the check below cannot
+  // tell 64px early from 200px early from half a viewport early. This pins the
+  // "not before" half against anything creeping further up the hero.
+  await page.evaluate(() => {
+    const arrow = document.querySelector('[data-scroll-indicator]') as HTMLElement;
+    const bottom = arrow.getBoundingClientRect().bottom + window.scrollY;
+    window.scrollTo({ top: bottom - 200, behavior: 'instant' });
+  });
+  // Long enough for the scroll listener's frame plus the bar's 220ms fade: if
+  // it were going to appear, it would have by now.
+  await page.waitForTimeout(500);
+  expect(await navVisibility()).toBe('hidden');
+
   // Put the arrow just past the top of the viewport.
   await page.evaluate(() => {
     const arrow = document.querySelector('[data-scroll-indicator]') as HTMLElement;
