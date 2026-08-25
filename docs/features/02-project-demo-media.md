@@ -78,34 +78,37 @@ local stack needs you, or a run-through I can drive.
 
 ## Done when
 
-All five boxes below were pre-ticked in this spec before this sprint's work
-started; per `TEAM-BRIEF.md` those are not trustworthy and every one was
-re-verified from scratch. My scope this sprint was capture + encode only
-(see `MEDIA-MANIFEST.md`) — the player, lazy-loading, `prefers-reduced-motion`
-handling, and `projectMedia.ts` wiring are Role A's, built in parallel and not
-merged into this branch. So the half I can verify (the clips themselves) is
-ticked; the half that depends on integration work not present in this
-worktree is left unticked rather than assumed.
+The five boxes here were pre-ticked before this sprint started and were not
+trustworthy, so every one was re-verified from scratch. The clips were recorded
+and encoded on their own branch, where the player did not yet exist; these are
+the statuses **after integration**, when both halves were finally in one tree
+and could be exercised together.
 
-- [ ] Each clip is under the agreed budget and lazy-loaded — **budget: yes**,
-      confirmed by `ffprobe` on all three encoded clips (153–228 KB, 5.0–7.0s,
-      all under the 600 KB / 8s ceiling). **Lazy-loaded: unverified** — that's
-      the player's responsibility (`projectMedia.ts` + the dialog), not built
-      in this worktree.
-- [ ] `prefers-reduced-motion` gets the poster image and no motion — not
-      verifiable from this worktree; no player exists here to test against.
-- [ ] Card heights are unchanged — media letterboxes into the existing 2:1 box
-      — all three clips are encoded at exactly 1000×500 (2:1), matching the
-      card's `aspectRatio: '2 / 1'` box precisely, so `objectFit: 'contain'`
-      needs no letterbox bars for these specific clips. Not verified in an
-      actual rendered card, since `projectMedia.ts` ships empty from this
-      sprint by contract and wiring happens at merge time.
-- [ ] e2e stays green, `zero console errors` included — not exercised; no
-      `.tsx` or e2e spec changes are in this branch's scope.
-- [ ] Lighthouse performance does not drop below its current 93 — not
-      measurable until the clips are actually wired into a page and lazy
-      behind the dialog; three unwired MP4s sitting in `src/assets/videos/`
-      import nothing into the bundle and cannot regress this on their own.
+- [x] Each clip is under the agreed budget and lazy-loaded — budget confirmed by
+      `ffprobe` on all three (153–228 KB, 5.0–7.0s, against a 600 KB / 8s
+      ceiling). Lazy-loading confirmed on the merged branch by a network trace:
+      a cold load fetches no `.mp4` until a card is hovered or focused, or a
+      dialog opens.
+- [x] `prefers-reduced-motion` gets the poster image and no motion — verified
+      under `emulateMedia({ reducedMotion: 'reduce' })`: no `<video>` is
+      mounted at all, on the card or in the dialog, and the play/pause control
+      does not render either.
+- [x] Card heights are unchanged — media letterboxes into the existing 2:1 box —
+      all three clips are encoded at exactly 1000×500, so they fill the card's
+      `aspectRatio: '2 / 1'` box with no bars. Measured on a rendered card: 283px
+      tall with and without a clip.
+- [x] e2e stays green, `zero console errors` included — 62 browser tests pass on
+      the merged branch, that check among them, and the console stays clean
+      while opening dialogs and playing clips, not just on load.
+- [ ] Lighthouse performance does not drop below its current 93 — **unresolved,
+      deliberately.** Measured on this machine the result was not reproducible:
+      one mobile-preset run put the sprint far below `main`, an identical rerun
+      put them level, and the desktop preset scored both at 100. That spread is
+      environment noise on a shared WSL2 CPU, so it neither confirms nor refutes
+      a regression. The clips themselves are lazy and cannot cost anything until
+      played; the open question is the hero's eight continuously-animating,
+      `will-change`-promoted controls under sustained CPU throttling. Re-measure
+      on real hardware or in CI before trusting any number here.
 
 ## Risks
 
