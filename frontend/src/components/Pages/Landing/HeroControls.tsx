@@ -16,20 +16,23 @@ import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
  * these positions are measured rather than guessed (`e2e/hero-controls.spec.ts`
  * re-measures them on every run):
  *
- * - `gutter`, from 1024px up: the content column is centred and capped at
- *   960px, so both edges of the hero are clear. Six themes drift down the left
- *   gutter, the two layouts down the right one.
- * - `field`, below 1024px: there is no gutter left. The subtitle runs to within
- *   ~55px of both edges at 700px wide -- narrower than one control plus its
+ * - `gutter`, from 1024px up: the content column is centred and its longest
+ *   line of ink -- the subtitle -- ends around 24% of the hero at 1280px, the
+ *   tightest of the wide widths. That leaves a band roughly 265px wide down
+ *   each side, not a hairline margin, so the controls are scattered *through*
+ *   that band at depths between 2% and 24% rather than ruled down a single
+ *   column at its edge.
+ * - `field`, below 1024px: there is no band left. The subtitle runs to within
+ *   ~35px of both edges at 700px wide -- narrower than one control plus its
  *   drift -- so anything at the edges would sit on the text. The controls move
  *   instead to the lower half of the hero, which is clear of every piece of
- *   text at every width down to 320px.
+ *   text at every width down to 320px, and scatter across its full width.
  *
- * The top row of the field sits at 61% rather than hard against the social
- * links above it because the hero's content column is centred: while the
- * webfonts are still loading, fallback metrics push that column ~96px further
- * down a 320px-wide screen, and a tighter row would spend that first moment
- * sitting on the social icons.
+ * The field starts at ~52% rather than hard against the social links above it
+ * because the hero's content column is centred: while the webfonts are still
+ * loading, fallback metrics push that column ~96px further down a 320px-wide
+ * screen, and a tighter row would spend that first moment sitting on the
+ * social icons.
  *
  * Overlapping the bento photographs down there is allowed and deliberate: they
  * are decorative, they are already behind a 0.5-alpha black scrim, and the
@@ -43,7 +46,7 @@ import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
  * 320px.
  */
 interface Placement {
-  /** >= 1024px: down the left and right gutters. */
+  /** >= 1024px: scattered through the side bands the centred column leaves. */
   gutter: { left: string; top: string };
   /** < 1024px: scattered across the lower half. */
   field: { left: string; top: string };
@@ -61,20 +64,60 @@ interface FloatingControl {
  * Where the six theme controls rest, in the order they are painted and in the
  * order they take focus.
  *
- * Hand-written, not generated with the `Math.random()` the decorative
- * particles use, because DOM order is the tab order: down the left gutter
- * top-to-bottom on a wide screen, and left-to-right, row by row, on a narrow
- * one. Randomised positions would mean a control field that tabs in a
- * different order on every reload -- a WCAG 2.4.3 failure that changes shape
- * each time you look at it.
+ * ── Irregular, and fixed ──
+ * These are constants, not `Math.random()` calls like the decorative particles
+ * in Landing.tsx. DOM order is the tab order, so randomising positions would
+ * mean a control field that tabs in a different order on every reload -- a WCAG
+ * 2.4.3 failure that changes shape each time you look at it. But *irregular*
+ * and *random* are different things, and the first version of this file
+ * confused them: it alternated 4% / 7.5% / 3% / 7% against tops ruled every
+ * 11%, which is a ladder, and a ladder reads as a widget bolted to the edge
+ * rather than as dots.
+ *
+ * So the numbers below were generated once, offline, by a seeded scatter run
+ * against the hero geometry measured in a real browser at all nine viewports
+ * the e2e suite checks -- rejecting any point that lands on text, on the social
+ * links, on the scroll arrow, off an edge, or within 10px of another control at
+ * *any* of those widths, plus a shape filter: no two controls sharing a
+ * horizontal rule, no two gaps between successive tops within 1.5% of each
+ * other, and no side-to-side alternation. The winning set was then pasted here.
+ * What ships is fixed; only the search that found it was random.
+ *
+ * DOM order is top-to-bottom in both regimes (loose rows, left-to-right, in the
+ * field), so tabbing still walks the field in a reading order even though the
+ * positions do not line up.
  */
 const THEME_PLACEMENTS: Placement[] = [
-  { gutter: { left: '4%', top: '12%' }, field: { left: '4%', top: '61%' } },
-  { gutter: { left: '7.5%', top: '23%' }, field: { left: '30%', top: '61%' } },
-  { gutter: { left: '3%', top: '34%' }, field: { left: '66%', top: '61%' } },
-  { gutter: { left: '7%', top: '45%' }, field: { left: '12%', top: '72%' } },
-  { gutter: { left: '3.5%', top: '56%' }, field: { left: '44%', top: '72%' } },
-  { gutter: { left: '7.5%', top: '67%' }, field: { left: '80%', top: '72%' } },
+  { gutter: { left: '7.5%', top: '6%' }, field: { left: '44.5%', top: '56.5%' } },
+  { gutter: { left: '2%', top: '23.5%' }, field: { left: '73%', top: '52.5%' } },
+  { gutter: { left: '14.5%', top: '33.5%' }, field: { left: '5.5%', top: '62.5%' } },
+  { gutter: { left: '23.5%', top: '48.5%' }, field: { left: '55%', top: '70.5%' } },
+  { gutter: { left: '12%', top: '62%' }, field: { left: '32.5%', top: '84%' } },
+  { gutter: { left: '17%', top: '85.5%' }, field: { left: '78%', top: '81.5%' } },
+];
+
+/**
+ * Per-control motion, indexed the same way the controls are: which of the three
+ * wander paths it takes, how long one lap lasts, and how far into that lap it
+ * starts.
+ *
+ * Three paths rather than one so eight controls do not trace the same shape at
+ * eight speeds, and the durations are deliberately not an arithmetic run -- an
+ * evenly-stepped set of periods re-synchronises into a visible pulse every so
+ * often. The offsets are *negative*: a positive `animation-delay` would leave
+ * every control frozen at its resting point for the first few seconds after
+ * load, so the field would appear dead exactly when someone first looks at it.
+ * A negative one starts the lap already in progress.
+ */
+const DRIFT: { path: 'A' | 'B' | 'C'; seconds: number; offset: number }[] = [
+  { path: 'A', seconds: 13.4, offset: -2.4 },
+  { path: 'B', seconds: 16.1, offset: -9.1 },
+  { path: 'C', seconds: 14.2, offset: -5.6 },
+  { path: 'A', seconds: 18.3, offset: -13.2 },
+  { path: 'B', seconds: 15, offset: -7.3 },
+  { path: 'C', seconds: 17.2, offset: -1.1 },
+  { path: 'A', seconds: 15.8, offset: -11.4 },
+  { path: 'B', seconds: 13.9, offset: -4.7 },
 ];
 
 /**
@@ -84,8 +127,10 @@ const THEME_PLACEMENTS: Placement[] = [
  * nothing. Icons rather than swatches: a window with a bar across its top, and
  * one with a column down its left, which is what the two layouts look like.
  *
- * The `field` row these two sit in is clear of the scroll-indicator arrow,
- * which lives in the middle ~10% of the hero's width.
+ * Both regimes place them clear of the scroll-indicator arrow, which lives in
+ * the middle ~10% of the hero's width, and clear of the six theme controls at
+ * every width where these two render (>= 650px) -- the same offline scatter
+ * that placed the swatches placed these, with the swatches held fixed.
  */
 const LAYOUT_CONTROLS: (FloatingControl & {
   mode: 'default' | 'sideNav';
@@ -96,14 +141,14 @@ const LAYOUT_CONTROLS: (FloatingControl & {
     mode: 'default',
     label: 'Top nav layout',
     Icon: WebAsset,
-    place: { gutter: { left: '92%', top: '20%' }, field: { left: '20%', top: '86%' } },
+    place: { gutter: { left: '78.5%', top: '38%' }, field: { left: '29%', top: '70%' } },
   },
   {
     id: 'sideNav',
     mode: 'sideNav',
     label: 'Side nav layout',
     Icon: VerticalSplit,
-    place: { gutter: { left: '88%', top: '33%' }, field: { left: '70%', top: '86%' } },
+    place: { gutter: { left: '95%', top: '58%' }, field: { left: '64%', top: '88.5%' } },
   },
 ];
 
@@ -128,16 +173,24 @@ const SIZE = 44;
  * problem for anyone whose pointer is not steady. Three things keep it
  * hittable:
  *
- *  1. The drift is deliberately not the decorative `float` keyframes, which
- *     throw a dot 30px around over 5-15s. `heroControlDrift` moves 6px over
- *     20-28s -- roughly a third of a millimetre per second on a laptop screen,
- *     i.e. slower than a pointer correction, and never further than a seventh
- *     of the button's own width, so the button under the cursor when you press
- *     is the one that was under it when you aimed.
- *  2. Hover and keyboard focus both pause the animation outright
+ *  1. Hover and keyboard focus both pause the animation outright
  *     (`animation-play-state: paused`, which freezes it where it is rather than
- *     snapping it home). Once you are on one, it stops.
- *  3. 44px targets, which is bigger than the drift by a factor of seven.
+ *     snapping it home). Once you are on one, it stops -- and it stops before a
+ *     pointer that is still travelling can arrive, because the pause fires on
+ *     `mouseover`, not on click.
+ *  2. 44px targets against a lap that never carries a control more than 12px
+ *     from its resting point: a raw click at the coordinates a control occupied
+ *     a moment ago still lands inside it, which is what the e2e suite checks
+ *     rather than taking the arithmetic on trust.
+ *
+ * The first version of this file tried to buy that hittability with speed
+ * instead -- 6px of travel over 20-28s, about 0.3px per second. That is slow
+ * enough that the browser spends seconds at a time on the same rendered
+ * position and then jumps to the next one, which is exactly what reads as
+ * choppy. The drift now covers 65-82px of path per lap in 13.4-18.3s (~4-6px
+ * per second), which is the same order as the decorative dots' ~7-20px/s and
+ * comfortably above the threshold where discrete steps become visible. The
+ * pause, not the speed, is what makes it aimable.
  *
  * Under `prefers-reduced-motion` the animation is dropped entirely and every
  * control sits at its resting position. The decorative dots are skipped
@@ -220,10 +273,23 @@ export const HeroControls = () => {
     color: 'text.primary',
     boxShadow: 3,
     // Staggered so eight identical animations don't move in lockstep, which
-    // would read as the whole set sliding rather than as dots drifting.
+    // would read as the whole set sliding rather than as dots drifting. See
+    // DRIFT above for the paths, periods and (negative) offsets.
+    //
+    // `linear`, not `ease-in-out`: the easing belongs to the path, not to the
+    // timing. Each lap is twelve samples of a smooth closed curve, so a
+    // constant-speed traversal already turns gradually -- where an ease-in-out
+    // over four stops decelerated into a stop and reversed four times a lap,
+    // which is what made the motion read as a repeating shape rather than as
+    // drifting.
     animation: prefersReducedMotion
       ? 'none'
-      : `heroControlDrift ${20 + index}s ease-in-out ${index * 1.7}s infinite`,
+      : `heroControlDrift${DRIFT[index].path} ${DRIFT[index].seconds}s linear ` +
+        `${DRIFT[index].offset}s infinite`,
+    // Promotes the control to its own compositor layer, so each frame is a
+    // layer transform rather than a repaint of the disc, its border and its
+    // shadow. Left off under reduced motion, where there is nothing to hint.
+    willChange: prefersReducedMotion ? 'auto' : 'transform',
     '&:hover, &.Mui-focusVisible': {
       // Freezes the drift where it is -- the button does not snap back to its
       // resting place under the pointer, it simply stops.
@@ -342,14 +408,67 @@ export const HeroControls = () => {
       {/* Scoped to this component rather than added to Landing's keyframe
           block: the decorative `float` there is a different animation with a
           different job (see the drift note above), and the two should not be
-          able to drift -- pun intended -- into using each other's values. */}
+          able to drift -- pun intended -- into using each other's values.
+
+          Three closed wander-loops, each written out as twelve evenly spaced
+          samples of a smooth curve. The stop count is the whole trick: with
+          four stops a lap is four straight legs and four hard turns, which the
+          eye reads as a repeating shape; with twelve the turns are 30 degrees
+          apart and, played `linear`, the control simply wanders. Every sample
+          is inside a 12px radius of the resting point; the e2e geometry suite
+          leaves 14px of slack around every control to match, and one of its
+          tests reads these rules back out of the CSSOM so that widening a lap
+          without widening that slack fails rather than quietly parking a
+          control on the subtitle. `transform` and nothing else:
+          animating `top`/`left` would put every frame through layout. */}
       <style>{`
-        @keyframes heroControlDrift {
-          0%, 100% { transform: translate(0, 0); }
-          25%      { transform: translate(4px, -6px); }
-          50%      { transform: translate(-3px, -3px); }
-          75%      { transform: translate(-5px, 4px); }
-        }
+        @keyframes heroControlDriftA {
+          0% { transform: translate(1.3px, -9.6px); }
+          8.333% { transform: translate(6.7px, -6.2px); }
+          16.667% { transform: translate(9.2px, -4.8px); }
+          25% { transform: translate(9.1px, -2.1px); }
+          33.333% { transform: translate(7.5px, 4.8px); }
+          41.667% { transform: translate(5.0px, 10.4px); }
+          50% { transform: translate(1.3px, 9.6px); }
+          58.333% { transform: translate(-3.7px, 6.2px); }
+          66.667% { transform: translate(-8.8px, 4.8px); }
+          75% { transform: translate(-11.7px, 2.1px); }
+          83.333% { transform: translate(-10.5px, -4.8px); }
+          91.667% { transform: translate(-5.4px, -10.4px); }
+          100% { transform: translate(1.3px, -9.6px); }
+        }  /* max displacement 11.8px, path 66px per cycle */
+
+        @keyframes heroControlDriftB {
+          0% { transform: translate(-5.2px, 7.3px); }
+          8.333% { transform: translate(-4.3px, 9.9px); }
+          16.667% { transform: translate(-1.7px, 9.4px); }
+          25% { transform: translate(5.5px, 6.9px); }
+          33.333% { transform: translate(10.7px, 3.7px); }
+          41.667% { transform: translate(8.9px, -0.0px); }
+          50% { transform: translate(5.2px, -4.3px); }
+          58.333% { transform: translate(4.3px, -8.4px); }
+          66.667% { transform: translate(1.7px, -10.9px); }
+          75% { transform: translate(-5.5px, -9.9px); }
+          83.333% { transform: translate(-10.7px, -5.2px); }
+          91.667% { transform: translate(-8.9px, 1.5px); }
+          100% { transform: translate(-5.2px, 7.3px); }
+        }  /* max displacement 11.9px, path 65px per cycle */
+
+        @keyframes heroControlDriftC {
+          0% { transform: translate(9.4px, 1.0px); }
+          8.333% { transform: translate(4.7px, 6.6px); }
+          16.667% { transform: translate(-2.3px, 4.0px); }
+          25% { transform: translate(-7.6px, -3.4px); }
+          33.333% { transform: translate(-8.8px, -7.4px); }
+          41.667% { transform: translate(-6.5px, -3.2px); }
+          50% { transform: translate(-3.6px, 5.8px); }
+          58.333% { transform: translate(-1.8px, 10.7px); }
+          66.667% { transform: translate(-0.6px, 6.4px); }
+          75% { transform: translate(1.8px, -3.4px); }
+          83.333% { transform: translate(5.9px, -9.8px); }
+          91.667% { transform: translate(9.4px, -7.3px); }
+          100% { transform: translate(9.4px, 1.0px); }
+        }  /* max displacement 11.9px, path 82px per cycle */
       `}</style>
     </Box>
   );
