@@ -167,4 +167,53 @@ describe('AppShellProvider (breakpoint crossings must not reset app state)', () 
       'switching to sideNav should reuse the same child instance, not remount it',
     ).toHaveTextContent('1');
   });
+
+  it("keeps the drawer's own layout selection truthful when localStorage disagrees with this tab's real layout", async () => {
+    const user = userEvent.setup();
+    render(
+      <AppShellProvider>
+        <StateProbe />
+      </AppShellProvider>,
+    );
+
+    Object.defineProperty(window, 'scrollY', { value: 2000, configurable: true });
+    act(() => {
+      fireEvent.scroll(window);
+    });
+    await user.click(screen.getByRole('button', { name: /open settings drawer/i }));
+
+    expect(
+      screen.getByRole('button', { name: 'Top Nav' }),
+      'the default layout should start selected',
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Side Nav' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+
+    // Something outside this AppShellProvider instance wrote 'sideNav' to
+    // localStorage without going through its own `toggleLayout` -- exactly what
+    // happens when another browser tab switches layout, since localStorage is
+    // shared across tabs of the same origin but this tab's own `mode` state is
+    // not. This tab's actual layout has not changed.
+    localStorage.setItem('layout', 'sideNav');
+
+    // Force a re-render that has nothing to do with the layout -- scrolling,
+    // resizing, or typing elsewhere in the app does this constantly in real
+    // usage, and none of it should make the drawer suddenly start trusting a
+    // value it never asked to change.
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+    act(() => {
+      fireEvent.scroll(window);
+    });
+
+    expect(
+      screen.getByRole('button', { name: 'Top Nav' }),
+      "LayoutButton must read the live layout from AppShellLayoutContext, not localStorage: reading localStorage at render time means any unrelated re-render can pick up a write this tab never made and flip the selection to a layout the shell never actually switched to",
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Side Nav' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
 });
