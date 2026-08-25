@@ -141,8 +141,26 @@ const THEME_PLACEMENTS: Placement[] = [
   // four-and-four note above.
   { gutter: { left: '24.5%', top: '68.5%' }, field: { left: '72%', top: '70.5%' } },
   // Purple and green, now in the right band above the two layout buttons.
+  //
+  // Green's *field* placement moved at merge time, and only the field one --
+  // it used to sit at 43%/77%, in the bottom centre. That was clear until the
+  // hero's scroll indicator stopped being clipped off the bottom edge and came
+  // to rest at the hero's foot, which put a 42px button 3px away from green at
+  // 320x700 against the 14px of drift slack the sweep requires. The arrow is a
+  // navigation affordance and the only forward cue on the smallest phone, so
+  // green yields to it rather than the other way round.
+  //
+  // The hero's foot is busier than it looks at 320px: the arrow owns the
+  // centre (x 125-199), MobileChrome's settings Fab owns the bottom right
+  // (x 242-290), the bottom nav caps everything at y 644, and purple already
+  // holds the bottom left. Moving green right put it on the Fab; moving it
+  // further down put it on the nav. 40%/73% instead lifts it into the clear
+  // band above the arrow -- 31px of gap to the arrow below, 30px to dark
+  // above, 25px to purple beside it. The gutter placements are untouched: the
+  // four-a-side split is a wide-screen arrangement and the arrow never
+  // reaches it.
   { gutter: { left: '86.5%', top: '22.5%' }, field: { left: '18.5%', top: '80.5%' } },
-  { gutter: { left: '83%', top: '44.5%' }, field: { left: '43%', top: '77%' } },
+  { gutter: { left: '83%', top: '44.5%' }, field: { left: '40%', top: '73%' } },
 ];
 
 /**
