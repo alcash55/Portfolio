@@ -63,3 +63,44 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  notify:
+    name: Notify Discord
+    needs: deploy
+    # `always()` so this job still runs -- and can report the failure --
+    # when `deploy` fails. A plain `needs: deploy` implicitly requires
+    # deploy to succeed, which would skip this job on exactly the runs
+    # where a notification matters most.
+    if: always()
+    runs-on: ubuntu-latest
+    # This job never checks out the repo and never touches Pages -- it
+    # only sends an outbound webhook -- so it gets no token permissions,
+    # same reasoning as keep-alive.yml's ping job.
+    permissions: {}
+    # `secrets` isn't a valid context inside an `if:` (job- or step-level --
+    # GitHub rejects it outright), so the secret is mirrored into a job-level
+    # env var first. `env` *is* a valid `if:` context, and this also means
+    # the presence check and the value passed to the action read from the
+    # same place instead of two separate secrets lookups drifting apart.
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+    steps:
+      - name: Send Discord notification
+        # Portfolio's Discord webhook lives server-side, in the backend's
+        # WEBHOOK_URL on Render (see the build step's env comment above) --
+        # there is currently no equivalent secret on this GitHub repo. This
+        # step is guarded on DISCORD_WEBHOOK_URL being set so a repo without
+        # it configured just skips notifying instead of failing outright,
+        # and `continue-on-error` means even a bad URL or a Discord outage
+        # can't turn this job red. Either way, nothing here can affect
+        # `deploy`'s result -- that already ran and finished in the job
+        # above; this is report-only commentary on the outcome.
+        if: ${{ env.DISCORD_WEBHOOK_URL != '' }}
+        continue-on-error: true
+        uses: alcash55/ac-composite-actions/notifications/discord-messages@main
+        with:
+          WEBHOOK_URL: ${{ env.DISCORD_WEBHOOK_URL }}
+          USERNAME: Portfolio Deploys
+          MESSAGE: |
+            Deploy ${{ needs.deploy.result == 'success' && 'succeeded' || 'failed' }}: ${{ github.repository }}@${{ github.sha }}
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

@@ -7,6 +7,13 @@ on:
     paths:
       - 'frontend/src/assets/AlexResume.pdf'
 
+# This job only reads the repo to check out the resume PDF; it never writes
+# anything back, opens a PR, or touches any other API. contents: read is
+# already the repository default, but ci.yml and keep-alive.yml both say so
+# explicitly rather than relying on that default, so this does too.
+permissions:
+  contents: read
+
 jobs:
   check-resume:
     runs-on: ubuntu-latest
@@ -22,7 +29,34 @@ jobs:
           APILAYER_API_KEY: ${{ secrets.APILAYER_API_KEY }}
 
       - name: Output ATS Check Results
+        # ATS_REPORT is a multi-line markdown document that can contain
+        # quotes and backticks -- interpolating it straight into a `run:`
+        # block with ${{ }} would both mangle it (bash sees literal
+        # newlines and stops respecting the quoting the moment one shows
+        # up) and let a crafted report inject shell commands. Passing it
+        # through `env:` instead means bash only ever sees it as an opaque
+        # string in a variable, never as script text. It's written to
+        # GITHUB_STEP_SUMMARY rather than echoed so it renders as a
+        # formatted report on the run page instead of raw log lines.
+        env:
+          ATS_REPORT: ${{ steps.ats_check.outputs.ATS_REPORT }}
+          ATS_SCORE: ${{ steps.ats_check.outputs.ATS_SCORE }}
+          ATS_PASSED: ${{ steps.ats_check.outputs.ATS_PASSED }}
         run: |
-          echo "ATS Check Report: ${{ steps.ats_check.outputs.ATS_REPORT }}"
-          echo "ATS Check Score: ${{ steps.ats_check.outputs.ATS_SCORE }}"
-          echo "ATS Check Passed: ${{ steps.ats_check.outputs.ATS_PASSED }}"
+          {
+            echo "## ATS Check Report"
+            echo "$ATS_REPORT"
+            echo
+            echo "**Score:** $ATS_SCORE"
+            echo "**Passed:** $ATS_PASSED"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # ATS_PASSED is a string, not a real boolean -- GitHub Actions
+          # composite-action outputs are always strings, so this has to be
+          # a literal string comparison, not a truthy check. A resume that
+          # scores below 70 (see ats-check's action.yml) must fail the job
+          # rather than produce a silent green check.
+          if [ "$ATS_PASSED" != "true" ]; then
+            echo "::error::ATS check failed with score $ATS_SCORE (need 70+)."
+            exit 1
+          fi

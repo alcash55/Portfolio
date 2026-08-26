@@ -11,6 +11,21 @@ on:
 permissions:
   contents: read
 
+# Without this, three pushes to the same PR queue three full CI runs --
+# lint, typecheck, unit tests, a Go build, and a Playwright install each --
+# even though only the last one's result matters. Grouping per PR (falling
+# back to the ref for non-PR triggers, e.g. deploy.yml's workflow_call on a
+# push to main) and cancelling in-progress runs in that group means a new
+# push supersedes the one before it instead of queuing behind it.
+#
+# cancel-in-progress is switched off for main specifically: deploy.yml
+# already owns serialization for main via its own `pages` concurrency group,
+# and a deploy's CI run must run to completion and gate the deploy rather
+# than being cancelled out from under it by whatever triggered next.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   frontend:
     name: Frontend
