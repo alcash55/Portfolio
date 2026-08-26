@@ -124,6 +124,54 @@ test.describe('keyboard', () => {
     }
   });
 
+  test('the band\'s six are reachable, named and aimable on a phone too', async ({ page }) => {
+    // The band is a different component in a different place in the DOM, so
+    // none of the guarantees the gutter field is checked for above carry over
+    // for free: target size, a visible ring drawn on the control's own surface,
+    // and a lap that stops when focus arrives all have to hold here as well.
+    await page.setViewportSize(MOBILE);
+    await gotoHome(page);
+
+    // Tab order is reading order here rather than first-in-the-document: the
+    // band sits after the social links, which is where it is painted.
+    const reached: string[] = [];
+    for (let press = 0; press < 12 && reached.length < 6; press++) {
+      await page.keyboard.press('Tab');
+      const focused = await page.evaluate(() => {
+        const element = document.activeElement as HTMLElement | null;
+        if (!element?.closest('#landing [aria-pressed]')) return null;
+        const style = getComputedStyle(element);
+        const box = element.getBoundingClientRect();
+        return {
+          name: element.getAttribute('aria-label'),
+          pressed: element.getAttribute('aria-pressed'),
+          outlineStyle: style.outlineStyle,
+          outlineWidth: parseFloat(style.outlineWidth),
+          outlineOffset: parseFloat(style.outlineOffset),
+          playState: style.animationPlayState,
+          width: Math.round(box.width),
+          height: Math.round(box.height),
+        };
+      });
+      if (!focused) continue;
+      reached.push(focused.name ?? '?');
+      expect(focused.pressed, `${focused.name} is not a toggle`).toMatch(/^(true|false)$/);
+      expect(focused.outlineStyle, `${focused.name} has no focus ring`).toBe('solid');
+      expect(focused.outlineWidth, `${focused.name}'s focus ring is invisible`).toBeGreaterThanOrEqual(2);
+      expect(
+        focused.outlineOffset,
+        `${focused.name}'s focus ring sits outside its own surface`,
+      ).toBeLessThan(0);
+      expect(focused.width, `${focused.name} is smaller than a touch target`).toBeGreaterThanOrEqual(44);
+      expect(focused.height).toBeGreaterThanOrEqual(44);
+      // Focus, not just hover, has to stop the lap -- a keyboard visitor cannot
+      // chase a moving control at all.
+      expect(focused.playState, `${focused.name} kept drifting under focus`).toBe('paused');
+    }
+
+    expect(reached, 'the band did not yield six tab stops').toEqual(THEME_CONTROLS);
+  });
+
   test('Enter on a focused theme control switches the theme and persists it', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await gotoHome(page);
@@ -661,6 +709,44 @@ test.describe('placement', () => {
   });
 
   /**
+   * The band's own landmarks, read at rest. Not fractions of the hero this
+   * time: the whole point of the band is that the gap it fills is *not* at a
+   * fixed fraction of the hero -- it is at 38.8-48.3% of a 390x844 one and at
+   * 72.5-86.5% of a 320x568 one, because four of the six themes wrap the h1 at
+   * phone widths.
+   */
+  const bandGeometry = () => {
+    const socialBottom = Math.max(
+      ...Array.from(document.querySelectorAll('#landing a.MuiIconButton-root')).map(
+        (element) => element.getBoundingClientRect().bottom,
+      ),
+    );
+    const photographs = Array.from(document.querySelectorAll('#landing img')).map((element) =>
+      element.getBoundingClientRect(),
+    );
+    const hero = (document.getElementById('landing') as HTMLElement).getBoundingClientRect();
+    return {
+      socialBottom,
+      photographs: photographs.map((box) => ({ x: box.x, right: box.right, top: box.y })),
+      hero: { x: hero.x, width: hero.width },
+      controls: Array.from(document.querySelectorAll('#landing [aria-pressed]')).map((element) => {
+        const control = element as HTMLElement;
+        const running = control.style.animation;
+        control.style.animation = 'none';
+        const box = control.getBoundingClientRect();
+        control.style.animation = running;
+        return {
+          name: control.getAttribute('aria-label') ?? '?',
+          x: box.x,
+          y: box.y,
+          right: box.right,
+          bottom: box.bottom,
+        };
+      }),
+    };
+  };
+
+  /**
    * The other half of the ask, and the one Alex actually wrote down: "on the
    * mobile layout the theme icon buttons for the home screen need to get moved
    * to the space in between the pictures of me and the github, linkedin, and
@@ -673,57 +759,24 @@ test.describe('placement', () => {
    * that makes it *that* gap and not merely somewhere clear: every control sits
    * below the social links and above the photographs, at every width in the
    * range and in every theme, whether or not the theme's font wraps the h1.
+   *
+   * One test per viewport rather than one loop over all of them: seven
+   * viewports times six themes is forty-two page loads, and a single test
+   * carrying all of them ran past the 30s timeout whenever the rest of the
+   * suite was running beside it. Same reason the sweep above is split.
    */
-  test('below a 1024px hero every control sits between the social links and the photographs', async ({
-    page,
-  }) => {
-    // The band's own landmarks, read at rest. Not fractions of the hero this
-    // time: the whole point of the band is that the gap it fills is *not* at a
-    // fixed fraction of the hero -- it is at 38.8-48.3% of a 390x844 one and at
-    // 72.5-86.5% of a 320x568 one, because four of the six themes wrap the h1
-    // at phone widths.
-    const bandGeometry = () => {
-      const socialBottom = Math.max(
-        ...Array.from(document.querySelectorAll('#landing a.MuiIconButton-root')).map(
-          (element) => element.getBoundingClientRect().bottom,
-        ),
-      );
-      const photographs = Array.from(document.querySelectorAll('#landing img')).map((element) =>
-        element.getBoundingClientRect(),
-      );
-      const hero = (document.getElementById('landing') as HTMLElement).getBoundingClientRect();
-      return {
-        socialBottom,
-        photographs: photographs.map((box) => ({ x: box.x, right: box.right, top: box.y })),
-        hero: { x: hero.x, width: hero.width },
-        controls: Array.from(document.querySelectorAll('#landing [aria-pressed]')).map(
-          (element) => {
-            const control = element as HTMLElement;
-            const running = control.style.animation;
-            control.style.animation = 'none';
-            const box = control.getBoundingClientRect();
-            control.style.animation = running;
-            return {
-              name: control.getAttribute('aria-label') ?? '?',
-              x: box.x,
-              y: box.y,
-              right: box.right,
-              bottom: box.bottom,
-            };
-          },
-        ),
-      };
-    };
-
-    for (const size of [
-      { width: 1023 + 48, height: 700 },
-      { width: 900, height: 800 },
-      { width: 700, height: 700 },
-      { width: 649, height: 800 },
-      { width: 600, height: 900 },
-      MOBILE,
-      TINY,
-    ]) {
+  for (const size of [
+    { width: 1071, height: 700 }, // a hero of 1023: the widest the band ever is
+    NARROW_DESKTOP,
+    { width: 700, height: 700 },
+    { width: 649, height: 800 },
+    { width: 600, height: 900 },
+    MOBILE,
+    TINY,
+  ]) {
+    test(`every control sits between the social links and the photographs at ${size.width}x${size.height}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(size);
       await gotoHome(page);
 
@@ -771,8 +824,8 @@ test.describe('placement', () => {
             `${where}: two controls share a horizontal rule, which is the row this was not meant to be`,
           ).toBeGreaterThan(1);
       }
-    }
-  });
+    });
+  }
 
   /**
    * The band is a real piece of the content column, not a layer floating over

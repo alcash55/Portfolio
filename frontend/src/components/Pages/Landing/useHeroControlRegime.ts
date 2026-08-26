@@ -51,6 +51,29 @@ export const useHeroControlRegime = (
   const viewportHasGutters = useMediaQuery(theme.breakpoints.up(GUTTER_MIN_HERO_PX));
   const [heroWidth, setHeroWidth] = useState<number | null>(null);
 
+  // Measured before the first paint, not on the ResizeObserver's first
+  // callback. The observer is asynchronous -- it reports after a frame has
+  // already been painted -- so relying on it for the *initial* answer means the
+  // first paint uses the window-width guess below, and in the sideNav layout
+  // that guess is wrong by the sidebar's 248px: a 1280px window paints the
+  // gutter arrangement for a frame and then swaps the whole control set for the
+  // band. A `useLayoutEffect` runs after the DOM is in place and before the
+  // browser paints, so the correct arrangement is the only one ever shown.
+  //
+  // (This started as a test flake -- the sideNav sweeps failed roughly one run
+  // in three under parallel load, because two animation frames were not always
+  // long enough for the observer to report. The flake was telling the truth:
+  // real visitors were getting the same wrong frame, just too briefly to
+  // complain about.)
+  useLayoutEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    setHeroWidth((current) => (current === hero.clientWidth ? current : hero.clientWidth));
+  }, [heroRef]);
+
+  // And the observer for everything after that: window resizes, and the sideNav
+  // sidebar being collapsed or expanded, which changes the hero's width without
+  // changing the window's.
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero || typeof ResizeObserver === 'undefined') return;
