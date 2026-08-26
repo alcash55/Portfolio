@@ -67,19 +67,30 @@ interface ControlPosition {
  * -- What the photographs changed --
  * The photographs are pictures of Alex, so they joined the obstacle set: a
  * control parked on his face is not something the bento's 0.5-alpha scrim
- * excuses, whatever the decorative particles get away with.
+ * excuses, whatever the decorative particles get away with. All eight
+ * placements moved as a result, and the shape of the answer changed with them.
+ *
+ * The bento grid is 896px wide and centred. On the widest heroes that leaves
+ * ~490px of clear margin either side of it, but the gutter regime starts at a
+ * 1024px hero, where the same grid leaves 64px -- narrower than a control plus
+ * its lap. So the intersection over every hero in the regime has no room at all
+ * below the photographs' top edge, and both bands now run 2%-57% of the hero
+ * rather than 3%-80%. Everything below that is either a photograph on a narrow
+ * hero or the scroll arrow. The two bands stay four and four, and each is still
+ * scattered through its band's depth rather than ruled down one column: left
+ * runs 1.5%-19% deep, right 72.5%-94.5%.
  */
 const GUTTER_PLACEMENTS: ControlPosition[] = [
   // Left band, top to bottom: dark, blue, light, red.
-  { left: '21%', top: '3%' },
-  { left: '2%', top: '16%' },
-  { left: '3%', top: '40%' },
-  { left: '24.5%', top: '68.5%' },
+  { left: '4%', top: '2%' },
+  { left: '13%', top: '23.5%' },
+  { left: '1.5%', top: '44.5%' },
+  { left: '19%', top: '48.5%' },
   // Right band, top to bottom: purple, green, top nav, side nav.
-  { left: '86.5%', top: '22.5%' },
-  { left: '83%', top: '44.5%' },
-  { left: '75%', top: '59.5%' },
-  { left: '91.5%', top: '79.5%' },
+  { left: '83.5%', top: '10%' },
+  { left: '85.5%', top: '35%' },
+  { left: '72.5%', top: '51%' },
+  { left: '94.5%', top: '56.5%' },
 ];
 
 /**
@@ -157,19 +168,29 @@ const BAND_PLACEMENTS_PHONE: ControlPosition[] = [
  * 116px against the 80px gap it replaces costs 36px, and `Landing.tsx` gives
  * back 32 of those in margins.
  *
- * DOM order is reading order here -- upper tier then lower, left to right --
- * which is also the order the six themes and then the two layout buttons are
- * rendered in.
+ * Two of the eight rest at negative offsets, i.e. slightly *above* the band, in
+ * the columns either side of the social links -- that space is clear at every
+ * width in this range because the three social buttons only span ~176px of a
+ * 580-1023px hero. Two more sit below the band's floor, over the 2rem step the
+ * bento grid puts between its alternate columns. Using those pockets is what
+ * keeps eight controls from reading as two ruled rows: the eight `top`s here
+ * range over 100px where the band itself is only 116 deep.
+ *
+ * DOM order is reading order -- upper tier then lower, left to right -- which
+ * is also the order the six themes and then the two layout buttons are rendered
+ * in.
  */
 const BAND_PLACEMENTS_WIDE: ControlPosition[] = [
-  { left: '2%', top: '16px' },
-  { left: '22%', top: '20px' },
-  { left: '44%', top: '14px' },
-  { left: '66%', top: '22px' },
-  { left: '12%', top: '54px' },
-  { left: '33%', top: '58px' },
-  { left: '55%', top: '50px' },
-  { left: '77%', top: '56px' },
+  // Upper tier, left to right: dark, blue, light, red.
+  { left: '5.5%', top: '-11px' },
+  { left: '27.5%', top: '29px' },
+  { left: '52%', top: '16px' },
+  { left: '78%', top: '-5px' },
+  // Lower tier, left to right: purple, green, top nav, side nav.
+  { left: '14.5%', top: '44px' },
+  { left: '35.5%', top: '89px' },
+  { left: '64%', top: '42px' },
+  { left: '88.5%', top: '72px' },
 ];
 
 /**
