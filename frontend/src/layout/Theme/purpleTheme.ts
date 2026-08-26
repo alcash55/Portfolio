@@ -8,10 +8,12 @@ export const purpleTheme: ThemeOptions = createTheme({
     primary: {
       main: '#c9a7f5',
       // Footer/About/Contact read `primary.light`, not `main` (Sprint 4).
-      // Left unset: MUI's auto-derived `light` (#d4b9f7) measures 10.20:1
-      // against `paper` and 8.84:1 against `default` -- lightening raises
-      // contrast on this dark page, so pinning (as light theme must) isn't
-      // needed here.
+      // Left unset: MUI's auto-derived `light` (#d4b9f7) measures 8.81:1
+      // against `paper` and 10.17:1 against `default` -- `default` is the
+      // darker surface, so it's the one that gains most from lightening
+      // `main`; either way lightening raises contrast on this dark page, so
+      // pinning (as light theme must) isn't needed here. Unrounded WCAG 2.1
+      // figures -- see Contact.tsx for the measurement method.
     },
     // Warm complement to the violet primary -- same role blue's teal
     // secondary plays against its blue primary. Purely decorative (Landing's
