@@ -12,8 +12,8 @@ export const greenTheme: ThemeOptions = createTheme({
       // against `paper` and 11.40:1 against `default` -- `default` is the
       // darker surface, so it's the one that gains most from lightening
       // `main`; either way lightening raises contrast on this dark page, so
-      // pinning (as light theme must) isn't needed here. Unrounded WCAG 2.1
-      // figures -- see Contact.tsx for the measurement method.
+      // pinning (as light theme must) isn't needed here. See Contact.tsx for
+      // the measurement method.
     },
     // Warm complement to the green primary -- same role blue's teal
     // secondary plays against its blue primary. Purely decorative (Landing's

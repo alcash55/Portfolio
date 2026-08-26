@@ -15,13 +15,12 @@ export const redTheme: ThemeOptions = createTheme({
       main: '#ffab73',
       // Footer/About/Contact read `primary.light`, not `main`, as their link
       // colour (Sprint 4). Left unset here: MUI's auto-derived `light`
-      // (lighten by the default 0.2 tonal offset) is #ffbc8f, which measures
-      // 9.42:1 against `paper` and 11.04:1 against `default` -- `default` is
+      // (lighten by the default 0.2 tonal offset) is #ffbb8f, which measures
+      // 9.37:1 against `paper` and 10.98:1 against `default` -- `default` is
       // the darker surface, so it's the one that gains most from lightening
       // `main`; either way lightening raises contrast on a dark page, same
       // direction as dark/blue, so there's no reason to pin it the way light
-      // had to. Unrounded WCAG 2.1 figures -- see Contact.tsx for the
-      // measurement method.
+      // had to. See Contact.tsx for the measurement method.
     },
     // Complements the warm primary rather than repeating it -- same role
     // blue's teal secondary plays against its blue primary. Purely

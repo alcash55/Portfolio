@@ -34,15 +34,29 @@ const Contact = () => {
   // five, but blue and dark sit within 0.5:1 of it (4.99:1 and 5.00:1);
   // `light` gives every theme comfortable clearance instead. Blue is the
   // tightest of the five and sets the margin -- `main` 4.99:1 vs `light`
-  // 6.12:1 on `paper`. In light theme, `light` is pinned equal to `main`
+  // 6.07:1 on `paper`. In light theme, `light` is pinned equal to `main`
   // rather than auto-lightened toward white, specifically so it clears AA
   // there too -- 6.16:1 on white (lightTheme.ts).
   //
-  // Figures are unrounded WCAG 2.1 ratios. Measure them with the spec
-  // formula, NOT with MUI's getContrastRatio: getLuminance truncates
-  // luminance to 3 decimals (colorManipulator.mjs, "Truncate at 3 digits"),
-  // which on these dark `paper` values reads up to 0.07 low -- enough to
-  // make a re-measurement look like a discrepancy and start a rewrite.
+  // HOW TO MEASURE THESE. Two steps, and both have a trap that has already
+  // produced a wrong answer:
+  //
+  // 1. Derive the colour exactly as MUI does. `light` is
+  //    `lighten(main, 0.2)`, i.e. `c + (255 - c) * 0.2` per channel -- and
+  //    then `recomposeColor` runs each channel through `parseInt`, which
+  //    TRUNCATES the fraction rather than rounding it (colorManipulator.mjs,
+  //    "Only convert the first 3 values to int"). Blue's `light` is
+  //    therefore #91b7ea, not the #92b8ea you get by rounding. Measuring the
+  //    unrounded fractional colour describes a colour the browser is never
+  //    sent.
+  // 2. Take the ratio with the unrounded WCAG 2.1 formula -- NOT with MUI's
+  //    getContrastRatio, whose getLuminance truncates luminance to three
+  //    decimals ("Truncate at 3 digits"). On these dark `paper` values that
+  //    reads about 0.02 low.
+  //
+  // Skipping step 1 reads ~0.05 high, skipping step 2 reads ~0.02 low, and
+  // the two together are why this one number has been "corrected" to three
+  // different values (6.05, 6.07, 6.12) across three separate passes.
   // Same choice as Footer's and About's link colour, for the same reason.
   const listLinkSx = { width: 'fit-content', p: 0, color: 'primary.light' };
   const headerStyles = {

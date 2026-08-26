@@ -30,10 +30,10 @@ export const blueTheme: ThemeOptions = createTheme({
       contrastText: 'rgba(0, 0, 0, 0.87)',
       // Footer/About/Contact read `primary.light`, not `main`, as their link
       // colour (Sprint 4). Re-measured this sprint against the new `main`:
-      // auto-derived `light` is 6.12:1 on `paper` and 7.79:1 on `default`
-      // (both clear AA with more margin than before) -- still the right
-      // call, so left unset rather than pinned to a literal value. Unrounded
-      // WCAG 2.1 figures -- see Contact.tsx for the measurement method.
+      // auto-derived `light` (#91b7ea) is 6.07:1 on `paper` and 7.73:1 on
+      // `default` (both clear AA with more margin than before) -- still the
+      // right call, so left unset rather than pinned to a literal value.
+      // See Contact.tsx for the measurement method.
     },
     secondary: {
       main: '#2ec5d3',
