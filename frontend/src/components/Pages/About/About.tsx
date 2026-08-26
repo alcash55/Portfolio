@@ -169,9 +169,10 @@ const About = () => {
                     // primary.light, not the outlined-button default of primary.main:
                     // primary.main clears WCAG AA body-text contrast (4.5:1) against
                     // paper on every dark-mode theme, but only just in blue and dark
-                    // (~4.98:1-5.01:1); primary.light gives real headroom there
+                    // (4.99:1 and 5.00:1); primary.light gives real headroom there
                     // instead. Same choice as Footer's and Contact's link colour --
-                    // see Contact.tsx for the full per-theme numbers.
+                    // see Contact.tsx for the full per-theme numbers and for how to
+                    // measure them.
                     sx={{ mt: 1, color: 'primary.light', borderColor: 'primary.light' }}
                   >
                     View Resume
