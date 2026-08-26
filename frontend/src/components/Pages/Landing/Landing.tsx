@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Box, Typography, Button, IconButton, Grid, Stack, useMediaQuery } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import rmu_lacrosse from '../../../assets/images/rmu_lacrosse.webp';
@@ -15,11 +16,8 @@ import {
   stickyTopOffset,
 } from '../../AppShell/InternalComponents/useShowNavBar';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
-import {
-  HERO_BAND_BREAKPOINT_PX,
-  HeroControlBand,
-  HeroControls,
-} from './HeroControls';
+import { HeroControlBand, HeroControls } from './HeroControls';
+import { useHeroControlRegime } from './useHeroControlRegime';
 
 /**
  * `el`'s top edge in document coordinates, ignoring every CSS transform on the
@@ -86,14 +84,18 @@ const Landing = () => {
   const { layout } = useAppShellLayout();
   const theme = useTheme();
 
-  // Below 650px the six theme controls stop floating over the hero and become
-  // an in-flow band between the social links and the photographs
-  // (`HeroControlBand`). Three of the margins below are the gap that band
-  // replaces, so they have to close at exactly the same width -- hence the
-  // shared constant rather than a second literal 650 here. Read as a media
-  // query rather than off `layout === 'mobile'` so it matches the query the
-  // band itself uses, frame for frame, during a resize.
-  const usesControlBand = useMediaQuery(theme.breakpoints.down(HERO_BAND_BREAKPOINT_PX));
+  // Below a 1024px hero the controls stop floating over it and become an
+  // in-flow band between the social links and the photographs
+  // (`HeroControlBand`); above it they are the floating field `HeroControls`
+  // has always been. Three of the margins below are the gap that band replaces,
+  // so the same answer has to drive both -- one hook, read once here, rather
+  // than two components each asking separately and disagreeing for a frame.
+  //
+  // It is the hero's own width that decides, not the window's: in the sideNav
+  // layout the sidebar takes 248px off the left, so a 1280px window leaves a
+  // ~960px hero with no gutters at all.
+  const heroRef = useRef<HTMLElement>(null);
+  const usesControlBand = useHeroControlRegime(heroRef) === 'band';
 
   // Every "white" on the hero below used to be a literal `rgba(255,255,255,…)`/
   // `#fff`, which only worked because `background.hero` was pinned dark in
@@ -219,6 +221,7 @@ const Landing = () => {
     <Box
       component={'section'}
       id="landing"
+      ref={heroRef}
       sx={{
         position: 'relative',
         height: '100vh',
@@ -334,7 +337,7 @@ const Landing = () => {
           - It renders its own full-bleed, click-through layer (see
             HeroControls) rather than being given one here, because it also
             measures that layer to decide where the hero's empty space is. */}
-      <HeroControls />
+      {!usesControlBand && <HeroControls />}
 
       <Box
         sx={{
@@ -541,7 +544,7 @@ const Landing = () => {
                 ever live, so the six controls appear once and the tab order has
                 no gaps. See HeroControls.tsx for why this one is in the flow
                 when everything else about this hero is not. */}
-            <HeroControlBand />
+            {usesControlBand && <HeroControlBand />}
 
             {/* Bento Grid Images */}
             <Box sx={{ maxWidth: 896, mx: 'auto', mb: 6 }}>

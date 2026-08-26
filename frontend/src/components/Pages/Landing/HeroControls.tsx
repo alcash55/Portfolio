@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { Box, ButtonBase, Tooltip, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type { SvgIconComponent } from '@mui/icons-material';
@@ -11,119 +10,31 @@ import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
 
 /**
  * The width at or below which the shell pins itself to the `mobile` layout
- * (`AppShell.tsx`'s `resolveInitialMode(650)`), and therefore the width at or
- * below which this file switches from a floating field to the in-flow band.
- *
- * Exported because `Landing.tsx` has to close the gap the band replaces at the
- * same width, and two hardcoded 650s that can drift apart is exactly how the
- * band would end up sitting on 80px of margin it does not own.
+ * (`AppShell.tsx`'s `resolveInitialMode(650)`) and so stops offering a layout
+ * choice at all. The band holds six controls below it and eight above it, and
+ * is deeper below it -- see BAND_PLACEMENTS_PHONE.
  */
-export const HERO_BAND_BREAKPOINT_PX = 650;
+const MOBILE_BREAKPOINT_PX = 650;
 
-/**
- * The band's height, and the only vertical space the six mobile controls have.
- *
- * `Landing.tsx` hands the band the whole gap between the social links and the
- * bento photographs (it zeroes the margins that used to make that gap), so this
- * number *is* the gap. It is not a free parameter:
- *
- *   14 (drift slack below the social links)
- * + 44 (a control)
- * + 64 (the vertical room the two tiers need between them)
- * + 14 (drift slack above the photographs)
- * = 136
- *
- * The 64 is arithmetic, not taste. Two controls whose 12px laps carry them
- * toward each other need 44 + 24 = 68px between their centres to never touch.
- * The narrowest phone in scope, 320px, leaves 204px of usable centre-to-centre
- * width -- the hero is 272px there, and a control's lap has to stay inside it,
- * because the hero clips its own overflow. Three controls to a tier is
- * therefore the most a tier can hold (two 68px gaps need 136 of that 204), so
- * six controls means two tiers, and the tiers have to clear each other:
- *
- *   64px apart vertically leaves sqrt(68^2 - 64^2) = 23px as the smallest
- *   horizontal gap a control in one tier may have from one in the other.
- *
- * That 23px is the whole point of the number. A 118px band gives 46px of
- * separation and demands 50px of horizontal gap, which forces the six into an
- * even lattice -- 204/5 = 40.8px apart, alternating tiers -- and an even
- * lattice is the ruled zig-zag ladder that was already rejected once. 23px of
- * floor leaves the seeded search enough room to make the gaps and the tops
- * genuinely uneven instead.
- *
- * The 56px of hero this costs (the gap was 80px) is paid for in `Landing.tsx`,
- * which tightens three margins above the social links, on mobile only. At
- * 390x844 the content column already fills its box -- measured before the
- * change, ~16px of slack above the caption's ink and ~22px between the last row
- * of photographs and `MobileChrome`'s bottom navigation bar. A taller band
- * would push the photographs under that bar.
- */
-export const HERO_BAND_HEIGHT_PX = 136;
-
-/**
- * A control's resting place in the hero, as percentages of the hero box.
- *
- * Two sets, because the hero's empty space moves as the viewport narrows, and
- * these positions are measured rather than guessed (`e2e/hero-controls.spec.ts`
- * re-measures them on every run):
- *
- * - `gutter`, from 1024px up: the content column is centred and its longest
- *   line of ink -- the subtitle -- ends around 24% of the hero at 1280px, the
- *   tightest of the wide widths. That leaves a band roughly 265px wide down
- *   each side, not a hairline margin, so the controls are scattered *through*
- *   that band at depths between 2% and 24% rather than ruled down a single
- *   column at its edge.
- * - `field`, below 1024px and above the 650px mobile cut: the side bands are
- *   gone -- the subtitle runs to within ~35px of both edges at 700px wide --
- *   so the controls move to the lower half of the hero and scatter across its
- *   full width. Below 650px there is no field either; see BAND_PLACEMENTS.
- *
- * The field starts at ~52% rather than hard against the social links above it
- * because the hero's content column is centred: while the webfonts are still
- * loading, fallback metrics push that column ~96px further down a 320px-wide
- * screen, and a tighter row would spend that first moment sitting on the
- * social icons.
- *
- * Overlapping the bento photographs used to be allowed and deliberate -- they
- * are decorative, they sit behind a 0.5-alpha black scrim, and the decorative
- * particles have always drifted over them. That is no longer true: they are
- * photographs *of Alex*, a control parked on his face is not something a
- * scrim excuses, and the geometry sweep now counts every `#landing img` as an
- * obstacle alongside the text, the social links and the scroll arrow.
- *
- * `left` is the control's left edge, so it has to stay below
- * `100% - 44px - drift` at the narrowest viewport in its regime, or the page
- * grows a horizontal scrollbar -- `smoke.spec.ts` asserts there is none at
- * 320px.
- */
-interface Placement {
-  /** >= 1024px: scattered through the side bands the centred column leaves. */
-  gutter: { left: string; top: string };
-  /** 650-1023px: scattered across the lower half, between the photographs. */
-  field: { left: string; top: string };
-}
-
-interface FloatingControl {
-  /** Stable key, and the value handed to the toggler. */
-  id: string;
-  /** The accessible name. Not the colour, not the icon -- the name. */
-  label: string;
-  place: Placement;
+/** One control's resting place inside whichever box is holding it. */
+interface ControlPosition {
+  left: string;
+  top: string;
 }
 
 /**
- * Where the six theme controls rest, in the order they are painted and in the
- * order they take focus.
+ * Where the eight controls rest in the gutter regime, as percentages of the
+ * hero, in the order they are painted and in the order they take focus.
  *
- * ── Four a side, in the gutter regime ──
+ * -- Four a side --
  * Six controls down the left and two at the bottom right is what the hero used
  * to look like, and it read as lopsided -- the right band opened with a 59.5%
  * stretch of nothing above the first layout button. So purple and green moved
  * across, giving four a side: dark, blue, light and red down the left, purple,
  * green and the two layout buttons down the right.
  *
- * ── Tab order ──
- * DOM order is unchanged, and it is column-major: the whole left band
+ * -- Tab order --
+ * DOM order is the tab order, and it is column-major: the whole left band
  * top-to-bottom (dark, blue, light, red), then the whole right band
  * top-to-bottom (purple, green, top nav, side nav). Two bands separated by the
  * entire width of the hero are read one after the other, not zig-zagged
@@ -132,7 +43,7 @@ interface FloatingControl {
  * tab order rather than interleaving the two layout buttons among them, so the
  * `aria-pressed` set is still walked as one group.
  *
- * ── Irregular, and fixed ──
+ * -- Irregular, and fixed --
  * These are constants, not `Math.random()` calls like the decorative particles
  * in Landing.tsx. DOM order is the tab order, so randomising positions would
  * mean a control field that tabs in a different order on every reload -- a WCAG
@@ -144,42 +55,38 @@ interface FloatingControl {
  *
  * So the numbers below were generated once, offline, by a seeded scatter run
  * against hero geometry measured in a real browser across every viewport x
- * layout x theme combination the e2e suite sweeps (each theme ships its own
- * font, and at 320px four of the six wrap the h1 to a second line, which
- * pushes the social links 96px down the hero) -- rejecting any point that
+ * layout x theme combination the e2e suite sweeps -- rejecting any point that
  * lands on text, on the social links, on the bento photographs, on the scroll
- * arrow, on the app chrome painted over the hero from outside it (the mobile
- * settings Fab and bottom navigation bar, the sideNav Fab), off an edge, or
- * within 8px of another control's drift envelope in *any* of them; plus a
- * shape filter: no two controls sharing a horizontal rule, no two gaps between
- * successive tops within 1.5% of each other, and at least one same-side
- * neighbour in each band so the set cannot read as a ladder. The winning set
- * was then pasted here. What ships is fixed; only the search that found it was
- * random.
+ * arrow, on the app chrome painted over the hero from outside it (the sideNav
+ * Fab), off an edge, or within 70px of another control's centre in *any* of
+ * them; plus a shape filter: no two controls sharing a horizontal rule or a
+ * column, no two gaps between successive tops within 1.5% of each other, and no
+ * three on a line. The winning set was pasted here. What ships is fixed; only
+ * the search that found it was random.
  *
- * ── The photograph re-solve ──
- * Adding `#landing img` to that obstacle set moved the `field` regime wholesale
- * and nudged three of the gutter placements. The field regime only has to cover
- * 650-1023px now (below that the controls are in the band), and in that range
- * the bento grid is a 4-across row of photographs across the middle of the
- * lower half -- so the field is no longer "the lower half" but the two strips
- * the photographs leave: above their top edge and below their bottom edge, plus
- * the margins outside the 896px grid at the wider end of the range.
+ * -- What the photographs changed --
+ * The photographs are pictures of Alex, so they joined the obstacle set: a
+ * control parked on his face is not something the bento's 0.5-alpha scrim
+ * excuses, whatever the decorative particles get away with.
  */
-const THEME_PLACEMENTS: Placement[] = [
-  { gutter: { left: '21%', top: '3%' }, field: { left: '4%', top: '54.5%' } },
-  { gutter: { left: '2%', top: '16%' }, field: { left: '86%', top: '57%' } },
-  { gutter: { left: '3%', top: '40%' }, field: { left: '2.5%', top: '73.5%' } },
-  { gutter: { left: '24.5%', top: '68.5%' }, field: { left: '90%', top: '77%' } },
-  { gutter: { left: '86.5%', top: '22.5%' }, field: { left: '20%', top: '87.5%' } },
-  { gutter: { left: '83%', top: '44.5%' }, field: { left: '63%', top: '86%' } },
+const GUTTER_PLACEMENTS: ControlPosition[] = [
+  // Left band, top to bottom: dark, blue, light, red.
+  { left: '21%', top: '3%' },
+  { left: '2%', top: '16%' },
+  { left: '3%', top: '40%' },
+  { left: '24.5%', top: '68.5%' },
+  // Right band, top to bottom: purple, green, top nav, side nav.
+  { left: '86.5%', top: '22.5%' },
+  { left: '83%', top: '44.5%' },
+  { left: '75%', top: '59.5%' },
+  { left: '91.5%', top: '79.5%' },
 ];
 
 /**
- * Where the six theme controls rest on a phone, as percentages of the *band*
- * rather than of the hero, and pixels from the band's top edge.
+ * Where the six theme controls rest on a phone: percentages of the *band*
+ * rather than of the hero, and pixels down from the band's top edge.
  *
- * ── Why this table exists at all ──
+ * -- Why the band exists at all --
  * Alex asked for the controls to move "to the space in between the pictures of
  * me and the github, linkedin, and email icons". That space cannot be written
  * down as a percentage of the hero, which is what every other placement here
@@ -190,48 +97,109 @@ const THEME_PLACEMENTS: Placement[] = [
  * percentage that lands in the gap on one phone lands on a photograph on the
  * next.
  *
- * So on a phone the controls are not a floating layer at all: they are an
- * in-flow band that *is* the gap (`HeroControlBand` below), and these numbers
- * are offsets inside it. The band moves with the content by construction, in
- * every theme and at every height, with nothing measured at runtime.
+ * So below 1024px the controls are not a floating layer at all: they are an
+ * in-flow band that *is* the gap (`HeroControlBand`), and these are offsets
+ * inside it. The band moves with the content by construction, in every theme
+ * and at every height, with nothing measured at runtime.
  *
- * ── Not a row ──
- * Six 44px controls cannot make a row here even if a row were wanted. Two
+ * -- Why the band replaced the floating field entirely, not only on phones --
+ * There used to be a second set of hero percentages for 650-1023px, scattered
+ * across the hero's lower half. Adding the photographs to the obstacle set
+ * killed it: the lower half of a sub-1024px hero *is* the bento grid, wall to
+ * wall, and the upper half is the heading and the subtitle. Sweeping a 1% grid
+ * of the hero across nineteen viewport/layout combinations in that range, in
+ * all six themes, left twelve cells clear out of 10,201 -- one pocket near the
+ * right edge, room for one control, not eight. The band is the only region that
+ * is reliably clear, so everything below 1024px uses it.
+ *
+ * -- Not a row --
+ * Six 44px controls could not make a row here even if a row were wanted. Two
  * controls whose 12px laps carry them toward each other need 44 + 24 = 68px
- * between their centres to never touch, and the widest phone in scope leaves
- * about 200px of usable centre-to-centre range at 320px -- five gaps of 68px
- * needs 340. The set has to be at least two deep, which is what makes an
- * irregular arrangement available rather than merely desirable.
+ * between their centres to never touch, and the narrowest phone leaves about
+ * 204px of usable centre-to-centre range at 320px -- five gaps of 68px needs
+ * 340. The set has to be at least two deep, which is what makes an irregular
+ * arrangement available rather than merely desirable.
  *
- * They are two loose rows of three, and deliberately not two ruled rows of
- * three: the six `top`s are all different, the three horizontal gaps in each
- * row are all different, and the two rows do not share a left edge. The seeded
- * search that produced them held the pairwise 68px floor, kept every control
- * 14px clear of the band's own edges (which is the drift slack the sweep
- * demands against the social links above and the photographs below), and then
- * maximised the smallest pairwise distance so the set spreads rather than
- * clumps.
- *
- * `left` is a percentage of the band, which spans the hero's full width; the
- * floors and ceilings are set by the narrowest phone, 320px, where the band is
- * 272px wide and 5.2%-78.6% is the range in which a control's 12px lap stays
- * inside the hero's clipping box.
+ * Two loose tiers of three, deliberately not two ruled rows of three: the six
+ * `top`s are all different, the five horizontal gaps are all different, and no
+ * two controls share a column. The seeded search held the 68px floor, kept
+ * every control 15px clear of everything (the sweep's 14px of drift slack plus
+ * a pixel of rounding margin), and then maximised the *spread* of the gaps
+ * rather than the spacing itself -- optimising for separation alone drives the
+ * set straight into an even lattice, which is the ruled zig-zag ladder that has
+ * already been rejected here once.
  */
-const BAND_PLACEMENTS: { left: string; top: string }[] = [
+const BAND_PLACEMENTS_PHONE: ControlPosition[] = [
   // Upper tier, left to right: dark, blue, light.
   { left: '4.5%', top: '19px' },
   { left: '37%', top: '15px' },
   { left: '71.5%', top: '23px' },
   // Lower tier, left to right: red, purple, green. Green's 90px is past the
-  // band's own floor on purpose -- the bento grid steps every other column
-  // 2rem lower, and green sits under the high column's neighbour rather than
-  // under a photograph. The sweep checks that at every phone width in both
-  // bento layouts (2-across below 600px, 4-across above it), which is the only
-  // reason it is allowed to.
+  // band's own floor on purpose: the bento grid steps every other column 2rem
+  // lower, and green rests over that step rather than over a photograph. The
+  // sweep checks it at every phone width in both bento layouts (2-across below
+  // 600px, 4-across above it), which is the only reason it is allowed to.
   { left: '24.5%', top: '77px' },
   { left: '53%', top: '71px' },
   { left: '79%', top: '90px' },
 ];
+
+/**
+ * The same band from 650px up to a 1024px hero, where the layout buttons are
+ * offered too, so it holds eight controls instead of six.
+ *
+ * A wider band needs less depth: the eight interleave across 534-1000px of
+ * usable width, so their tiers only have to clear each other by 44px rather
+ * than the phone band's 64px. That matters, because the vertical budget here is
+ * *worse* than a phone's rather than better -- measured, at 960x720 the last
+ * row of photographs clears the hero's bottom edge by 9px, and in sideNav at
+ * 1280x720 the caption clears the top by 6px, both before this band existed.
+ * 116px against the 80px gap it replaces costs 36px, and `Landing.tsx` gives
+ * back 32 of those in margins.
+ *
+ * DOM order is reading order here -- upper tier then lower, left to right --
+ * which is also the order the six themes and then the two layout buttons are
+ * rendered in.
+ */
+const BAND_PLACEMENTS_WIDE: ControlPosition[] = [
+  { left: '2%', top: '16px' },
+  { left: '22%', top: '20px' },
+  { left: '44%', top: '14px' },
+  { left: '66%', top: '22px' },
+  { left: '12%', top: '54px' },
+  { left: '33%', top: '58px' },
+  { left: '55%', top: '50px' },
+  { left: '77%', top: '56px' },
+];
+
+/**
+ * How deep the band is, and so how much of the hero it spends.
+ *
+ * The phone number is arithmetic rather than taste:
+ *
+ *   14 (drift slack below the social links)
+ * + 44 (a control)
+ * + 64 (the vertical room the two tiers need between them)
+ * + 14 (drift slack above the photographs)
+ * = 136
+ *
+ * The 64 is what buys the irregularity. Three controls to a tier is the most a
+ * 320px phone can hold (two 68px gaps out of 204px of usable width), so six
+ * means two tiers, and the tiers have to clear each other. 64px apart leaves
+ * sqrt(68^2 - 64^2) = 23px as the smallest horizontal gap a control in one tier
+ * may have from one in the other, and 23px of floor is enough slack for the
+ * gaps and the tops to come out genuinely uneven. At 46px of separation the
+ * floor is 50px, which forces the six onto an even 204/5 lattice -- the ruled
+ * ladder again.
+ *
+ * The 56px of hero this costs (the gap it replaces was 80px) is paid for in
+ * `Landing.tsx`, which tightens three margins above the social links whenever
+ * the band is live. Measured at 390x844 before the change: ~16px of slack above
+ * the caption's ink, ~22px between the last row of photographs and
+ * `MobileChrome`'s bottom navigation bar. A deeper band would push the
+ * photographs under that bar.
+ */
+const bandHeightPx = (isPhone: boolean) => (isPhone ? 136 : 116);
 
 /**
  * Per-control motion, indexed the same way the controls are: which of the three
@@ -260,51 +228,29 @@ const DRIFT: { path: 'A' | 'B' | 'C'; seconds: number; offset: number }[] = [
 /**
  * The two layout modes a visitor can actually choose between. `mobile` is the
  * third `AppShellLayoutMode`, but it is forced by viewport width rather than
- * picked (see `AppShell`'s `applyMode`), so a button for it would do nothing.
- * Icons rather than swatches: a window with a bar across its top, and one with
- * a column down its left, which is what the two layouts look like.
- *
- * Both regimes place them clear of the scroll-indicator arrow, which lives in
- * the middle ~10% of the hero's width, of the bento photographs, and of the six
- * theme controls at every width where these two render (>= 650px) -- the same
- * offline scatter that placed the swatches placed these. They are last in DOM
- * order, and they are the bottom two of the right band, which is the same thing
- * (see the tab-order note above).
+ * picked (see `AppShell`'s `applyMode`), so a button for it would do nothing --
+ * which is why neither of these renders below 650px. Icons rather than
+ * swatches: a window with a bar across its top, and one with a column down its
+ * left, which is what the two layouts look like.
  */
-const LAYOUT_CONTROLS: (FloatingControl & {
+const LAYOUT_CONTROLS: {
+  id: string;
   mode: 'default' | 'sideNav';
+  label: string;
   Icon: SvgIconComponent;
-})[] = [
-  {
-    id: 'default',
-    mode: 'default',
-    label: 'Top nav layout',
-    Icon: WebAsset,
-    place: { gutter: { left: '75%', top: '59.5%' }, field: { left: '35%', top: '54%' } },
-  },
-  {
-    id: 'sideNav',
-    mode: 'sideNav',
-    label: 'Side nav layout',
-    Icon: VerticalSplit,
-    place: { gutter: { left: '91.5%', top: '79.5%' }, field: { left: '43%', top: '89%' } },
-  },
+}[] = [
+  { id: 'default', mode: 'default', label: 'Top nav layout', Icon: WebAsset },
+  { id: 'sideNav', mode: 'sideNav', label: 'Side nav layout', Icon: VerticalSplit },
 ];
 
 /** Diameter of a control. 44px is the usual floor for a touch target and the
  *  size at which one of these reads as a button rather than as a speck. */
 const SIZE = 44;
 
-/** Where one control rests inside whichever box is holding it. */
-interface ControlPosition {
-  left: string;
-  top: string;
-}
-
 /**
  * Builds the `sx` every control shares, wherever it is being placed.
  *
- * ── Contrast, which this hero has burned people on before ──
+ * -- Contrast, which this hero has burned people on before --
  * Behind these buttons are three blurred colour circles at `opacity: 0.3`,
  * animating across randomised positions -- Landing.tsx documents a 0.5-alpha
  * caption measuring 3.81:1 against them and passing only intermittently
@@ -332,8 +278,8 @@ const useControlSx = () => {
     width: SIZE,
     height: SIZE,
     borderRadius: '50%',
-    // The layer above is `pointerEvents: 'none'` so it cannot swallow clicks
-    // meant for the hero underneath; the buttons opt themselves back in.
+    // The box around these is `pointerEvents: 'none'` so it cannot swallow
+    // clicks meant for the hero underneath; the buttons opt themselves back in.
     pointerEvents: 'auto' as const,
     // Opaque, on purpose -- see the contrast note above.
     bgcolor: 'background.paper',
@@ -380,12 +326,23 @@ const useControlSx = () => {
 };
 
 /**
- * The six theme swatches, in `THEME_OPTIONS` order, which is DOM order, which
- * is the tab order. `positionOf` is the only thing that differs between the
- * floating field and the phone band.
+ * The controls themselves -- six theme swatches, then the two layout buttons --
+ * in DOM order, which is the tab order.
+ *
+ * `positions` is the only thing that differs between the floating gutter field
+ * and the in-flow band. `showLayout` is false only below 650px, where the shell
+ * forces the mobile layout and a layout button would be a button that lies
+ * (spec 03 asks for it to be absent).
  */
-const ThemeControls = ({ positionOf }: { positionOf: (index: number) => ControlPosition }) => {
+const Controls = ({
+  positions,
+  showLayout,
+}: {
+  positions: ControlPosition[];
+  showLayout: boolean;
+}) => {
   const { themeName, toggleColorMode } = useColorMode();
+  const { layout, toggleLayout } = useAppShellLayout();
   const controlSx = useControlSx();
 
   return (
@@ -408,7 +365,7 @@ const ThemeControls = ({ positionOf }: { positionOf: (index: number) => ControlP
               aria-label={controlLabel}
               aria-pressed={selected}
               onClick={() => toggleColorMode(name)}
-              sx={controlSx(positionOf(index), index)}
+              sx={controlSx(positions[index], index)}
             >
               <Box
                 aria-hidden
@@ -453,6 +410,32 @@ const ThemeControls = ({ positionOf }: { positionOf: (index: number) => ControlP
           </Tooltip>
         );
       })}
+
+      {showLayout &&
+        LAYOUT_CONTROLS.map(({ id, mode, label, Icon }, index) => {
+          const selected = layout === mode;
+          const at = THEME_OPTIONS.length + index;
+
+          return (
+            <Tooltip key={id} title={label} enterDelay={300}>
+              <ButtonBase
+                aria-label={label}
+                aria-pressed={selected}
+                onClick={() => toggleLayout(mode)}
+                sx={{
+                  ...controlSx(positions[at], at),
+                  // Selected layout: a heavier ring, matching the swatches'
+                  // selected weight, plus `aria-pressed` for anyone not
+                  // looking at it.
+                  border: selected ? '2.5px solid' : '1.5px solid',
+                  borderColor: selected ? 'text.primary' : 'text.secondary',
+                }}
+              >
+                <Icon sx={{ fontSize: 20 }} />
+              </ButtonBase>
+            </Tooltip>
+          );
+        })}
     </>
   );
 };
@@ -528,21 +511,21 @@ const DriftKeyframes = () => (
 );
 
 /**
- * The hero's theme and layout controls above 650px: eight of the floating dots,
- * grown into buttons.
+ * The hero's theme and layout controls on a >= 1024px hero: eight of the
+ * floating dots, grown into buttons.
  *
- * ── What this is ──
- * The site has six themes and two layouts, and until now both were reachable
- * only through a settings drawer behind a hamburger icon -- which is to say
- * they were invisible. The hero already had thirty dots drifting across it;
- * eight of them are now controls. They keep drifting, they stay scattered, and
- * they are not collected into a bar (an earlier attempt did exactly that and
- * was rejected: the dots are the point).
+ * -- What this is --
+ * The site has six themes and two layouts, and until recently both were
+ * reachable only through a settings drawer behind a hamburger icon -- which is
+ * to say they were invisible. The hero already had thirty dots drifting across
+ * it; eight of them are now controls. They keep drifting, they stay scattered,
+ * and they are not collected into a bar (an earlier attempt did exactly that
+ * and was rejected: the dots are the point).
  *
- * ── Making a drifting target actually usable ──
+ * -- Making a drifting target actually usable --
  * A control that moves is a control you have to chase, and that is a genuine
- * problem for anyone whose pointer is not steady. Two things keep it
- * hittable, and neither of them is a slow lap:
+ * problem for anyone whose pointer is not steady. Two things keep it hittable,
+ * and neither of them is a slow lap:
  *
  *  1. Hover and keyboard focus both pause the animation outright
  *     (`animation-play-state: paused`, which freezes it where it is rather than
@@ -554,9 +537,9 @@ const DriftKeyframes = () => (
  *     a moment ago still lands inside it, which is what the e2e suite checks
  *     rather than taking the arithmetic on trust.
  *
- * The first version of this file tried to buy that hittability by barely
- * moving at all -- 6px of travel over 20-28s, about 0.3px per second. That is
- * slow enough that the browser spends seconds at a time on the same rendered
+ * The first version of this file tried to buy that hittability by barely moving
+ * at all -- 6px of travel over 20-28s, about 0.3px per second. That is slow
+ * enough that the browser spends seconds at a time on the same rendered
  * position and then jumps to the next one, which is exactly what reads as
  * choppy. The drift now covers 65-82px of path per lap in 13.4-18.3s (~4-6px
  * per second), which is the same order as the decorative dots' ~7-20px/s and
@@ -568,130 +551,60 @@ const DriftKeyframes = () => (
  * wholesale in that case (see Landing.tsx); these are not, because they are
  * functionality now.
  */
-export const HeroControls = () => {
-  const theme = useTheme();
-  const { layout, toggleLayout } = useAppShellLayout();
-  const controlSx = useControlSx();
-
-  // The same breakpoint, in the same direction, as `SettingsDrawer`'s
-  // `showLayout` gate. Below 650px `AppShell` pins the layout to `mobile` and
-  // ignores whatever `toggleLayout` is asked for, so a layout button there is a
-  // button that lies -- spec 03 asks for it to be absent. It is also the width
-  // below which the six theme controls leave this layer entirely for the
-  // in-flow band (`HeroControlBand`), so this whole layer renders nothing.
-  const isBandWidth = useMediaQuery(theme.breakpoints.down(HERO_BAND_BREAKPOINT_PX));
-
-  // Which regime the controls are placed in depends on how wide *the hero* is,
-  // not on how wide the window is. Those are different numbers in the sideNav
-  // layout, where the sidebar takes 248px off the left (or 72px when it is
-  // collapsed, which the visitor can toggle at any time): a 1280px window
-  // there leaves a ~1000px hero with no gutters to speak of, and placing
-  // controls as though it had them dropped them on top of the content. A
-  // ResizeObserver on this component's own layer follows all of that without
-  // having to know the sidebar's widths or its collapsed state.
-  //
-  // `useMediaQuery` still supplies the value for the first paint (and for
-  // jsdom, which has no ResizeObserver): the observer cannot report before it
-  // has been attached, and starting from `null` would put every control in the
-  // wrong regime for a frame.
-  const layerRef = useRef<HTMLDivElement>(null);
-  const [heroWidth, setHeroWidth] = useState<number | null>(null);
-  const viewportHasGutters = useMediaQuery(theme.breakpoints.up(1024));
-  const hasGutters = heroWidth === null ? viewportHasGutters : heroWidth >= 1024;
-
-  useEffect(() => {
-    const layer = layerRef.current;
-    if (!layer || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(([entry]) => setHeroWidth(entry.contentRect.width));
-    observer.observe(layer);
-    return () => observer.disconnect();
-  }, []);
-
-  if (isBandWidth) return null;
-
-  const placementOf = (place: Placement) => (hasGutters ? place.gutter : place.field);
-
-  return (
-    // The layer is full-bleed and `pointerEvents: 'none'` so that a
-    // transparent sheet over the whole hero cannot swallow clicks meant for
-    // the nav links, the social icons or the images underneath it; each
-    // control opts itself back in. See Landing.tsx for why it is stacked and
-    // ordered where it is.
-    <Box ref={layerRef} sx={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none' }}>
-      <ThemeControls positionOf={(index) => placementOf(THEME_PLACEMENTS[index])} />
-
-      {LAYOUT_CONTROLS.map(({ id, mode, label, Icon, place }, index) => {
-        const selected = layout === mode;
-
-        return (
-          <Tooltip key={id} title={label} enterDelay={300}>
-            <ButtonBase
-              aria-label={label}
-              aria-pressed={selected}
-              onClick={() => toggleLayout(mode)}
-              sx={{
-                ...controlSx(placementOf(place), THEME_OPTIONS.length + index),
-                // Selected layout: a heavier ring, matching the swatches'
-                // selected weight, plus `aria-pressed` for anyone not
-                // looking at it.
-                border: selected ? '2.5px solid' : '1.5px solid',
-                borderColor: selected ? 'text.primary' : 'text.secondary',
-              }}
-            >
-              <Icon sx={{ fontSize: 20 }} />
-            </ButtonBase>
-          </Tooltip>
-        );
-      })}
-
-      <DriftKeyframes />
-    </Box>
-  );
-};
+export const HeroControls = () => (
+  // The layer is full-bleed and `pointerEvents: 'none'` so that a transparent
+  // sheet over the whole hero cannot swallow clicks meant for the nav links,
+  // the social icons or the images underneath it; each control opts itself back
+  // in. See Landing.tsx for why it is stacked and ordered where it is.
+  <Box sx={{ position: 'absolute', inset: 0, zIndex: 11, pointerEvents: 'none' }}>
+    <Controls positions={GUTTER_PLACEMENTS} showLayout />
+    <DriftKeyframes />
+  </Box>
+);
 
 /**
- * The same six theme controls on a phone, in the band between the social links
+ * The same controls below a 1024px hero, in the band between the social links
  * and the bento photographs.
  *
- * ── Why this is in the flow and the other one is not ──
+ * -- Why this is in the flow and the other one is not --
  * `HeroControls` is a full-bleed absolute layer that costs zero layout height,
  * which is the right shape for a field scattered over a hero. This is the
  * opposite: the band's whole job is to *be* a piece of vertical space in the
  * content column, between two things a percentage of the hero cannot reliably
- * point at (see BAND_PLACEMENTS). `Landing.tsx` zeroes the margins that used to
- * make that gap and hands it to this element instead, so the gap and the
- * controls in it are the same box and cannot come apart.
+ * point at (see BAND_PLACEMENTS_PHONE). `Landing.tsx` closes the margins that
+ * used to make that gap and hands it to this element instead, so the gap and
+ * the controls in it are the same box and cannot come apart.
  *
- * It renders after the social links in the DOM, so on a phone the tab order is
- * the reading order: nav (absent in the mobile shell), heading, social links,
- * theme controls, scroll arrow. Above 650px the controls are back to being the
- * first eight tab stops, painted at the hero's top corners, which is the same
- * rule -- tab order follows the eye.
+ * It renders after the social links in the DOM, so here the tab order is the
+ * reading order: nav, heading, social links, controls, scroll arrow. On a
+ * >= 1024px hero the controls are the first eight tab stops, painted at the
+ * hero's top corners, which is the same rule -- tab order follows the eye.
  *
- * The negative horizontal margin cancels the content column's `px: 2` so the
- * band spans the hero's full width rather than the 960px text measure; at 320px
- * that is the difference between 240px and 272px of room, and the controls need
- * every pixel of it (BAND_PLACEMENTS explains the 68px they need between
- * centres).
+ * The negative horizontal margin cancels the content column's `px` so the band
+ * spans the hero's full width rather than the 960px text measure; at 320px that
+ * is the difference between 240px and 272px of room, and the controls need
+ * every pixel of it.
  */
 export const HeroControlBand = () => {
   const theme = useTheme();
-  const isBandWidth = useMediaQuery(theme.breakpoints.down(HERO_BAND_BREAKPOINT_PX));
-
-  if (!isBandWidth) return null;
+  // Same breakpoint, same direction, as `SettingsDrawer`'s `showLayout` gate.
+  const isPhone = useMediaQuery(theme.breakpoints.down(MOBILE_BREAKPOINT_PX));
 
   return (
     <Box
       sx={{
         position: 'relative',
-        height: HERO_BAND_HEIGHT_PX,
-        mx: -2,
-        // The band is only ever a frame for six absolutely-positioned coins;
-        // it must not eat the taps meant for the hero behind it.
+        height: bandHeightPx(isPhone),
+        mx: { xs: -2, sm: -4 },
+        // The band is only ever a frame for absolutely-positioned coins; it
+        // must not eat the taps meant for the hero behind it.
         pointerEvents: 'none',
       }}
     >
-      <ThemeControls positionOf={(index) => BAND_PLACEMENTS[index]} />
+      <Controls
+        positions={isPhone ? BAND_PLACEMENTS_PHONE : BAND_PLACEMENTS_WIDE}
+        showLayout={!isPhone}
+      />
       <DriftKeyframes />
     </Box>
   );
