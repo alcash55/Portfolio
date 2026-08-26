@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ToggleColorMode from '../../../layout/Theme/Context';
-import { HeroControls } from './HeroControls';
+import { HeroControlBand, HeroControls } from './HeroControls';
 import { ThemeButton } from '../../AppShell/InternalComponents/ThemeButton';
 import { AppShellLayoutContext, AppShellLayoutMode } from '../../AppShell/AppShellLayoutContext';
 
@@ -62,6 +62,23 @@ const renderControls = (layout: AppShellLayoutMode = 'default') => {
     <AppShellLayoutContext.Provider value={{ layout, toggleLayout, openSettingDrawer: vi.fn() }}>
       <ToggleColorMode>
         <HeroControls />
+      </ToggleColorMode>
+    </AppShellLayoutContext.Provider>,
+  );
+  return { toggleLayout };
+};
+
+/**
+ * The same, for the in-flow band that replaces the floating field below a
+ * 1024px hero. `HeroControls` is the >= 1024px arrangement now, so anything
+ * about narrow widths has to render this instead.
+ */
+const renderBand = (layout: AppShellLayoutMode = 'mobile') => {
+  const toggleLayout = vi.fn();
+  render(
+    <AppShellLayoutContext.Provider value={{ layout, toggleLayout, openSettingDrawer: vi.fn() }}>
+      <ToggleColorMode>
+        <HeroControlBand />
       </ToggleColorMode>
     </AppShellLayoutContext.Provider>,
   );
@@ -199,22 +216,48 @@ describe('HeroControls — four a side, once the hero is wide enough to have sid
     }
   });
 
-  it('leaves the narrow regime a scatter with no sides at all', () => {
-    // Below a 1024px hero there is no band down either edge to balance -- the
-    // subtitle runs to within ~35px of both -- so the controls sit across the
-    // lower half instead. Forcing a left/right split here would put them back
-    // on the text, which is the mistake this guards.
-    renderControls(); // jsdom answers `false` to every query: the field regime.
+  it('hands the narrow widths to the band instead of scattering over the hero', () => {
+    // The phone band: below 650px the shell forces the mobile layout, so it is
+    // six controls with no layout buttons. There is no `field` regime any more
+    // -- with the bento photographs counted as obstacles there was nowhere left
+    // to put one, so everything below a 1024px hero is the band.
+    stubMatchMedia((query) => query.includes('max-width') && query.includes('649'));
+    renderBand();
 
     const all = placements();
-    expect(
-      all.every((c) => c.top > 50),
-      'a control left the lower half',
-    ).toBe(true);
+    expect(all.map((c) => c.name)).toEqual(THEME_LABELS.map((label) => `${label} theme`));
+
+    // Two loose tiers, not two ruled rows: every control at its own depth.
+    const tops = all.map((c) => c.top);
+    expect(new Set(tops).size, 'two controls share a horizontal rule').toBe(tops.length);
+
+    // Still a field across the band's width, not pushed out to two edges.
     expect(
       all.some((c) => c.left > 33 && c.left < 67),
-      'the narrow regime has been pushed out to two edges',
+      'the band has been pushed out to its edges',
     ).toBe(true);
+
+    // And no two in the same column, which is the ladder in miniature.
+    const lefts = all.map((c) => c.left).sort((a, b) => a - b);
+    for (let i = 1; i < lefts.length; i++)
+      expect(lefts[i] - lefts[i - 1], `two controls share a column at ${lefts[i]}%`).toBeGreaterThan(
+        4,
+      );
+  });
+
+  it('keeps the band clear of its own edges, so the drift cannot leave it', () => {
+    // The band is exactly the gap between the social links and the
+    // photographs, so a control's whole 12px lap has to stay inside it. The
+    // e2e suite measures that against real geometry; this guards the inputs.
+    stubMatchMedia((query) => query.includes('max-width') && query.includes('649'));
+    renderBand();
+
+    const tops = placements().map((c) => c.top);
+    // 136px band, 44px control, 14px of drift slack top and bottom. The lower
+    // tier is allowed past the nominal floor because the bento steps alternate
+    // columns 2rem lower -- see BAND_PLACEMENTS_PHONE -- so only the ceiling is
+    // a hard rule here.
+    for (const top of tops) expect(top, 'a control overlaps the social links').toBeGreaterThanOrEqual(14);
   });
 
   it('keeps the vertical spacing uneven, so the set cannot read as a ladder', () => {
@@ -336,15 +379,30 @@ describe('HeroControls — layouts', () => {
 
   it('renders no layout control below 650px, where the shell would ignore it', () => {
     // Spec 03: "If the user is on mobile then it does not show the other
-    // layouts". `AppShellProvider` pins the mode to `mobile` under 650px and
-    // ignores whatever `toggleLayout` is handed, so a layout button there is a
-    // button that lies. Same breakpoint as SettingsDrawer's `showLayout`.
+    // layouts". `AppShell` pins the mode to `mobile` under 650px and ignores
+    // whatever `toggleLayout` is handed, so a layout button there is a button
+    // that lies. Same breakpoint as SettingsDrawer's `showLayout`.
+    //
+    // Below 650px the controls live in the band, so it is the band that has to
+    // honour this -- `HeroControls` is the >= 1024px hero arrangement and never
+    // renders at a phone width at all.
     stubMatchMedia((query) => query.includes('max-width') && query.includes('649'));
-    renderControls('mobile');
+    renderBand('mobile');
 
     expect(screen.queryByRole('button', { name: 'Side nav layout' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Top nav layout' })).toBeNull();
     expect(screen.getAllByRole('button', { name: /theme$/ })).toHaveLength(6);
+  });
+
+  it('renders all eight in the band once the layout buttons are offered', () => {
+    // 650-1023px: still the band, but the shell lets a visitor choose a layout
+    // again, so the band carries eight controls and is shallower to pay for it.
+    renderBand('default');
+
+    expect(screen.getByRole('button', { name: 'Side nav layout' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Top nav layout' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /theme$/ })).toHaveLength(6);
+    expect(placements().map((c) => c.name)).toEqual(EXPECTED_FOCUS_ORDER);
   });
 });
 
