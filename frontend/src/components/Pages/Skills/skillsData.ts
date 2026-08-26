@@ -32,6 +32,7 @@ import Cloudflare from '../../../assets/icons/Cloudflare';
 import Vercel from '../../../assets/icons/Vercel';
 import Linux from '../../../assets/icons/Linux';
 import FullStory from '../../../assets/icons/FullStory';
+import PostHog from '../../../assets/icons/PostHog';
 
 export interface SkillItem {
   label: string;
@@ -129,6 +130,10 @@ export const skillCategories: SkillCategory[] = [
       // Its logotype spells the name, so `wordmark` -- same treatment as Go,
       // Node.js, Express, Next.js and git.
       { label: 'FullStory', icon: FullStory, wordmark: true },
+      // A symbol rather than a logotype, so no `wordmark` -- the chip prints
+      // the name beside the mark. Product analytics on this site itself; see
+      // `analytics.ts`.
+      { label: 'PostHog', icon: PostHog },
     ],
   },
   {

@@ -14,6 +14,7 @@ import useConnectForm from './useConnectForm';
 import ConnectNotification from './ConnectNotification';
 import useConnectNotification from './useConnectNotification';
 import { CONTACT_SUCCESS_MESSAGE, getContactErrorMessage } from './contactErrors';
+import { ANALYTICS_EVENTS, useAnalytics } from '../../hooks/useAnalytics';
 
 // Don't show the "server is waking up" copy for a normal-latency request --
 // it's alarming to see it flash by on a request that resolves in 200ms. Only
@@ -25,6 +26,7 @@ const COLD_START_HINT_DELAY_MS = 4000;
  * @returns {JSX.Element}
  */
 const ConnectForm = () => {
+  const capture = useAnalytics();
   const {
     setName,
     setEmail,
@@ -102,6 +104,10 @@ const ConnectForm = () => {
       const result = await sendMessage();
 
       if (result.ok) {
+        // Only on an accepted submission, never on attempt. A count that
+        // includes failed sends measures the backend's uptime, not whether
+        // anyone actually got in touch.
+        capture(ANALYTICS_EVENTS.CONTACT_SUBMITTED);
         setMessageSent(true);
         setNotificationText(CONTACT_SUCCESS_MESSAGE);
         setName('');

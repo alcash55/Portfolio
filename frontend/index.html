@@ -27,6 +27,13 @@
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <!-- PostHog's ingest host. The SDK is loaded by the bundle rather than by a
+         tag here, so this only warms the connection it will open anyway. Kept
+         in step with VITE_POSTHOG_HOST: if that ever points at the EU cloud or
+         a self-hosted instance, this hint becomes a wasted lookup rather than a
+         broken one. -->
+    <link rel="preconnect" href="https://us.i.posthog.com" crossorigin />
+    <link rel="dns-prefetch" href="https://us.i.posthog.com" />
 
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico" />

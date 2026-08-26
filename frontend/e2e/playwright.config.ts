@@ -44,8 +44,22 @@ export default defineConfig({
     // file is committed, and the committed values are what ships. `bun run
     // build` still regenerates them everywhere else, which is what keeps the
     // numbers from rotting.
+    // `VITE_POSTHOG_PROJECT_TOKEN=` builds the suite's bundle with analytics
+    // switched off, and that matters for two separate reasons.
+    //
+    // The obvious one: PostHog's request would be a network call on load, and
+    // `zero console errors on load` fails on a blocked or failed one -- the
+    // same class of environment dependence that made that test pass locally
+    // and fail on its first CI run when it was reaching a real backend.
+    //
+    // The one that actually bites: without this, every local and CI run of
+    // this suite would send real pageviews to the real project, so Alex's own
+    // analytics would be measuring Playwright. An empty token means the
+    // provider never mounts (see main.tsx) and no request is made at all,
+    // which is stronger than stubbing the route in each spec and does not
+    // depend on remembering to add the stub to the next spec file.
     command:
-      'SKIP_SITE_STATS=1 bun run build && bunx vite preview --port 4173 --strictPort',
+      'SKIP_SITE_STATS=1 VITE_POSTHOG_PROJECT_TOKEN= bun run build && bunx vite preview --port 4173 --strictPort',
     cwd: path.resolve(e2eDir, '..'),
     url: BASE_URL,
     // Generous because `bun run build` on this /mnt/c mount is slow, and a

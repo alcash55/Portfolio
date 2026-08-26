@@ -18,6 +18,7 @@ import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import { Logo } from '../../../assets/icons/Logo';
 import { navLinks } from './navLinks';
 import resumePdf from '../../../assets/AlexResume.pdf';
+import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 
 // Same targets as the hero's social buttons (Landing.tsx) and About's resume
 // button -- kept as one constant each so the footer can't silently drift to a
@@ -39,6 +40,7 @@ const socialButtonSx = {
 };
 
 export const Footer = () => {
+  const capture = useAnalytics();
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down(650));
   const date = new Date().getFullYear();
@@ -141,6 +143,10 @@ export const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     href={resumePdf}
+                    // Counted separately from About's copy of this link (see
+                    // there) -- same file, different intent: one is read on the
+                    // way through the page, this one on the way out.
+                    onClick={() => capture(ANALYTICS_EVENTS.RESUME_CLICKED, { location: 'footer' })}
                     aria-label="View Resume (opens Alex Cash's resume PDF in a new tab)"
                     sx={{ ...linkSx, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
                   >

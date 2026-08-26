@@ -27,6 +27,7 @@ import { useProjectClip } from './useProjectClip';
 import { useProjectDialog } from './useProjectDialog';
 import ProjectDialog from './ProjectDialog';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
+import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 import { hoverGlow } from '../../../layout/Theme/hoverGlow';
 
 /**
@@ -215,6 +216,7 @@ const ProjectCard = ({
   largeMobile: boolean;
   onOpen: (project: StaticProject) => void;
 }) => {
+  const capture = useAnalytics();
   const updatedAt = project.live?.updatedAt ? formatUpdatedAt(project.live.updatedAt) : null;
   // Hover *or* focus, so the clip plays for a keyboard user too -- a preview
   // that only exists for people with a mouse is a preview half the point of
@@ -278,7 +280,15 @@ const ProjectCard = ({
           // button now and the links moved inside the dialog, because two of
           // the five cards led somewhere that was not their source code and
           // there was nowhere on this page to reach the rest.
-          onClick={() => onOpen(project)}
+          onClick={() => {
+            // Captured on the card rather than inside the dialog's own open
+            // path, which also fires for a `#projects/<slug>` deep link -- a
+            // shared URL arriving is a different thing from a visitor browsing
+            // the grid and choosing one, and folding them together would make
+            // the number mean neither.
+            capture(ANALYTICS_EVENTS.PROJECT_OPENED, { project: project.name });
+            onOpen(project);
+          }}
           // Tells a screen reader that activating this opens a dialog rather
           // than navigating, which is the one thing the visible text cannot
           // say on its own.

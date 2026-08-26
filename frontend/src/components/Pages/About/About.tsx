@@ -24,10 +24,12 @@ import Go from '../../../assets/icons/Go';
 import TechIcon from '../Skills/TechIcon';
 import { bioParagraphs, whatDrivesMe, outsideOfWork, continuousLearning } from './aboutData';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
+import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 
 const About = () => {
   const theme = useTheme();
   const reveal = useScrollReveal();
+  const capture = useAnalytics();
   // Shared by every sub-panel below so the section reads as a set of
   // layered cards (the hero's idiom) rather than one continuous text
   // column -- matches Skills' skillCardSx: same border/bg treatment, no
@@ -153,6 +155,14 @@ const About = () => {
                     href={resumePdf}
                     target="_blank"
                     rel="noopener noreferrer"
+                    // The resume is this site's actual conversion -- the one
+                    // outcome worth knowing the count of. `location` separates
+                    // this link from the identical one in the footer, which is
+                    // the only way to tell whether people find it in the About
+                    // panel or only on their way out.
+                    onClick={() =>
+                      capture(ANALYTICS_EVENTS.RESUME_CLICKED, { location: 'about' })
+                    }
                     variant="outlined"
                     startIcon={<DescriptionOutlined />}
                     aria-label="View Resume (opens Alex Cash's resume PDF in a new tab)"
