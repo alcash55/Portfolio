@@ -15,7 +15,11 @@ import {
   stickyTopOffset,
 } from '../../AppShell/InternalComponents/useShowNavBar';
 import { useAppShellLayout } from '../../AppShell/AppShellLayoutContext';
-import { HeroControls } from './HeroControls';
+import {
+  HERO_BAND_BREAKPOINT_PX,
+  HeroControlBand,
+  HeroControls,
+} from './HeroControls';
 
 /**
  * `el`'s top edge in document coordinates, ignoring every CSS transform on the
@@ -81,6 +85,15 @@ const Landing = () => {
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const { layout } = useAppShellLayout();
   const theme = useTheme();
+
+  // Below 650px the six theme controls stop floating over the hero and become
+  // an in-flow band between the social links and the photographs
+  // (`HeroControlBand`). Three of the margins below are the gap that band
+  // replaces, so they have to close at exactly the same width -- hence the
+  // shared constant rather than a second literal 650 here. Read as a media
+  // query rather than off `layout === 'mobile'` so it matches the query the
+  // band itself uses, frame for frame, during a resize.
+  const usesControlBand = useMediaQuery(theme.breakpoints.down(HERO_BAND_BREAKPOINT_PX));
 
   // Every "white" on the hero below used to be a literal `rgba(255,255,255,…)`/
   // `#fff`, which only worked because `background.hero` was pinned dark in
@@ -418,13 +431,30 @@ const Landing = () => {
         >
           <Box sx={{ maxWidth: 960, width: '100%' }}>
             {/* Hero Text */}
-            <Box sx={{ textAlign: 'center', mb: 10 }}>
-              <Box sx={{ mb: 4 }}>
+            {/* `mb` is the gap down to the photographs. On a phone the control
+                band below owns that gap outright, so this and the social row's
+                own `mb` both close -- otherwise the band would be stacked on top
+                of 80px of margin and the controls would sit nowhere near the
+                space Alex asked for them to occupy. */}
+            <Box sx={{ textAlign: 'center', mb: usesControlBand ? 0 : 10 }}>
+              {/* 32px down to the social links normally; 16px on a phone.
+                  Those 16px, plus the 8 taken off the caption and the 8 off the
+                  h1 below, are what pays for the control band: the hero is
+                  `height: 100vh` with centred content and at 390x844 the column
+                  already fills its box, so the band's extra 50px would
+                  otherwise come half out of the caption at the top (~16px of
+                  slack, measured) and half out of the clearance between the
+                  last row of photographs and the mobile bottom bar (~22px).
+                  Measured after: ~7px above the caption, ~13px below the
+                  photographs. */}
+              <Box sx={{ mb: usesControlBand ? 2 : 4 }}>
                 <Typography
                   variant="caption"
                   sx={{
                     display: 'inline-block',
-                    mb: 1,
+                    // See the note on the wrapper above: the phone values are
+                    // the hero's contribution to the control band's height.
+                    mb: usesControlBand ? 0 : 1,
                     letterSpacing: 4,
                     textTransform: 'uppercase',
                     // See `heroTextReadable` above -- this is the element
@@ -441,7 +471,7 @@ const Landing = () => {
                   variant="h1"
                   sx={{
                     fontSize: { xs: 56, md: 96, lg: 120 },
-                    mb: 2,
+                    mb: usesControlBand ? 1 : 2,
                     letterSpacing: -1,
                   }}
                 >
@@ -468,7 +498,11 @@ const Landing = () => {
                   display: 'flex',
                   justifyContent: 'center',
                   gap: 2,
-                  mb: 6,
+                  // Normally collapsed into the wrapper's `mb: 10` above and so
+                  // worth nothing; once that wrapper's margin closes on a phone
+                  // this one stops collapsing and becomes a real 48px, which is
+                  // 48px the band is not getting. Close it too.
+                  mb: usesControlBand ? 0 : 6,
                 }}
               >
                 <IconButton
@@ -498,6 +532,16 @@ const Landing = () => {
                 </IconButton>
               </Box>
             </Box>
+
+            {/* The phone arrangement of the theme controls: an in-flow band
+                occupying the gap between the social links above and the
+                photographs below, which is where Alex asked for them. It
+                renders nothing at 650px and up, where `HeroControls` above has
+                them floating over the hero instead -- exactly one of the two is
+                ever live, so the six controls appear once and the tab order has
+                no gaps. See HeroControls.tsx for why this one is in the flow
+                when everything else about this hero is not. */}
+            <HeroControlBand />
 
             {/* Bento Grid Images */}
             <Box sx={{ maxWidth: 896, mx: 'auto', mb: 6 }}>
