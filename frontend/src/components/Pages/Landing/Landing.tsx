@@ -561,7 +561,6 @@ const Landing = () => {
                         overflow: 'hidden',
                         aspectRatio: '1 / 1',
                         transform: index % 2 === 1 ? 'translateY(2rem)' : 'none',
-                        cursor: 'pointer',
                         '&:hover .image': {
                           filter: 'grayscale(0)',
                           transform: 'scale(1.03)',

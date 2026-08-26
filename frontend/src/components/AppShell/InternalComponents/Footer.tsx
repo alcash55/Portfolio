@@ -27,10 +27,11 @@ const GITHUB_URL = 'https://github.com/alcash55';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/alexander-cash';
 const EMAIL = 'alex.e.cash28@gmail.com';
 
-// primary.light, not the MuiLink default of primary.main: primary.main only
-// clears WCAG AA body-text contrast (4.5:1) against paper in the dark and
-// blue themes' edge cases; primary.light clears AA in all three (see the
-// same rationale on About's resume button and Contact's link list).
+// primary.light, not the MuiLink default of primary.main: primary.main
+// clears WCAG AA body-text contrast (4.5:1) against paper on every dark-mode
+// theme, but only just in blue and dark (~4.98:1-5.01:1); primary.light gives
+// real headroom there instead. Same choice as About's resume button and
+// Contact's link list -- see Contact.tsx for the full per-theme numbers.
 const linkSx = { color: 'primary.light' };
 
 const socialButtonSx = {
