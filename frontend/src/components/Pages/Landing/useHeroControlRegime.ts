@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
@@ -60,5 +60,65 @@ export const useHeroControlRegime = (
   }, [heroRef]);
 
   const hasGutters = heroWidth === null ? viewportHasGutters : heroWidth >= GUTTER_MIN_HERO_PX;
-  return hasGutters ? 'gutter' : 'band';
+  const regime: HeroControlRegime = hasGutters ? 'gutter' : 'band';
+
+  useKeepControlFocusAcrossRegimeChange(regime);
+
+  return regime;
+};
+
+/**
+ * Puts focus back on the control a visitor was on when the regime changes under
+ * them.
+ *
+ * The two arrangements are two different components in two different places in
+ * the DOM, so crossing between them unmounts every control and mounts eight new
+ * ones. Focus goes to `<body>` when that happens, and there is one way to make
+ * it happen *from the keyboard*: press Enter on "Side nav layout" in a window
+ * between 1024 and ~1366px wide. The sidebar appears, takes 248px off the hero,
+ * and the hero drops under 1024px -- so the very button that was just used
+ * stops existing, and a keyboard visitor is dumped back at the top of the
+ * document by their own click. (Found by the e2e suite, which had been
+ * asserting focus survives a layout switch since the sprint that added these.)
+ *
+ * The replacement control has the same accessible name, because it is the same
+ * control in a different place, so the name is the handle used to find it
+ * again. Nothing is restored unless focus really was lost from a hero control:
+ * a resize that nobody was tabbing through must not steal focus from wherever
+ * it actually is.
+ */
+const CONTROL_SELECTOR = '#landing [aria-pressed]';
+
+const useKeepControlFocusAcrossRegimeChange = (regime: HeroControlRegime) => {
+  const lastFocused = useRef<string | null>(null);
+  const previousRegime = useRef(regime);
+
+  useEffect(() => {
+    const remember = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null;
+      lastFocused.current =
+        target?.closest(CONTROL_SELECTOR)?.getAttribute('aria-label') ?? null;
+    };
+    document.addEventListener('focusin', remember);
+    return () => document.removeEventListener('focusin', remember);
+  }, []);
+
+  // Layout effect, not an effect: the swap and the restore land in the same
+  // frame, so no paint ever shows the focus ring missing.
+  useLayoutEffect(() => {
+    const changed = previousRegime.current !== regime;
+    previousRegime.current = regime;
+    if (!changed) return;
+
+    const label = lastFocused.current;
+    if (!label) return;
+    // Only if the swap is what lost it. `document.body` is where focus lands
+    // when the element holding it is removed.
+    if (document.activeElement && document.activeElement !== document.body) return;
+
+    const replacement = document.querySelector(
+      `${CONTROL_SELECTOR}[aria-label="${CSS.escape(label)}"]`,
+    );
+    if (replacement instanceof HTMLElement) replacement.focus();
+  }, [regime]);
 };

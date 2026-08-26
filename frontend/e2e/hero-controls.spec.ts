@@ -298,6 +298,19 @@ test.describe('placement', () => {
           .forEach((element, index) =>
             add(`interactive[${index}]`, element.getBoundingClientRect()),
           );
+        // The bento photographs.
+        //
+        // These used to be deliberately absent, on the grounds that they are
+        // decorative, sit behind a 0.5-alpha black scrim, and have always had
+        // the hero's decorative particles drifting over them. Alex overruled
+        // that: they are photographs *of him*, and a control resting on his
+        // face is not something a scrim excuses.
+        //
+        // The element box is the right box here, unlike the text above -- an
+        // `<img>` with `object-fit: cover` has ink in every pixel of it.
+        document
+          .querySelectorAll('#landing img')
+          .forEach((element, index) => add(`image[${index}]`, element.getBoundingClientRect()));
         // App chrome that is painted *over* the hero from outside it, and so
         // was invisible to a sweep that only looked inside `#landing`: the
         // mobile settings Fab and bottom navigation bar, the sideNav Fab. All
@@ -393,24 +406,57 @@ test.describe('placement', () => {
     }
   }
 
+  /**
+   * The widths this sweeps, and why each one is in the list.
+   *
+   * Three things change shape as the hero narrows, and every one of them gets
+   * checked from both sides rather than sampled near it:
+   *
+   *  - 1024px of *hero* (not window) switches the controls from the floating
+   *    gutter field to the in-flow band. `#landing` is 48px narrower than the
+   *    window, so 1072 leaves a hero of exactly 1024 and 1071 leaves 1023.
+   *  - 650px of window hides the two layout buttons (the shell pins itself to
+   *    `mobile` below it), so the band goes from eight controls to six and from
+   *    116px deep to 136px. 650 and 649 sit either side.
+   *  - `sm`, 600px, flips the bento grid from 4-across to 2-across, which moves
+   *    every photograph -- and the photographs are obstacles now. 600 and 599
+   *    sit either side.
+   *
+   * The heights are not filler either. The hero is `height: 100vh` with centred
+   * content, so height decides how much slack there is above the caption and
+   * below the last row of photographs: 800x600 and 960x720 are the two
+   * shortest-for-their-width cases in the range, and 768x1024 and 834x1112 the
+   * two tallest.
+   */
   for (const size of [
+    // Gutter regime.
     { width: 1920, height: 1080 },
     { width: 1600, height: 900 },
     { width: 1440, height: 900 },
     DESKTOP,
     { width: 1152, height: 720 },
-    // The narrowest window that still gets the gutter regime: `#landing` is
-    // 48px narrower than the window, so 1072 leaves a hero of exactly 1024 and
-    // the side bands are as thin as they are ever allowed to be. The nearest
-    // width the sweep used to check was 1280, which left a 1232px hero -- 200px
-    // of slack that hid whatever happens at the boundary.
-    { width: 1072, height: 700 },
+    { width: 1072, height: 700 }, // hero exactly 1024: the tightest gutter there is
+    // Band regime, eight controls.
+    { width: 1071, height: 700 }, // hero 1023: the other side of the same switch
     { width: 1024, height: 768 },
+    { width: 960, height: 720 },
     NARROW_DESKTOP,
+    { width: 834, height: 1112 },
+    { width: 800, height: 600 },
     { width: 768, height: 1024 },
     { width: 700, height: 700 },
+    { width: 650, height: 650 },
+    // Band regime, six controls: the layout buttons are gone below 650.
+    { width: 649, height: 800 },
+    { width: 600, height: 900 }, // `sm`: the bento is still 4-across here
+    { width: 599, height: 800 }, // and 2-across here
+    { width: 480, height: 640 },
+    { width: 430, height: 932 },
     MOBILE,
+    { width: 375, height: 667 },
+    { width: 360, height: 640 },
     TINY,
+    { width: 320, height: 667 },
   ]) {
     test(`nothing is covered, in any theme, at ${size.width}x${size.height}`, async ({ page }) => {
       await page.setViewportSize(size);
@@ -425,14 +471,24 @@ test.describe('placement', () => {
 
   // The sideNav layout is reachable from the hero itself, and it is not a
   // variation on the same geometry: the sidebar takes 248px off the left, so a
-  // 1280px window has a 960px hero -- the narrow regime, at a width that is in
-  // the wide one without it -- and it parks a Fab in the hero's bottom-right
+  // 1280px window has a 960px hero -- the band regime, at a width that is in
+  // the gutter one without it -- and it parks a Fab in the hero's bottom-right
   // corner. None of that was covered while every test here ran in `default`.
+  //
+  // It stops at 900px because below that the sideNav layout pins the hero at
+  // 566px and overflows the page horizontally, which is a pre-existing sideNav
+  // problem of its own and not something the controls can be placed around.
   for (const size of [
     { width: 1920, height: 1080 },
     { width: 1600, height: 900 },
     { width: 1440, height: 900 },
+    // The narrowest window whose sideNav hero still has gutters: 1366 - 248 of
+    // sidebar - 48 leaves 1046. One step down and the controls are a band.
+    { width: 1366, height: 768 },
     DESKTOP,
+    { width: 1152, height: 720 },
+    { width: 1024, height: 768 },
+    { width: 960, height: 720 },
     NARROW_DESKTOP,
   ]) {
     test(`nothing is covered in the sideNav layout at ${size.width}x${size.height}`, async ({
@@ -605,32 +661,150 @@ test.describe('placement', () => {
   });
 
   /**
-   * The other half of the ask, and the half that is easy to get wrong: below a
-   * 1024px hero there are no side bands to even up. The controls scatter across
-   * the lower half, which is the only region clear of text at every width down
-   * to 320px, so anything that pushed them out to two edges there would put
-   * them straight back on the subtitle.
+   * The other half of the ask, and the one Alex actually wrote down: "on the
+   * mobile layout the theme icon buttons for the home screen need to get moved
+   * to the space in between the pictures of me and the github, linkedin, and
+   * email icons".
+   *
+   * Below a 1024px hero the controls are no longer a floating field at all --
+   * there is nowhere left for one, since the lower half of a narrow hero is the
+   * bento grid wall to wall and the upper half is the heading and the subtitle.
+   * They are an in-flow band occupying that gap instead. This asserts the thing
+   * that makes it *that* gap and not merely somewhere clear: every control sits
+   * below the social links and above the photographs, at every width in the
+   * range and in every theme, whether or not the theme's font wraps the h1.
    */
-  test('the narrow regime stays a scatter, with no sides to balance', async ({ page }) => {
-    for (const size of [MOBILE, TINY, { width: 700, height: 700 }]) {
+  test('below a 1024px hero every control sits between the social links and the photographs', async ({
+    page,
+  }) => {
+    // The band's own landmarks, read at rest. Not fractions of the hero this
+    // time: the whole point of the band is that the gap it fills is *not* at a
+    // fixed fraction of the hero -- it is at 38.8-48.3% of a 390x844 one and at
+    // 72.5-86.5% of a 320x568 one, because four of the six themes wrap the h1
+    // at phone widths.
+    const bandGeometry = () => {
+      const socialBottom = Math.max(
+        ...Array.from(document.querySelectorAll('#landing a.MuiIconButton-root')).map(
+          (element) => element.getBoundingClientRect().bottom,
+        ),
+      );
+      const photographs = Array.from(document.querySelectorAll('#landing img')).map((element) =>
+        element.getBoundingClientRect(),
+      );
+      const hero = (document.getElementById('landing') as HTMLElement).getBoundingClientRect();
+      return {
+        socialBottom,
+        photographs: photographs.map((box) => ({ x: box.x, right: box.right, top: box.y })),
+        hero: { x: hero.x, width: hero.width },
+        controls: Array.from(document.querySelectorAll('#landing [aria-pressed]')).map(
+          (element) => {
+            const control = element as HTMLElement;
+            const running = control.style.animation;
+            control.style.animation = 'none';
+            const box = control.getBoundingClientRect();
+            control.style.animation = running;
+            return {
+              name: control.getAttribute('aria-label') ?? '?',
+              x: box.x,
+              y: box.y,
+              right: box.right,
+              bottom: box.bottom,
+            };
+          },
+        ),
+      };
+    };
+
+    for (const size of [
+      { width: 1023 + 48, height: 700 },
+      { width: 900, height: 800 },
+      { width: 700, height: 700 },
+      { width: 649, height: 800 },
+      { width: 600, height: 900 },
+      MOBILE,
+      TINY,
+    ]) {
       await page.setViewportSize(size);
       await gotoHome(page);
 
-      const centres = await page.evaluate(restingCentres);
-      const where = `${size.width}x${size.height}`;
-      expect(centres.length, `${where}: no controls rendered`).toBeGreaterThanOrEqual(6);
+      for (const themeName of THEME_NAMES) {
+        await wearTheme(page, themeName);
+        const { socialBottom, photographs, hero, controls } = await page.evaluate(bandGeometry);
+        const where = `${themeName} at ${size.width}x${size.height}`;
 
-      // At least one control resting in the middle third is what makes this a
-      // field rather than two columns.
-      expect(
-        centres.filter((c) => c.x > 0.33 && c.x < 0.67).length,
-        `${where}: the controls have been pushed out to the edges`,
-      ).toBeGreaterThan(0);
+        expect(controls.length, `${where}: no controls rendered`).toBeGreaterThanOrEqual(6);
 
-      // And all of them below the hero's midline, clear of the text above.
-      for (const control of centres)
-        expect(control.y, `${where}: ${control.name} left the lower half`).toBeGreaterThan(0.5);
+        for (const control of controls) {
+          // Below the social links...
+          expect(
+            control.y,
+            `${where}: ${control.name} is above the social links`,
+          ).toBeGreaterThanOrEqual(socialBottom - 44);
+          // ...and above every photograph it overlaps horizontally. The bento
+          // steps alternate columns 2rem lower, so "above the photographs" is a
+          // staircase, not a line, and a control is allowed to use the step.
+          for (const photograph of photographs) {
+            const sharesAColumn = control.x < photograph.right && control.right > photograph.x;
+            if (!sharesAColumn) continue;
+            expect(
+              control.bottom,
+              `${where}: ${control.name} hangs over a photograph`,
+            ).toBeLessThanOrEqual(photograph.top);
+          }
+        }
+
+        // And it is still a field, not a docked strip: something rests in the
+        // middle third of the hero's width, and no two controls share a rule.
+        const centres = controls.map((c) => ({
+          name: c.name,
+          x: (c.x + 22 - hero.x) / hero.width,
+          y: c.y,
+        }));
+        expect(
+          centres.filter((c) => c.x > 0.33 && c.x < 0.67).length,
+          `${where}: the controls have been pushed out to the edges`,
+        ).toBeGreaterThan(0);
+        const tops = centres.map((c) => c.y).sort((a, b) => a - b);
+        for (let i = 1; i < tops.length; i++)
+          expect(
+            tops[i] - tops[i - 1],
+            `${where}: two controls share a horizontal rule, which is the row this was not meant to be`,
+          ).toBeGreaterThan(1);
+      }
     }
+  });
+
+  /**
+   * The band is a real piece of the content column, not a layer floating over
+   * it, and that is load-bearing: `Landing.tsx` closes the margins that used to
+   * make the gap and hands the space to the band. If the band ever went back to
+   * being out of flow, the gap would close and the photographs would jump up
+   * under the social links.
+   */
+  test('the band occupies the gap rather than hovering in it', async ({ page }) => {
+    await page.setViewportSize(MOBILE);
+    await gotoHome(page);
+
+    const { gap, bandHeight } = await page.evaluate(() => {
+      const socialBottom = Math.max(
+        ...Array.from(document.querySelectorAll('#landing a.MuiIconButton-root')).map(
+          (element) => element.getBoundingClientRect().bottom,
+        ),
+      );
+      const photoTop = Math.min(
+        ...Array.from(document.querySelectorAll('#landing img')).map(
+          (element) => element.getBoundingClientRect().top,
+        ),
+      );
+      const band = (
+        document.querySelector('#landing [aria-pressed]') as HTMLElement
+      ).parentElement as HTMLElement;
+      return { gap: photoTop - socialBottom, bandHeight: band.getBoundingClientRect().height };
+    });
+
+    // The gap *is* the band: within a pixel, nothing else is contributing to it.
+    expect(Math.abs(gap - bandHeight), 'the band is not the whole gap').toBeLessThan(1.5);
+    expect(bandHeight, 'the band has collapsed').toBeGreaterThan(100);
   });
 
   test('the drift itself stays inside the slack this suite allows it', async ({ page }) => {
