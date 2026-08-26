@@ -8,10 +8,12 @@ export const greenTheme: ThemeOptions = createTheme({
     primary: {
       main: '#7ddcae',
       // Footer/About/Contact read `primary.light`, not `main` (Sprint 4).
-      // Left unset: MUI's auto-derived `light` (#97e3be) measures 11.40:1
-      // against `paper` and 9.38:1 against `default` -- lightening raises
-      // contrast on this dark page, so pinning (as light theme must) isn't
-      // needed here.
+      // Left unset: MUI's auto-derived `light` (#97e3be) measures 9.38:1
+      // against `paper` and 11.40:1 against `default` -- `default` is the
+      // darker surface, so it's the one that gains most from lightening
+      // `main`; either way lightening raises contrast on this dark page, so
+      // pinning (as light theme must) isn't needed here. Unrounded WCAG 2.1
+      // figures -- see Contact.tsx for the measurement method.
     },
     // Warm complement to the green primary -- same role blue's teal
     // secondary plays against its blue primary. Purely decorative (Landing's
