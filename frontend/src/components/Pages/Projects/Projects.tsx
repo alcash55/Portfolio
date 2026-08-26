@@ -460,8 +460,11 @@ const DetailsAffordance = () => (
       alignItems: 'center',
       pt: 0.5,
       // `primary.light`, not `primary.main`: `light` is the token every theme
-      // here guarantees against paper for accent text (main measured 3.98:1 in
-      // the blue theme, under AA's 4.5:1 for body text).
+      // here guarantees against paper for accent text. `main` clears AA on its
+      // own now, but only just in blue and dark (4.99:1 and 5.00:1 against
+      // AA's 4.5:1 body-text floor); `light` keeps real headroom. Same choice
+      // as Contact's, Footer's and About's link colour -- see Contact.tsx for
+      // the full per-theme numbers and for how to measure them.
       color: 'primary.light',
     }}
   >

@@ -28,14 +28,21 @@ const Contact = () => {
     },
   };
   // primary.light, not the MuiLink/ListItem default of primary.main: on every
-  // dark-mode theme (dark/blue/red/purple/green) lightening `main` only raises
-  // its contrast against `paper`, so these links keep headroom over the 4.5:1
-  // AA floor instead of sitting on it. Blue is the tightest of the five and
-  // sets the margin -- `main` 4.99:1 vs `light` 6.12:1 on `paper`. (Before
-  // Sprint 15 blue's `main` measured 3.98:1 and genuinely failed AA; it no
-  // longer does, so `light` here is headroom, not a rescue.) In light theme,
-  // `light` is pinned equal to `main` rather than auto-lightened toward white,
-  // specifically so it clears AA there too -- 6.16:1 on white (lightTheme.ts).
+  // dark-mode theme (dark/blue/red/purple/green) lightening `main` raises its
+  // contrast against `paper`, turning a bare-minimum margin into real
+  // headroom over the 4.5:1 AA floor. `main` alone already clears AA on all
+  // five, but blue and dark sit within 0.5:1 of it (4.99:1 and 5.00:1);
+  // `light` gives every theme comfortable clearance instead. Blue is the
+  // tightest of the five and sets the margin -- `main` 4.99:1 vs `light`
+  // 6.12:1 on `paper`. In light theme, `light` is pinned equal to `main`
+  // rather than auto-lightened toward white, specifically so it clears AA
+  // there too -- 6.16:1 on white (lightTheme.ts).
+  //
+  // Figures are unrounded WCAG 2.1 ratios. Measure them with the spec
+  // formula, NOT with MUI's getContrastRatio: getLuminance truncates
+  // luminance to 3 decimals (colorManipulator.mjs, "Truncate at 3 digits"),
+  // which on these dark `paper` values reads up to 0.07 low -- enough to
+  // make a re-measurement look like a discrepancy and start a rewrite.
   // Same choice as Footer's and About's link colour, for the same reason.
   const listLinkSx = { width: 'fit-content', p: 0, color: 'primary.light' };
   const headerStyles = {
