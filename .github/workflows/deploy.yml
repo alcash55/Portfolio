@@ -48,6 +48,21 @@ jobs:
           # client bundle, so only non-secret values belong here. The Discord
           # webhook now lives in the backend's WEBHOOK_URL, server-side.
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+          # PostHog. A `vars` entry rather than a `secrets` one because a
+          # project token is a write-only ingest key that ships in the bundle
+          # by design -- treating it as a secret would imply a confidentiality
+          # it does not have, and secrets are masked in logs, which makes a
+          # misconfigured one harder to spot rather than safer.
+          #
+          # If the token is unset the build still succeeds and simply ships
+          # without analytics: `analyticsEnabled` is false, the SDK is never
+          # fetched, and no events are sent. That was the state from the
+          # feature landing until this line existed, which is how the site
+          # spent several sprints shipping the SDK and recording nothing.
+          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
+          # Required alongside the token: the US and EU clouds are different
+          # ingest hostnames, so there is no safe default to fall back on.
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
 
       - name: Setup Pages
         id: setup_pages
