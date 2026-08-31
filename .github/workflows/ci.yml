@@ -82,7 +82,7 @@ jobs:
       # so a stale browser binary can never sit alongside a newer test runner.
       - name: Cache Playwright browser
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('frontend/bun.lockb') }}
