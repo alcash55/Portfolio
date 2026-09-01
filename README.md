@@ -197,6 +197,23 @@ The two halves deploy independently:
 | `frontend/` | GitHub Pages                 | <https://alcash55.github.io/Portfolio/>   | Push to `main` → `.github/workflows/deploy.yml` |
 | `backend/`  | [Render](https://render.com) | <https://portfolio-api-0mta.onrender.com> | Push to `main` → `render.yaml` blueprint        |
 
+### Rolling back a Pages deploy
+
+The `github-pages` environment has no required reviewer and no wait timer, so a push to `main`
+that passes CI deploys straight to production. If a deploy passes CI but the live site is
+still wrong (a runtime bug CI doesn't catch, a bad environment variable, a stale PostHog key),
+two recovery paths already work:
+
+- **Revert and push.** `git revert <bad-commit>` on `main` re-triggers `ci.yml` and then
+  `deploy.yml` from a clean state. This is the default choice, since it also fixes `main`
+  going forward rather than just the live site.
+- **Re-run a prior successful deploy.** In the Actions tab, open the last known-good
+  `Deploy static content to Pages` run and choose **Re-run all jobs**. This checks out that
+  run's commit fresh and rebuilds it rather than replaying a stored artifact, so a repository
+  variable changed since that run (`VITE_API_URL`, the PostHog vars) applies to the rebuild
+  too. It only works within GitHub's 90-day retention window for that run. Once a run ages
+  out, its **Re-run** button disappears and a revert is the only path back.
+
 ### Backend on Render
 
 `render.yaml` at the repo root is a [Blueprint](https://render.com/docs/blueprint-spec).
