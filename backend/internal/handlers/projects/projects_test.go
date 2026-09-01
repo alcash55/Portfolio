@@ -242,6 +242,58 @@ func TestGetProjects_NullFieldsBecomeContractDefaults(t *testing.T) {
 	}
 }
 
+// TestToProject_NonNullFieldsMapToCorrectFields proves each of
+// Description, Homepage, and Language lands in its own response field, not
+// one of the other two. Every fixture above either omits these three
+// fields or sets them to nil, so nothing before this test exercised the
+// three true-branches in toProject - a copy-paste slip during a refactor
+// (say, p.Description = *r.Homepage) would compile, pass every other test
+// in this file, and still ship. The three values are deliberately distinct
+// strings so a swap between any pair shows up as a failure here.
+func TestToProject_NonNullFieldsMapToCorrectFields(t *testing.T) {
+	description := "a small tool for tracking houseplants"
+	homepage := "https://example.com/plant-tracker"
+	language := "Go"
+
+	repo := githubRepo{
+		Name:            "Plant-Tracker",
+		Description:     &description,
+		HTMLURL:         "https://github.com/alcash55/Plant-Tracker",
+		Homepage:        &homepage,
+		Language:        &language,
+		StargazersCount: 42,
+		Topics:          []string{"cli", "tooling"},
+		UpdatedAt:       time.Date(2026, 6, 15, 9, 30, 0, 0, time.UTC),
+	}
+
+	got := toProject(repo)
+
+	if got.Description != description {
+		t.Errorf("toProject(%+v).Description = %q, want %q", repo, got.Description, description)
+	}
+	if got.Homepage != homepage {
+		t.Errorf("toProject(%+v).Homepage = %q, want %q", repo, got.Homepage, homepage)
+	}
+	if got.Language != language {
+		t.Errorf("toProject(%+v).Language = %q, want %q", repo, got.Language, language)
+	}
+	if got.Name != repo.Name {
+		t.Errorf("toProject(%+v).Name = %q, want %q", repo, got.Name, repo.Name)
+	}
+	if got.URL != repo.HTMLURL {
+		t.Errorf("toProject(%+v).URL = %q, want %q", repo, got.URL, repo.HTMLURL)
+	}
+	if got.Stars != repo.StargazersCount {
+		t.Errorf("toProject(%+v).Stars = %d, want %d", repo, got.Stars, repo.StargazersCount)
+	}
+	if !got.UpdatedAt.Equal(repo.UpdatedAt) {
+		t.Errorf("toProject(%+v).UpdatedAt = %v, want %v", repo, got.UpdatedAt, repo.UpdatedAt)
+	}
+	if !equalStrings(got.Topics, repo.Topics) {
+		t.Errorf("toProject(%+v).Topics = %v, want %v", repo, got.Topics, repo.Topics)
+	}
+}
+
 // --- caching ---
 
 func fixture(name string) repoFixture {
