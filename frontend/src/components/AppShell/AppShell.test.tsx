@@ -10,7 +10,7 @@ import AppShellProvider from './AppShell';
  * MUI's `useMediaQuery` reads `matchMedia(query).matches` via `useSyncExternalStore` and
  * subscribes with the (deprecated but still used by MUI 5) `addListener`/`removeListener`
  * pair, so the mock must return the *same* object on repeated calls for a given query and
- * mutate its `matches` property in place — a fresh object per call would never notify.
+ * mutate its `matches` property in place. A fresh object per call would never notify.
  *
  * `setWidth` recomputes every registered query's `matches` against the new width and, for
  * any that flipped, mutates `matches` and fires the query's listeners, exactly like a real
@@ -209,7 +209,7 @@ describe('AppShellProvider (breakpoint crossings must not reset app state)', () 
 
     expect(
       screen.getByRole('button', { name: 'Top Nav' }),
-      "LayoutButton must read the live layout from AppShellLayoutContext, not localStorage: reading localStorage at render time means any unrelated re-render can pick up a write this tab never made and flip the selection to a layout the shell never actually switched to",
+      'LayoutButton must read the live layout from AppShellLayoutContext, not localStorage: reading localStorage at render time means any unrelated re-render can pick up a write this tab never made and flip the selection to a layout the shell never actually switched to',
     ).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Side Nav' })).toHaveAttribute(
       'aria-pressed',

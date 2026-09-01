@@ -166,7 +166,7 @@ describe('ProjectMediaPlayer', () => {
       render(<CardHarness media={fakeMedia} />);
       await user.hover(screen.getByTestId('card'));
 
-      expect(video()?.className, 'the clip must render into the still image’s box').toBe(
+      expect(video()?.className, "the clip must render into the still image's box").toBe(
         stillClass,
       );
     });

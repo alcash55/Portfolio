@@ -259,7 +259,7 @@ const ConnectForm = () => {
               color: 'text.secondary',
             }}
           >
-            Still waking the server up — this can take up to a minute on the free plan. Hang tight!
+            Still waking the server up. On the free plan that can take a minute.
           </Typography>
         )}
       </Stack>

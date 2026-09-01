@@ -1,4 +1,4 @@
-# 03 — "This site" section
+# 03. "This site" section
 
 **Status:** spec, not started · **Addresses:** the theme/layout system is invisible (#5 in the review)
 
@@ -6,7 +6,7 @@
 
 The site has **six themes** and **three layout modes**, and both are behind a settings
 drawer most visitors will never open. Every theme's contrast was measured rather than
-eyeballed — the blue theme failed WCAG AA twice from one cause (MUI's
+eyeballed. The blue theme failed WCAG AA twice from one cause (MUI's
 `getContrastText` flips to white at _its_ 3:1 threshold, which is the large-text bar,
 not AA's 4.5:1 for body text) and the fix took the palette from 4.99:1 to 12.72:1.
 That is real work and it is completely undiscoverable.
@@ -16,7 +16,7 @@ unit tests, 9 browser tests gating the deploy, Lighthouse 93/100/96/100.
 
 ## Proposal
 
-A short section that makes the site itself the exhibit — swatches that switch the
+A short section that makes the site itself the exhibit: swatches that switch the
 theme live, the three layout modes, and the numbers underneath.
 
 ```
@@ -38,7 +38,7 @@ deploy · Lighthouse 93/100/96/100
 - Themes come from `THEME_OPTIONS` in `ThemeButton.tsx` (six entries: dark, blue,
   light, red, purple, green). Switching goes through `toggleColorMode` on
   `ColorModeContext` and persists to `localStorage['theme']`. A swatch row is a second
-  consumer of the same context — no new state.
+  consumer of the same context, with no new state.
 - Layout modes are `default` / `sideNav` / `mobile` via `localStorage['layout']`,
   owned by `AppShell.tsx`.
 - **Adding a section is a four-place change**, by design: `Home.tsx` (render order),
@@ -46,7 +46,7 @@ deploy · Lighthouse 93/100/96/100
   `CLIPPABLE_SECTION_IDS` in `e2e/smoke.spec.ts`, which currently reads
   `['about','experience','skills','projects','contact']`. Git history has a section
   that was rendered but never added to `navLinks`, so it went missing from every nav
-  for four sprints — worth not repeating.
+  for four sprints, worth not repeating.
 - The numbers must not be hand-typed and left to rot. Test counts can be generated at
   build time the way `scripts/generate-sitemap.mjs` already generates the sitemap.
 

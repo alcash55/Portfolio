@@ -141,7 +141,7 @@ func TestCORS_DisallowedOriginNotEchoed(t *testing.T) {
 // TestCORS_AllowAnyLocalhost_RandomPort proves the local-dev escape hatch
 // works for a port that isn't in any static allow-list, which is the entire
 // reason AllowAnyLocalhost exists (see Config.AllowAnyLocalhost doc comment
-// — Vite drifts to another port when 3005 is taken).
+// Vite drifts to another port when 3005 is taken).
 func TestCORS_AllowAnyLocalhost_RandomPort(t *testing.T) {
 	router := New(testConfig(nil, true))
 
@@ -269,7 +269,7 @@ func TestRateLimit_PerIPIndependent(t *testing.T) {
 	const freshIP = "203.0.113.21:1"
 	rec := postContactFrom(router, freshIP, body)
 	if rec.Code != http.StatusOK {
-		t.Fatalf("a different IP (%s): status = %d, want %d — one IP's rate limit must not affect another", freshIP, rec.Code, http.StatusOK)
+		t.Fatalf("a different IP (%s): status = %d, want %d. One IP's rate limit must not affect another", freshIP, rec.Code, http.StatusOK)
 	}
 }
 

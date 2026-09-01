@@ -75,10 +75,10 @@ func TestSendMessage_Success(t *testing.T) {
 	// Security control: the @everyone / role-mention guard. This is the whole
 	// reason allowed_mentions exists on the outbound payload.
 	if captured.AllowedMentions.Parse == nil || len(captured.AllowedMentions.Parse) != 0 {
-		t.Errorf("webhook payload allowed_mentions.parse = %#v, want an empty (non-nil-or-nil, but zero-length) array — a non-empty list would let the submitted content ping @everyone/roles", captured.AllowedMentions.Parse)
+		t.Errorf("webhook payload allowed_mentions.parse = %#v, want an empty (non-nil-or-nil, but zero-length) array. A non-empty list would let the submitted content ping @everyone/roles", captured.AllowedMentions.Parse)
 	}
 	if !bytes.Contains(rawBody, []byte(`"parse":[]`)) {
-		t.Errorf("webhook raw JSON body does not contain literal \"parse\":[] — got: %s", rawBody)
+		t.Errorf("webhook raw JSON body does not contain literal \"parse\":[]. Got: %s", rawBody)
 	}
 
 	if captured.Username != "Portfolio Bot" {
@@ -156,7 +156,7 @@ func TestSendMessage_Validation(t *testing.T) {
 // validation error handling.
 func TestSendMessage_BodyTooLarge(t *testing.T) {
 	webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Fatal("fake webhook: should not be called — the request should be rejected for size before it reaches this handler's webhook call")
+		t.Fatal("fake webhook: should not be called. The request should be rejected for size before it reaches this handler's webhook call")
 	}))
 	defer webhook.Close()
 	router := newTestRouter(webhook.URL)
@@ -205,7 +205,7 @@ func TestSendMessage_WebhookUnreachable(t *testing.T) {
 // library, not something to show a site visitor.
 func TestSendMessage_ValidationErrorDoesNotLeakBindingDetail(t *testing.T) {
 	webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Fatal("fake webhook: should not be called — an invalid submission must never reach the webhook")
+		t.Fatal("fake webhook: should not be called. An invalid submission must never reach the webhook")
 	}))
 	defer webhook.Close()
 	router := newTestRouter(webhook.URL)
@@ -225,7 +225,7 @@ func TestSendMessage_ValidationErrorDoesNotLeakBindingDetail(t *testing.T) {
 
 	for _, leaked := range []string{"Key:", "Error:Field validation", "'required'", "message.Email", "message.Name"} {
 		if strings.Contains(rec.Body.String(), leaked) {
-			t.Errorf("SendMessage with empty payload: response body leaked internal binding detail %q — got: %s", leaked, rec.Body.String())
+			t.Errorf("SendMessage with empty payload: response body leaked internal binding detail %q. Got: %s", leaked, rec.Body.String())
 		}
 	}
 }
@@ -233,12 +233,12 @@ func TestSendMessage_ValidationErrorDoesNotLeakBindingDetail(t *testing.T) {
 // TestSendMessage_Honeypot covers the honeypot contract implemented in
 // SendMessage: a non-empty "website" field must look exactly like success
 // from the outside (200 {"status":"ok"}) while silently never reaching the
-// webhook — and an empty or absent "website" must never affect a genuine
+// webhook, and an empty or absent "website" must never affect a genuine
 // submission.
 func TestSendMessage_Honeypot(t *testing.T) {
 	t.Run("non-empty website is dropped silently", func(t *testing.T) {
 		webhook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			t.Fatal("fake webhook: should not be called — a tripped honeypot must never be forwarded to Discord")
+			t.Fatal("fake webhook: should not be called. A tripped honeypot must never be forwarded to Discord")
 		}))
 		defer webhook.Close()
 		router := newTestRouter(webhook.URL)
@@ -267,7 +267,7 @@ func TestSendMessage_Honeypot(t *testing.T) {
 		defer webhook.Close()
 		router := newTestRouter(webhook.URL)
 
-		// A raw JSON literal, deliberately omitting "website" entirely —
+		// A raw JSON literal, deliberately omitting "website" entirely.
 		// json.Marshal(message{...}) would always include the key (no
 		// omitempty tag), so it can't express the truly-absent case.
 		body := []byte(`{"name":"Ada Lovelace","email":"ada@example.com","message":"Hello from the contact form."}`)
@@ -306,7 +306,7 @@ func TestSendMessage_Honeypot(t *testing.T) {
 
 // TestSendMessage_WebhookNonOK covers Discord returning a non-2xx status,
 // and separately proves that the webhook's own response body (which could
-// contain internal details) never reaches the client — the entire point of
+// contain internal details) never reaches the client. That is the entire point of
 // the indirection this handler provides.
 func TestSendMessage_WebhookNonOK(t *testing.T) {
 	const leakedDetail = "internal discord error: token xyz"
@@ -336,7 +336,7 @@ func TestSendMessage_WebhookNonOK(t *testing.T) {
 				t.Errorf("SendMessage with webhook returning %d: client status = %d, want %d; body: %s", tt.webhookHTTP, rec.Code, http.StatusBadGateway, rec.Body.String())
 			}
 			if strings.Contains(rec.Body.String(), leakedDetail) {
-				t.Errorf("SendMessage with webhook returning %d: client response body leaked the webhook's error text %q — got: %s", tt.webhookHTTP, leakedDetail, rec.Body.String())
+				t.Errorf("SendMessage with webhook returning %d: client response body leaked the webhook's error text %q. Got: %s", tt.webhookHTTP, leakedDetail, rec.Body.String())
 			}
 		})
 	}

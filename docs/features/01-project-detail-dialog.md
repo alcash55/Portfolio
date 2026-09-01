@@ -1,11 +1,11 @@
-# 01 — Project detail dialog
+# 01. Project detail dialog
 
 **Status:** spec, not started · **Addresses:** project depth (#2 in the review)
 
 ## The problem
 
-Every project card is a two-line description and a link out. The Portfolio card —
-the one project the visitor is *already inside* — reads "A website built to showcase
+Every project card is a two-line description and a link out. The Portfolio card,
+the one project the visitor is *already inside*, reads "A website built to showcase
 my skills and experiences using modern web technologies", which describes nothing.
 Behind that card: a Go API with a single-flight 1h cache, rate limiting on a
 deliberately-public webhook, a static fallback indistinguishable from a live render,
@@ -47,7 +47,7 @@ no blog.
   *"links every card somewhere, including the projects that are not on GitHub"* walks
   every static project and requires an `<a>` with an `http(s)` href. It has to be
   rewritten to assert the dialog opens and *contains* the link. That test exists
-  because a missing link is invisible in a screenshot and only hurts keyboard users —
+  because a missing link is invisible in a screenshot and only hurts keyboard users,
   the replacement must keep that property.
 - Live metadata (`stars`, `language`, `updatedAt`) already merges per project via
   `mergeProject`, and the cached-data notice already exists. Both can appear in the
@@ -61,7 +61,7 @@ no blog.
 ## Decisions to make
 
 **1. Which projects get long-form content?**
-Recommendation: all five, but the depth is uneven on purpose — Portfolio and
+Recommendation: all five, but the depth is uneven on purpose. Portfolio and
 Little-Town get the full treatment, the other three get a paragraph.
 **Your call:** This project and The Clipper-er should be the only one that gets a long-form section at the moment since they are the most finished projects. The others will get a paragraph about what they are and how they work.
 
@@ -72,18 +72,18 @@ third is the one most portfolios skip and the one engineers actually read.
 
 **3. Where does the content come from?**
 Recommendation: hand-written by you in a new `projectDetails.ts`, keyed by project
-name. Drafting from the vault notes (`Dev Projects/*.md`) is possible — say so if you
+name. Drafting from the vault notes (`Dev Projects/*.md`) is possible, so say so if you
 want first drafts to react to rather than a blank file.
 **Your call:**
 
 **4. What happens to the card's outbound link?**
 Recommendation: the whole card opens the dialog; the live/GitHub links live inside it.
-The alternative — card opens the link, a small "Details" button opens the dialog —
+The alternative, where the card opens the link and a small "Details" button opens the dialog,
 keeps one click to the live site but makes the depth easy to miss.
 **Your call:** The links should all go to the respective project's github page except for The Clipper-er can be the link that is used today which takes the user to the Youtube channel.
 
 **5. Should the dialog be linkable (e.g. `#projects/little-town`)?**
-Recommendation: yes, hash only — a shareable URL that reopens the dialog, without
+Recommendation: yes, hash only. A shareable URL that reopens the dialog, without
 touching the router. Costs a `useEffect` and a `hashchange` listener.
 **Your call:** Yes, the dialog should be linkable.
 
@@ -108,7 +108,7 @@ Recommendation: full-screen dialog below `sm`, per MUI's `fullScreen` breakpoint
 ## Risks
 
 - **Depth nobody opens.** If the cards do not signal that there is more behind them,
-  the content is invisible — worse than the status quo, because the outbound link got
+  the content is invisible, which is worse than the status quo, because the outbound link got
   one click further away. Whatever affordance is chosen has to read as "more inside".
 - **Content rot.** Five hand-written stories are five things that go stale. The
   numbers should come from the live API where they already do.

@@ -5,7 +5,9 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 /**
- * Sprint 11 (A1): single source of truth for About's copy. Previously
+ * Sprint 11 (A1): single source of truth for About's copy. The bio and the
+ * "What Drives Me" list were rewritten in September 2026; the Frontend
+ * Masters list below is still straight from the vault. Previously
  * `About.tsx` rendered its own hardcoded copy while `aboutme.MD` sat next to
  * it, unimported, with a slightly richer version of the same content --
  * two sources of truth, one of them invisible. This module is lifted
@@ -17,8 +19,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
  */
 
 export const bioParagraphs: string[] = [
-  "Hey, I'm Alex Cash — a Software Engineer who enjoys building clean, scalable, and well-designed systems. I'm passionate about creating software that not only works great under the hood but also delivers a smooth, intuitive experience for users.",
-  'I work across the stack, but my favorite projects are the ones that blend front-end precision with backend performance. I love working with React, TypeScript, and Go, and I lean on tools like MUI, Tailwind, Vite, and Bun.js to move fast and keep things maintainable.',
+  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Right now that means Go services and React micro-frontends for an energy trading platform, where a wrong number costs real money and the interface has to make that number obvious.",
+  'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with MUI, Tailwind, Vite and Bun filling in around them.',
 ];
 
 export interface DrivePoint {
@@ -26,22 +28,27 @@ export interface DrivePoint {
   icon: ReactNode;
 }
 
-/** Matches aboutme.MD's "What Drives Me" list verbatim; icons are new (A2). */
+/**
+ * Rewritten in the 2026-09 unslop pass. The originals came verbatim from
+ * `aboutme.MD` and were the kind of line that could sit unchanged on any
+ * engineer's About page ("Always learning and refining how I work"), which
+ * means they said nothing about this one.
+ */
 export const whatDrivesMe: DrivePoint[] = [
-  { text: "Writing code that's simple, clear, and reliable", icon: <CodeIcon /> },
+  { text: 'Code the next person can read without asking me about it', icon: <CodeIcon /> },
   {
-    text: 'Building systems that scale without sacrificing readability',
+    text: 'Owning a feature from the data model up to the page that reads it',
     icon: <AccountTreeIcon />,
   },
   {
-    text: 'Collaborating with teams who care about craft and efficiency',
+    text: 'Reviews that argue about the design, not the formatting',
     icon: <GroupsIcon />,
   },
-  { text: 'Always learning and refining how I work', icon: <AutoAwesomeIcon /> },
+  { text: 'Measuring the thing instead of guessing at it', icon: <AutoAwesomeIcon /> },
 ];
 
 export const outsideOfWork =
-  "When I'm not coding, you'll probably find me coaching lacrosse or spending time with my two dogs. Coaching has taught me a lot about communication, patience, and leadership — lessons that carry directly into how I approach software development and teamwork.";
+  "When I'm not coding, you'll probably find me coaching lacrosse or out with my two dogs. Coaching is mostly explaining the same thing four different ways until one lands, which turns out to be the job on a code review too.";
 
 /**
  * From Alex's Obsidian vault (`Learning/Frontend Masters (Master.dev)/`),

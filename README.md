@@ -70,7 +70,7 @@ Field limits: `name` ≤ 100, `email` ≤ 254 and must parse as an email address
 2000-character limit.
 
 It's rate limited to 5 requests/minute per client (burst 5), keyed off the rightmost
-`X-Forwarded-For` entry — the one a client can't forge past Render's proxy — with a fallback to
+`X-Forwarded-For` entry, the one a client can't forge past Render's proxy, with a fallback to
 the raw peer address in local development. A throttled request gets `429` plus a `Retry-After`
 header. `/healthz` and `/api/v1/projects` are deliberately not rate limited; see the comments in
 `internal/routes/routes.go` for why each is safe to leave open.
@@ -94,33 +94,33 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
-| `GH_TOKEN`        | no       | GitHub token `GET /api/v1/projects` sends when calling the GitHub API. Optional — see below    |
+| `GH_TOKEN`        | no       | GitHub token `GET /api/v1/projects` sends when calling the GitHub API. Optional, see below     |
 | `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
 | `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
 
-`GH_TOKEN` is genuinely optional — you can run this backend without one. `/api/v1/projects` works
+`GH_TOKEN` is genuinely optional. You can run this backend without one. `/api/v1/projects` works
 unauthenticated against the public GitHub API (60 requests/hour, and the four default repos behind
 a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just raises the limit to
 5000/hour. A token that GitHub rejects (expired, revoked, wrong scope) doesn't fail the request
-either — the handler retries that one refresh unauthenticated instead.
+either. The handler retries that one refresh unauthenticated instead.
 
-`.env` is read by [godotenv](https://github.com/joho/godotenv) at startup — Go
+`.env` is read by [godotenv](https://github.com/joho/godotenv) at startup. Go
 does not read `.env` files on its own, and real environment variables always win,
 so deployed environments are unaffected.
 
 CORS has two modes, chosen by whether `ALLOWED_ORIGINS` is set:
 
-- **Unset (local development)** — any `localhost` / `127.0.0.1` / `::1` origin is
+- **Unset (local development).** Any `localhost` / `127.0.0.1` / `::1` origin is
   allowed **on any port**, plus `https://alcash55.github.io`. Dev servers drift
   to another port when theirs is taken (Vite does this silently unless
   `strictPort` is set), and pinning exact ports turns into whack-a-mole.
-- **Set (deployments)** — exact matching against that list only, and localhost is
+- **Set (deployments).** Exact matching against that list only, and localhost is
   not special. `render.yaml` sets it to `https://alcash55.github.io`.
 
 Setting `ALLOWED_ORIGINS` **replaces** the defaults rather than adding to them.
 
 If a browser request gets a `403` on the preflight, the origin is not in the
-allowlist — check which port your dev server actually bound to, since it may not
+allowlist. Check which port your dev server actually bound to, since it may not
 be the one in `vite.config.ts`.
 
 ```sh
@@ -136,7 +136,7 @@ go test ./...        # all packages
 go test ./... -race   # same, with the race detector
 ```
 
-`-race` needs cgo, which needs a C compiler (`gcc`/`cc`) on the machine — it will fail with
+`-race` needs cgo, which needs a C compiler (`gcc`/`cc`) on the machine. It fails with
 `requires cgo` if there isn't one. CI has one and runs `-race`; if you don't, `go test ./...`
 without the flag still runs every test, just without race detection.
 
@@ -180,7 +180,7 @@ as distinct from a unit-test failure; and `go vet`, `go test ./... -race`, and `
 backend.
 
 `.github/workflows/deploy.yml` (push to `main`) calls that same `ci.yml` as a gate before
-deploying the frontend to GitHub Pages — a push to `main` only deploys if CI passes. The backend
+deploying the frontend to GitHub Pages. A push to `main` only deploys if CI passes. The backend
 deploys separately: Render watches `main` directly via the `render.yaml` blueprint and isn't gated
 on this repo's CI.
 
@@ -221,9 +221,9 @@ In the Render dashboard: **New → Blueprint**, point it at this repo, and Rende
 reads the file. It builds `backend/Dockerfile` (`rootDir: backend`, so frontend
 changes don't trigger a redeploy) and health-checks `/healthz`.
 
-Set `WEBHOOK_URL` in the Render dashboard — it's marked `sync: false` in the blueprint precisely so
+Set `WEBHOOK_URL` in the Render dashboard. It's marked `sync: false` in the blueprint precisely so
 the secret never lives in this repo. `GH_TOKEN` is in the blueprint the same way (`sync: false`)
-but is optional at the application level (see the env var table above) — leaving it unset in the
+but is optional at the application level (see the env var table above), so leaving it unset in the
 dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub.
 
 Two things Render handles that the app relies on:
@@ -239,17 +239,17 @@ Two things Render handles that the app relies on:
 > a cold start reads as slow, not broken. The contact form shows a "Sending…" state immediately
 > and, if the request is still going after 4s, swaps in copy explaining the server is waking up
 > (`ConnectForm.tsx`). The projects section shows skeleton cards while its fetch is in flight, then
-> renders the real cards — from live data merged over a static fallback, or the static fallback
+> renders the real cards, from live data merged over a static fallback, or the static fallback
 > alone if the fetch never comes back in time (`Projects.tsx`, `useProjects.ts`). Neither request
 > is ever left to hang forever. `.github/workflows/keep-alive.yml` pings `/healthz` every 10
 > minutes to make a cold start less likely in the first place. GitHub's `schedule` trigger is
-> best-effort, not a guarantee — it can be delayed under load, and GitHub disables `schedule`
-> entirely on a repo with no commits for 60 days — so a cold start is mitigated, not eliminated.
+> best-effort, not a guarantee. It can be delayed under load, and GitHub disables `schedule`
+> entirely on a repo with no commits for 60 days, so a cold start is mitigated, not eliminated.
 > Upgrading off the free plan removes the spin-down altogether.
 
 The repository **variable** (not secret) `VITE_API_URL` points the Pages build at
 the API; it is currently set to `https://portfolio-api-0mta.onrender.com`. Keep
-it a variable — `VITE_`-prefixed values are inlined into the client bundle, and
+it a variable. `VITE_`-prefixed values are inlined into the client bundle, and
 Vite inlines **every** `VITE_` variable present at build time, whether the source
 references it or not.
 
@@ -268,6 +268,6 @@ docker run --rm -p 8080:8080 \
   portfolio-api
 ```
 
-The image is a multi-stage build onto `distroless/static` — no shell, no package
+The image is a multi-stage build onto `distroless/static`: no shell, no package
 manager, non-root, ~36 MB. `.dockerignore` excludes `.env` so secrets are never
 baked into a layer.

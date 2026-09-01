@@ -11,10 +11,10 @@ export const experienceData = [
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Processed data generated from instore kitchens using NCR APIs to Google Cloud Platform to provide better business intelligence and decision making" />
+          <ListItemText primary="Piped in-store kitchen data from NCR APIs into Google Cloud Platform for the business intelligence team" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Provided intelligent routing of orders based on real-time capacity with the use of Python machine learning libraries" />
+          <ListItemText primary="Built order routing that reacted to real-time kitchen capacity, using Python machine learning libraries" />
         </ListItem>
       </List>
     ),
@@ -43,7 +43,7 @@ export const experienceData = [
           </List>
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Dedicated 40+ hours as a D1 lacrosse player, practicing, lifting, analyzing game and practice film, and community service, while balancing a full academic course load" />
+          <ListItemText primary="Put 40+ hours a week into D1 lacrosse, between practice, lifting, film study and community service, alongside a full course load" />
         </ListItem>
       </List>
     ),
@@ -55,13 +55,13 @@ export const experienceData = [
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Architected the design and development of the Store Health project for Starbucks UK, aligning technical solutions with business objectives and user needs" />
+          <ListItemText primary="Architected the Store Health project for Starbucks UK, from design through delivery" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Contributed to the integration of the NCR Design System with product teams, resolving issues and enriching functionality by crafting custom React components Mitigated legal risks by implementing an automated framework to scan NCR products for accessibility scores, facilitating compliance and enhancing inclusivity" />
+          <ListItemText primary="Built custom React components into the NCR Design System and supported the product teams adopting it" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Implemented Google Tag Manager and FullStory across digital connected services products, providing valuable analytics insights and facilitating efficient troubleshooting for future enhancements" />
+          <ListItemText primary="Automated accessibility scoring across NCR products, giving every team a compliance signal per build, and rolled out Google Tag Manager and FullStory across digital connected services" />
         </ListItem>
       </List>
     ),
@@ -73,31 +73,40 @@ export const experienceData = [
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Orchestrated the innovation and refinement of existing static analysis composite GitHub Actions tailored for the Voyix Doc Site, ensuring streamlined workflows and enhanced code quality" />
+          <ListItemText primary="Redesigned the Voyix Doc Site around navigation and search, and restructured the Commerce Design Docs that product teams build against" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Led the architectural design and implementation efforts for global experience analytics initiatives, driving forward the development and deployment of scalable solutions\n- Elevated user satisfaction by spearheading the development of a comprehensive redesign of the Voyix Doc Site, focusing on intuitive navigation and seamless user interaction" />
+          <ListItemText primary="Extended the static analysis composite GitHub Actions the doc site runs on, tightening the checks that gate every merge" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Directed the development efforts in restructuring and expanding content within the Commerce Design Docs, ensuring comprehensive documentation for product teams" />
+          <ListItemText primary="Designed and shipped the global experience analytics pipeline behind Voyix's digital products" />
         </ListItem>
       </List>
     ),
     icon: <Voyix />,
   },
   {
-    dateRange: '6/2024 - Present',
+    dateRange: '8/2024 - Present',
     title: 'Software Engineer at Solea Energy',
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Redesigned and implemented a new customer-facing company website, improving overall user experience and performance" />
+          <ListItemText primary="Architected and built a seven-ISO trade submission API platform (CAISO, ERCOT, MISO, NEISO, NYISO, PJM, SPP) from the ground up in Go, standardizing validation, error handling and fault resilience across all seven markets traders participate in" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Led the migration from PrimeReact to Shadcn/UI and Tailwind CSS across new micro frontends (MFEs) for the Beyond web application" />
+          <ListItemText primary="Built the Portfolio Credit Analysis micro-frontend and its backing Go API from a Storybook spec, including ISO-specific bid-curve calculations and credit summary data models" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Supported the migration of submission APIs from Python to Go, enhancing performance and scalability" />
+          <ListItemText primary="Delivered the FTR (Financial Transmission Rights) mapping feature end to end: UI mockups, REST API, Snowflake-backed data model and Beyond UI pages, retiring a recurring manual support burden" />
+        </ListItem>
+        <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
+          <ListItemText primary="Built the Beyond FaaS platform's worker runtime, router and Helm deployment, a Kubernetes-native function-as-a-service system running Go and Python plugins with CI/CD, MinIO-backed artifact storage and identity-aware auth middleware" />
+        </ListItem>
+        <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
+          <ListItemText primary="Designed and built an internal developer portal end to end: a sync ETL pulling GitHub catalog metadata into Snowflake, a read-only catalog API and a React/TypeScript UI" />
+        </ListItem>
+        <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
+          <ListItemText primary="Migrated core Beyond UI components from PrimeReact/PrimeFlex to TypeScript and shadcn/ui, and built solea.energy from an empty repository in React/TypeScript/Vite with SSR pre-rendering" />
         </ListItem>
       </List>
     ),

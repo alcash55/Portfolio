@@ -272,7 +272,7 @@ describe('ConnectForm', () => {
     [400, /please check your details and try again/i],
     [413, /that message is too long/i],
     [429, /too many messages/i],
-    [502, /couldn't send right now/i],
+    [502, /couldn't send that/i],
   ])(
     'shows the status-specific failure copy for a %i response (F2)',
     async (status, expectedCopy) => {
@@ -326,7 +326,7 @@ describe('ConnectForm', () => {
     await waitFor(() => screen.getByRole('alert'));
 
     // Losing typed text because the API was cold is a worse bug than the one
-    // this fix addresses — a failed submit must not clear the form.
+    // this fix addresses: a failed submit must not clear the form.
     expect(screen.getByLabelText(/name/i), 'name should survive a failed submit').toHaveValue(
       'Alex',
     );

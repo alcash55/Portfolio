@@ -4,7 +4,7 @@ import { createContext, useContext } from 'react';
  * The three chrome variants `AppShellProvider` can render. Renamed from a stored
  * `JSX.Element` (see git history) to a plain string so the shell can render one
  * stable wrapper component and vary its chrome by prop instead of swapping React
- * component types — swapping types was unmounting/remounting everything below the
+ * component types. Swapping types was unmounting/remounting everything below the
  * shell (including in-progress form state) on every breakpoint crossing.
  */
 export type AppShellLayoutMode = 'default' | 'mobile' | 'sideNav';

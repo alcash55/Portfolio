@@ -19,14 +19,14 @@ interface AppShellLayoutProps extends PropsWithChildren {
  *
  * Previously `AppShellProvider` swapped between three separate top-level components
  * (`Default`, `Mobile`, `SideNav`), each wrapping `children` differently. Because the
- * rendered component *type* changed, React tore down and rebuilt the whole subtree —
- * including in-progress state below the shell (e.g. a half-typed contact message) —
+ * rendered component *type* changed, React tore down and rebuilt the whole subtree,
+ * including in-progress state below the shell, such as a half-typed contact message.
  * on every resize across the 650px breakpoint.
  *
  * This component is always the same type; only `mode` changes. `children` is rendered
  * in a single, explicitly-keyed spot inside a Stack whose type never changes, so
  * crossing breakpoints only mounts/unmounts the chrome around it (nav bar, sidebar nav
- * column, bottom nav) — never `children` itself. The chrome pieces are fixed/sticky or
+ * column, bottom nav), never `children` itself. The chrome pieces are fixed/sticky or
  * portaled (Drawer), so their position in the DOM relative to `children` doesn't affect
  * visual layout, letting the mode-specific pieces come and go freely.
  */

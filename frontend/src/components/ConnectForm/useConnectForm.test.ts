@@ -106,7 +106,7 @@ describe('useConnectForm', () => {
   describe('email validation (via validateForm)', () => {
     // validateEmail is not exported directly, so we drive it through validateForm.
     // validateForm validates its own arguments (F1), so syncing hook state via
-    // setEmail first is not required for this call to reflect the given email —
+    // setEmail first is not required for this call to reflect the given email,
     // it is still done here to mirror how ConnectForm.tsx actually uses the hook.
     const isValidEmail = (email: string) => {
       const { result } = renderHook(() => useConnectForm());

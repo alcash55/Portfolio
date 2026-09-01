@@ -153,8 +153,8 @@ func TestMiddleware_RotatingForgedXFF_StillGetsRateLimited(t *testing.T) {
 	}
 
 	if blocked == 0 {
-		t.Fatalf("sent %d requests from one real client rotating a forged X-Forwarded-For prefix on every request (burst=%d): 0 were rate limited — "+
-			"a forged, rotating header bypassed the limiter entirely, exactly the bug this test exists to catch", totalAttempts, burst)
+		t.Fatalf("sent %d requests from one real client rotating a forged X-Forwarded-For prefix on every request (burst=%d): 0 were rate limited. "+
+			"A forged, rotating header bypassed the limiter entirely, exactly the bug this test exists to catch", totalAttempts, burst)
 	}
 	if want := totalAttempts - burst; blocked != want {
 		t.Errorf("sent %d requests from one real client rotating a forged prefix (burst=%d): %d were blocked, want exactly %d (everything past the burst)", totalAttempts, burst, blocked, want)
@@ -189,6 +189,6 @@ func TestMiddleware_DifferentRealClientsIndependent(t *testing.T) {
 	// affected by the first client's exhausted bucket.
 	rec := postFrom(router, renderEdgeAddr, "forged-y, 203.0.113.12")
 	if rec.Code != http.StatusOK {
-		t.Fatalf("a different real client (203.0.113.12): status = %d, want %d — one client's rate limit must not affect another, even with both behind forged prefixes", rec.Code, http.StatusOK)
+		t.Fatalf("a different real client (203.0.113.12): status = %d, want %d. One client's rate limit must not affect another, even with both behind forged prefixes", rec.Code, http.StatusOK)
 	}
 }

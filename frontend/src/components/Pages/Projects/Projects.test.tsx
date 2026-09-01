@@ -145,7 +145,7 @@ describe('Projects', () => {
     expect(screen.getByText('VS Code Royalty Theme')).toBeInTheDocument();
   });
 
-  it('reaches a real outbound link from inside every card’s dialog, including the projects that are not on GitHub', async () => {
+  it("reaches a real outbound link from inside every card's dialog, including the projects that are not on GitHub", async () => {
     // The successor to "links every card somewhere". The card used to *be* the
     // outbound link; it is a button that opens a dialog now, and the links
     // moved inside it. The property worth protecting did not change: for every

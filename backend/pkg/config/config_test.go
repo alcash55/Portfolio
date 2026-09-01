@@ -161,7 +161,7 @@ func TestLoad_AllowedOriginsWhitespaceAndEmptyEntries(t *testing.T) {
 // the previous version of this test: when ALLOWED_ORIGINS is explicitly set
 // but parses to zero usable origins (e.g. " , , "), Load() used to be unable
 // to distinguish that from "unset" and would silently fall back to the
-// package defaults AND flip AllowAnyLocalhost to true — downgrading a
+// package defaults AND flip AllowAnyLocalhost to true, downgrading a
 // misconfigured production deploy to dev-permissive CORS. Load() now uses
 // os.LookupEnv to tell "set" apart from "unset" and returns an error (and a
 // zero Config) whenever the variable is set but useless, including the empty

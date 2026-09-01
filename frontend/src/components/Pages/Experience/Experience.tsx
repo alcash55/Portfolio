@@ -85,7 +85,7 @@ const Experience = () => {
             see them through &mdash; whether I&apos;m working with a team or on my own.
           </Typography>
 
-          {/* Rebuilt from stable @mui/material primitives — @mui/lab's Timeline
+          {/* Rebuilt from stable @mui/material primitives. @mui/lab's Timeline
               was dropped rather than shipped as a beta dependency (@mui/lab@9
               is 9.0.0-beta.8). Layout replicates the removed
               Timeline/TimelineItem/TimelineOppositeContent/TimelineSeparator/

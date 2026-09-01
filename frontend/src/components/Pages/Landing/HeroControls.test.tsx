@@ -91,7 +91,7 @@ const pressedNames = () =>
     .filter((button) => button.getAttribute('aria-pressed') === 'true')
     .map((button) => button.getAttribute('aria-label'));
 
-describe('HeroControls — every control is a real, named, toggleable button', () => {
+describe('HeroControls: every control is a real, named, toggleable button', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
@@ -166,7 +166,7 @@ const placements = () =>
     ...placementOf(button),
   }));
 
-describe('HeroControls — four a side, once the hero is wide enough to have sides', () => {
+describe('HeroControls: four a side, once the hero is wide enough to have sides', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
@@ -240,9 +240,10 @@ describe('HeroControls — four a side, once the hero is wide enough to have sid
     // And no two in the same column, which is the ladder in miniature.
     const lefts = all.map((c) => c.left).sort((a, b) => a - b);
     for (let i = 1; i < lefts.length; i++)
-      expect(lefts[i] - lefts[i - 1], `two controls share a column at ${lefts[i]}%`).toBeGreaterThan(
-        4,
-      );
+      expect(
+        lefts[i] - lefts[i - 1],
+        `two controls share a column at ${lefts[i]}%`,
+      ).toBeGreaterThan(4);
   });
 
   it('keeps the band clear of its own edges, so the drift cannot leave it', () => {
@@ -257,7 +258,8 @@ describe('HeroControls — four a side, once the hero is wide enough to have sid
     // tier is allowed past the nominal floor because the bento steps alternate
     // columns 2rem lower -- see BAND_PLACEMENTS_PHONE -- so only the ceiling is
     // a hard rule here.
-    for (const top of tops) expect(top, 'a control overlaps the social links').toBeGreaterThanOrEqual(14);
+    for (const top of tops)
+      expect(top, 'a control overlaps the social links').toBeGreaterThanOrEqual(14);
   });
 
   it('keeps the vertical spacing uneven, so the set cannot read as a ladder', () => {
@@ -278,7 +280,7 @@ describe('HeroControls — four a side, once the hero is wide enough to have sid
   });
 });
 
-describe('HeroControls — themes', () => {
+describe('HeroControls: themes', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
@@ -332,7 +334,7 @@ describe('HeroControls — themes', () => {
     expect(drawerNames).toEqual(THEME_LABELS);
   });
 
-  it('shows the selection with more than colour — a check mark, not just a ring', () => {
+  it('shows the selection with more than colour, a check mark and not just a ring', () => {
     renderControls();
 
     const dark = screen.getByRole('button', { name: 'Dark theme' });
@@ -346,7 +348,7 @@ describe('HeroControls — themes', () => {
   });
 });
 
-describe('HeroControls — layouts', () => {
+describe('HeroControls: layouts', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
@@ -406,7 +408,7 @@ describe('HeroControls — layouts', () => {
   });
 });
 
-describe('HeroControls — motion', () => {
+describe('HeroControls: motion', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 

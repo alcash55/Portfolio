@@ -11,15 +11,15 @@ export const CONTACT_SUCCESS_MESSAGE = 'Message sent successfully!';
  * (see SendMessageResult in useConnectForm.ts) -- coupling UI wording to
  * backend internals breaks the moment someone rewords a message on that
  * side. `timeout` intentionally shares copy with `server_error`: by the time
- * a request aborts, it's just another failure to the user -- the distinct
+ * a request aborts, it's just another failure to the user. The distinct
  * `kind` still exists so it can be told apart for logging/debugging.
  */
 const CONTACT_ERROR_COPY: Record<ContactErrorKind, string> = {
   validation: 'Please check your details and try again.',
   too_large: 'That message is too long.',
-  rate_limited: 'Too many messages — please wait a moment.',
-  server_error: "Couldn't send right now — please try again later.",
-  timeout: "Couldn't send right now — please try again later.",
+  rate_limited: 'Too many messages. Wait a moment and try again.',
+  server_error: "Couldn't send that. Try again in a minute.",
+  timeout: "Couldn't send that. Try again in a minute.",
 };
 
 /**

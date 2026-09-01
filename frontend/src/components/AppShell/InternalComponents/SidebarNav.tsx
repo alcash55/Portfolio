@@ -51,7 +51,7 @@ const SideBarTopItem = ({ collapsed, onToggle }: SideBarTopItemProps) => {
             <Logo sx={{ fontSize: 24, color: 'text.primary' }} />
             {/* This is persistent shell chrome (a brand label repeated in every layout
                 mode), not the page's title, so it's rendered as a plain div rather than
-                an h1 or demoted heading — Landing's hero h1 ("Alex Cash") is the page's
+                an h1 or demoted heading. Landing's hero h1 ("Alex Cash") is the page's
                 one real title; a second element with the same text would be a duplicate
                 heading, not a subordinate one. */}
             <Typography
@@ -148,7 +148,7 @@ const SideBarItems = ({ collapsed }: SideBarItemsProps) => {
 };
 
 /**
- * The sideNav layout's fixed left-hand nav column only — deliberately does not wrap
+ * The sideNav layout's fixed left-hand nav column only. Deliberately does not wrap
  * `children`. `AppShellLayout` renders this as a sibling of the page content so that
  * content's position in the tree (and therefore its React state) is unaffected by
  * this nav column mounting or unmounting when the layout mode changes, or by this

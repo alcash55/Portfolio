@@ -30,9 +30,9 @@ func (c *fakeClock) Advance(d time.Duration) {
 	c.now = c.now.Add(d)
 }
 
-// testLimiter builds a 5-requests-per-minute, burst-5 limiter — matching
+// testLimiter builds a 5-requests-per-minute, burst-5 limiter, matching
 // contactRateLimit/contactRateBurst in internal/routes, the actual budget
-// wired onto the contact endpoint — driven by a fake clock.
+// wired onto the contact endpoint, driven by a fake clock.
 func testLimiter(clock *fakeClock) *Limiter {
 	return New(Config{
 		Rate:       5,

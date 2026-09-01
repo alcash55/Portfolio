@@ -457,7 +457,7 @@ func TestGetProjects_ColdCacheUpstream401(t *testing.T) {
 		t.Errorf("cold cache + 401 from every repo: body = %q, want %q", got, wantBody)
 	}
 	if strings.Contains(rec.Body.String(), token) {
-		t.Errorf("cold cache + 401 from every repo: response body leaked the GH_TOKEN value — got: %s", rec.Body.String())
+		t.Errorf("cold cache + 401 from every repo: response body leaked the GH_TOKEN value. Got: %s", rec.Body.String())
 	}
 }
 
@@ -800,6 +800,6 @@ func TestGetProjects_AuthFallbackLoggedOncePerRefresh(t *testing.T) {
 		t.Errorf("log output contains %d occurrence(s) of %q across 4 repos that all hit the retry path, want exactly 1 - got log:\n%s", got, marker, buf.String())
 	}
 	if strings.Contains(buf.String(), "stale-token") {
-		t.Errorf("log output leaked the GH_TOKEN value — got:\n%s", buf.String())
+		t.Errorf("log output leaked the GH_TOKEN value. Got:\n%s", buf.String())
 	}
 }

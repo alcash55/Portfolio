@@ -59,7 +59,7 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
                 announcement, matching the pattern SidebarNav's collapsed rail
                 already uses for its own icon-only nav links. */}
           <IconButton
-            aria-label="Alex Cash — go to top"
+            aria-label="Alex Cash, go to top"
             href="#landing"
             sx={{ color: 'text.primary', mr: 1 }}
           >

@@ -8,7 +8,7 @@ interface MobileChromeProps {
 }
 
 /**
- * The mobile layout's chrome only (settings FAB + bottom nav) — deliberately does not
+ * The mobile layout's chrome only (settings FAB + bottom nav). Deliberately does not
  * wrap `children`. `AppShellLayout` renders this as a sibling of the page content so
  * content's position in the tree (and therefore its React state) is unaffected by this
  * chrome mounting or unmounting when the layout mode changes.
@@ -63,7 +63,7 @@ export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
                 // tuned for. `minWidth: 0` removes that floor so `flex: 1`
                 // (already the root default) divides the bar evenly at any
                 // width instead of forcing a sum wider than the container.
-                // `px` and the label `fontSize` below are shrunk to match —
+                // `px` and the label `fontSize` below are shrunk to match,
                 // this component only ever renders below the 650px mobile
                 // breakpoint, so one compact size covers its whole range.
                 minWidth: 0,
