@@ -1,7 +1,7 @@
-# agents.md — Portfolio (frontend)
+# agents.md: Portfolio (frontend)
 
 Guidelines for AI agents working in this half of the repo. This is Alex's personal portfolio
-website. The repo also has a `backend/` (Go + Gin API) — see the root `README.md` for how the two
+website. The repo also has a `backend/` (Go + Gin API). See the root `README.md` for how the two
 halves fit together and deploy; this file only covers `frontend/`.
 
 ---
@@ -11,9 +11,9 @@ halves fit together and deploy; this file only covers `frontend/`.
 | | Technology |
 |---|---|
 | **Framework** | React 18, TypeScript, Vite |
-| **UI** | MUI v5 (@mui/material, @mui/icons-material, @mui/lab), Emotion |
+| **UI** | MUI v9 (@mui/material, @mui/icons-material), Emotion |
 | **Routing** | React Router v6 |
-| **Data** | `fetch` against the Go backend (`VITE_API_URL`) — no client-side GitHub SDK; see "Calling the backend" below |
+| **Data** | `fetch` against the Go backend (`VITE_API_URL`), no client-side GitHub SDK; see "Calling the backend" below |
 | **Testing** | Vitest, React Testing Library |
 | **Fonts** | Fontsource (Oxygen, Plus Jakarta Sans, Public Sans, Space Grotesk) |
 | **Deployment** | GitHub Pages, via `.github/workflows/deploy.yml` building `dist/` |
@@ -24,21 +24,21 @@ halves fit together and deploy; this file only covers `frontend/`.
 
 ```
 Portfolio/
-├── frontend/    this half — everything below is relative to here
+├── frontend/    this half, everything below is relative to here
 ├── backend/     Go + Gin API (contact form + GitHub proxy), separate module
 └── render.yaml  backend deploy blueprint
 
 frontend/
 └── src/
     ├── components/    # Feature components (one folder per component)
-    ├── layout/        # Theme + AppShell providers (see "MUI v5" below)
+    ├── layout/        # Theme + AppShell providers (see "MUI v9" below)
     ├── assets/        # Static assets (images, icons, resume PDF, global CSS)
     ├── App.tsx         # Root: Providers + RouterProvider + Suspense
     ├── main.tsx        # Vite entry point
     └── setupTests.ts   # Vitest / Testing Library setup
 ```
 
-There is no `utils/` directory today — don't assume one exists.
+There is no `utils/` directory today. Don't assume one exists.
 
 ---
 
@@ -51,60 +51,65 @@ There is no `utils/` directory today — don't assume one exists.
   `AppShell/InternalComponents/`) use named exports (`export const MyComponent = () => ...`).
   Match whichever pattern the folder you're editing already uses.
 - Props interfaces defined inline or in the same file: `interface MyComponentProps { ... }`.
-- No `any` — use proper types or `unknown` + type narrowing.
+- No `any`. Use proper types or `unknown` plus type narrowing.
 
 ---
 
 ## Routing
 
 `src/components/Router/Router.tsx` defines exactly one `createBrowserRouter` route (`/`),
-rendering `Pages.Home` with `Pages.Error` as its `errorElement`. This is a single-page site —
+rendering `Pages.Home` with `Pages.Error` as its `errorElement`. This is a single-page site.
 `Home` renders every section (`Landing`, `About`, `Experience`, `Skills`, `Projects`, `Contact`)
 as static child components, not separate routes.
 
-`Pages/index.ts` imports every page statically on purpose, **not** with `React.lazy()` — that was
+`Pages/index.ts` imports every page statically on purpose, **not** with `React.lazy()`. That was
 tried and reverted (see the comment there for the measured before/after). Since `Home` renders
 every page unconditionally, lazy-loading only added a Suspense stall and more chunks for the same
 bytes. Only reach for `lazy()` for something that's actually conditionally rendered.
 
-The `Suspense` boundary in `App.tsx` wraps `RouterProvider` (as its `fallbackElement`) — don't add
+The `Suspense` boundary in `App.tsx` wraps `RouterProvider` (as its `fallbackElement`); don't add
 per-route ones.
 
 ---
 
-## MUI v5
+## MUI v9
 
 - Use the `sx` prop for one-off styles.
 - Use `styled()` from `@mui/material/styles` for reusable styled components.
-- Always use `theme.*` tokens for colors and spacing — avoid hardcoded hex/px values.
+- Always use `theme.*` tokens for colors and spacing; avoid hardcoded hex/px values.
 - Import icons individually: `import GitHubIcon from '@mui/icons-material/GitHub'`.
-- `@mui/lab` is available for experimental components — used today by `Experience` for `Timeline`.
+- `@mui/lab` is not a dependency. `Experience`'s timeline is built from core `@mui/material`
+  primitives, not `@mui/lab`'s `Timeline` component; see the comment above it in
+  `Experience.tsx` for why.
 
 The MUI `ThemeProvider` and the `AppShell` layout provider live in `src/layout/Providers/`
-(a **directory**, `index.tsx` inside it — there is no single `Providers.tsx` file). Add new global
+(a **directory**, `index.tsx` inside it; there is no single `Providers.tsx` file). Add new global
 providers there.
 
 **Trap:** MUI's `Typography` maps `variant` to a real HTML tag by default, so `variant="h1"`
 renders an actual `<h1>` even if you only wanted the size. `SidebarNav`'s brand label sidesteps
 this with `variant="h1" component="div"` specifically to avoid a second `<h1>` next to `Landing`'s
-real one — this has shipped as a real duplicate-heading bug before, not just a hypothetical one.
+real one. This has shipped as a real duplicate-heading bug before, not just a hypothetical one.
 Set `component` explicitly whenever you use a heading `variant` for anything other than that
 section's actual heading.
 
 ### Theming
 
-Three themes — `redTheme`, `darkTheme` (default), `blueTheme` — live in `src/layout/Theme/`, built
-with MUI's `createTheme` and swapped at runtime via `ColorModeContext`
-(`src/layout/Theme/Context.tsx`). The active theme name persists to `localStorage` (`"theme"`) and
-is read back on mount. Add a new theme by exporting a new `createTheme`-based object and wiring it
-into `toggleColorMode`.
+Six themes, dark (default), blue, light, red, purple, and green, live in `src/layout/Theme/` as
+one file per theme (`darkTheme.ts`, `blueTheme.ts`, ...), built with MUI's `createTheme`.
+`THEME_NAMES` in `ColorModeContext.ts` is the source of truth for which names exist; the `themes`
+record in `Context.tsx` maps each name to its module and has a comment asking you to keep the two
+in sync. The active theme name persists to `localStorage` (`"theme"`) and is resolved
+synchronously before first paint, so a returning visitor never sees a flash of the wrong theme.
+Add a new theme by exporting a new `createTheme`-based object, adding its name to `THEME_NAMES`,
+and wiring it into the `themes` record.
 
 ### AppShell layout
 
 `AppShellProvider` (`src/components/AppShell/AppShell.tsx`) tracks a `default` / `sideNav` /
 `mobile` layout mode via `AppShellLayoutContext`. Below the `650px` breakpoint, mobile always wins
-regardless of stored preference; above it, the last `default`/`sideNav` choice — persisted to
-`localStorage` under `"layout"` — applies. Toggle it with `toggleLayout` from the context rather
+regardless of stored preference; above it, the last `default`/`sideNav` choice, persisted to
+`localStorage` under `"layout"`, applies. Toggle it with `toggleLayout` from the context rather
 than writing to `localStorage` directly.
 
 ---
@@ -112,12 +117,12 @@ than writing to `localStorage` directly.
 ## Calling the backend
 
 **Never put a secret in a `VITE_` variable.** Vite inlines every `VITE_`-prefixed value into the
-client bundle at build time — whether the code references it or not — so anyone can read it by
+client bundle at build time, whether the code references it or not, so anyone can read it by
 viewing source on the deployed site. This is exactly how this project's Discord webhook used to
 leak; the Go backend (`backend/`) exists specifically so secrets stay server-side. If a feature
 needs a credential, put it behind a backend endpoint, never in a `VITE_*` variable.
 
-The one env var the frontend does define, `VITE_API_URL`, is not a secret — it's just the
+The one env var the frontend does define, `VITE_API_URL`, is not a secret. It's just the
 backend's base URL (defaults to `http://localhost:8080`; see `frontend/src/.env.example`).
 
 Live project data (stars, description, language, last-updated) is fetched from the backend rather
@@ -129,13 +134,13 @@ const response = await fetch(`${API_URL}/api/v1/projects`);
 ```
 
 The handler serving it lives in `backend/internal/handlers/projects/`: it holds the GitHub token
-(`GH_TOKEN`, optional server-side — see the root `README.md`), calls the GitHub API from the
+(`GH_TOKEN`, optional server-side, see the root `README.md`), calls the GitHub API from the
 server, and returns a fixed JSON contract (`{ projects: [...], stale: boolean }`). The browser
-never talks to GitHub and never sees a token. `useProjects` treats `apiProjects === null` — still
-loading, or any non-2xx status, timeout, or network failure — as "fall back to the static project
-list"; it never needs to know *why* the fetch failed.
+never talks to GitHub and never sees a token. `useProjects` treats `apiProjects === null`, which
+covers both still loading and any non-2xx status, timeout, or network failure, as "fall back to
+the static project list"; it never needs to know *why* the fetch failed.
 
-There is no client-side GitHub SDK in this repo — `@octokit/rest` is not a dependency (it was
+There is no client-side GitHub SDK in this repo. `@octokit/rest` is not a dependency (it was
 dropped from `package.json` well before this pattern existed). Don't add a GitHub client to the
 frontend; anything that needs GitHub goes through the backend.
 
@@ -158,4 +163,4 @@ bun run test:watch   # Vitest, watch mode
 
 Run `bun run format` and `bun run lint` before committing. CI (`.github/workflows/ci.yml`) runs
 lint, a type check, the test suite, and the build on every PR, and gates deploys on all of it
-passing — see the root `README.md` for details.
+passing; see the root `README.md` for details.
