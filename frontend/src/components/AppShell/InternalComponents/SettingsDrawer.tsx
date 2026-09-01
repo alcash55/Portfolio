@@ -49,7 +49,7 @@ export const SettingsDrawer = ({ settingDrawer, setSettingDrawer }: SettingsDraw
           Settings
         </Typography>
       </Box>
-      <IconButton aria-label="Close Settings Drawer" onClick={() => setSettingDrawer(false)}>
+      <IconButton aria-label="Close settings drawer" onClick={() => setSettingDrawer(false)}>
         <Close />
       </IconButton>
     </Stack>

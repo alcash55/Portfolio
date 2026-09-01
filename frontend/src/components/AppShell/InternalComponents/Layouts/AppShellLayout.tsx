@@ -60,10 +60,51 @@ export const AppShellLayout = ({
         width: '100%',
       }}
     >
+      {/* First focusable element in the document, ahead of the hero's own
+          floating theme/layout controls (see Landing.tsx) which otherwise
+          take the first 6-13 tab stops on every page load. Off-screen until
+          it holds focus, then pinned to the top-left corner above every other
+          layer -- `theme.zIndex.tooltip` is the highest z-index this app
+          assigns anything else, so `+ 1` guarantees the link is never painted
+          under the sticky nav bar or a hero control. */}
+      <Box
+        component="a"
+        href="#main-content"
+        sx={{
+          position: 'fixed',
+          top: -48,
+          left: 8,
+          zIndex: (theme) => theme.zIndex.tooltip + 1,
+          px: 2,
+          py: 1,
+          bgcolor: 'background.paper',
+          color: 'text.primary',
+          borderRadius: 1,
+          textDecoration: 'none',
+          fontWeight: 600,
+          transition: 'top 150ms ease',
+          '&:focus': {
+            top: 8,
+          },
+        }}
+      >
+        Skip to main content
+      </Box>
       <Stack direction={isSideNav ? 'row' : 'column'} sx={{ width: '100%' }}>
         {isSideNav && <SidebarNav />}
         {mode === 'default' && <NavBar setSettingDrawer={setSettingDrawer} />}
-        <Box key="app-shell-content" sx={{ width: isSideNav ? '100%' : undefined }}>
+        {/* The one `<main>` landmark for every route (`AppShellLayout` is the
+            single shell every page renders through). `tabIndex={-1}` lets the
+            skip link above move real DOM focus here rather than only
+            scrolling -- Chromium does not focus a fragment target on its own
+            unless it is already focusable. */}
+        <Box
+          key="app-shell-content"
+          component="main"
+          id="main-content"
+          tabIndex={-1}
+          sx={{ width: isSideNav ? '100%' : undefined }}
+        >
           {children}
         </Box>
         {mode === 'mobile' && <MobileChrome setSettingDrawer={setSettingDrawer} />}
@@ -73,7 +114,7 @@ export const AppShellLayout = ({
         <Fab
           size="medium"
           color="secondary"
-          aria-label="open settings drawer"
+          aria-label="Open settings drawer"
           onClick={() => setSettingDrawer(true)}
           sx={{
             position: 'fixed',

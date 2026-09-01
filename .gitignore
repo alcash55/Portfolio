@@ -18,6 +18,9 @@ frontend/e2e/playwright-report
 frontend/blob-report
 frontend/playwright/.cache
 
+# playwright-cli verification artifacts
+.playwright-cli/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

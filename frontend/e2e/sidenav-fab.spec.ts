@@ -41,7 +41,7 @@ async function gotoHome(page: Page) {
   await expect(page.locator('h1')).toHaveText('Alex Cash');
 }
 
-const fab = (page: Page) => page.getByRole('button', { name: 'open settings drawer' });
+const fab = (page: Page) => page.getByRole('button', { name: 'Open settings drawer' });
 
 test('the settings Fab is hidden while the viewport is on the hero', async ({ page }) => {
   await gotoHome(page);
@@ -98,7 +98,7 @@ test('the hidden Fab is not reachable by keyboard while on the hero', async ({ p
   // exists to catch (see smoke.spec.ts's note on the invisible focus ring).
   const focusedFabAfterTabbing = await page.evaluate(async () => {
     const isFab = () =>
-      document.activeElement?.getAttribute('aria-label') === 'open settings drawer';
+      document.activeElement?.getAttribute('aria-label') === 'Open settings drawer';
     return isFab();
   });
   expect(focusedFabAfterTabbing).toBe(false);
@@ -106,7 +106,7 @@ test('the hidden Fab is not reachable by keyboard while on the hero', async ({ p
   for (let i = 0; i < 25; i++) {
     await page.keyboard.press('Tab');
     const onFab = await page.evaluate(
-      () => document.activeElement?.getAttribute('aria-label') === 'open settings drawer',
+      () => document.activeElement?.getAttribute('aria-label') === 'Open settings drawer',
     );
     expect(onFab, 'the hidden Fab must not be a tab stop while the hero is showing').toBe(false);
   }

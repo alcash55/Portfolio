@@ -289,6 +289,12 @@ const ProjectCard = ({
             capture(ANALYTICS_EVENTS.PROJECT_OPENED, { project: project.name });
             onOpen(project);
           }}
+          // With no explicit name, the button's accessible name is every
+          // descendant's text concatenated with no punctuation: image alt,
+          // title, description and the "Details" caption read as one 33-word
+          // run-on. This is the name instead, and everything below is
+          // `aria-hidden` as its redundant content.
+          aria-label={`View details: ${project.name}`}
           // Tells a screen reader that activating this opens a dialog rather
           // than navigating, which is the one thing the visible text cannot
           // say on its own.
@@ -313,108 +319,116 @@ const ProjectCard = ({
             '&:hover .MuiCardActionArea-focusHighlight': { opacity: 0 },
           }}
         >
-          {!largeMobile && (
-            <ProjectMediaPlayer
-              clip={clip}
-              image={project.img}
-              alt={project.alt}
-              // 2:1 rather than the images' own 16:9. The image is the single
-              // biggest contributor to card height, and height is what decides
-              // whether a second row of projects still fits on one screen: at
-              // 16:9 two rows came to 665px against the 657px a 1366x768 laptop
-              // actually has. This buys back ~13px a card, and a demo clip
-              // letterboxes into the same box rather than resizing it.
-              aspectRatio="2 / 1"
-            />
-          )}
-          <CardContent
-            sx={{
-              width: '100%',
-              flexGrow: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              // Tighter than MUI's default 16px/24px. At a 200px column that
-              // padding was a meaningful share of the card's width.
-              p: 1.5,
-              '&:last-child': { pb: 1.5 },
-            }}
-          >
-            <Typography
-              variant="subtitle1"
-              component="div"
+          {/* `display: contents` keeps these two as CardActionArea's direct
+              flex children (the media's aspect ratio and CardContent's
+              `flexGrow` both depend on that), while `aria-hidden` removes the
+              whole subtree from the accessibility tree -- it is now redundant
+              with the button's own `aria-label` above. */}
+          <Box aria-hidden="true" sx={{ display: 'contents' }}>
+            {!largeMobile && (
+              <ProjectMediaPlayer
+                clip={clip}
+                image={project.img}
+                alt={project.alt}
+                // 2:1 rather than the images' own 16:9. The image is the
+                // single biggest contributor to card height, and height is
+                // what decides whether a second row of projects still fits on
+                // one screen: at 16:9 two rows came to 665px against the
+                // 657px a 1366x768 laptop actually has. This buys back ~13px
+                // a card, and a demo clip letterboxes into the same box
+                // rather than resizing it.
+                aspectRatio="2 / 1"
+              />
+            )}
+            <CardContent
               sx={{
-                // `h6` (20px) was set when cards were 288px wide; at 200px it
-                // pushed most names onto the second line.
-                fontWeight: 600,
-                // No `gutterBottom`: the reserved two lines below already
-                // separate the title from the body on one-line names.
-                // Always two lines' worth of space, clamped at two. "Game
-                // Competition Website" wraps where the other three names don't,
-                // which started its description a line lower than its
-                // neighbours'; reserving the space lines every card's body up.
-                lineHeight: 1.3,
-                minHeight: '2.6em',
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: 2,
-                overflow: 'hidden',
+                width: '100%',
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                // Tighter than MUI's default 16px/24px. At a 200px column that
+                // padding was a meaningful share of the card's width.
+                p: 1.5,
+                '&:last-child': { pb: 1.5 },
               }}
             >
-              {project.name}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'text.secondary',
-                // Two lines, then ellipsis. Descriptions run from 50 to 130
-                // characters, which was most of the height difference between
-                // cards -- and the live API can replace one with a longer repo
-                // description at any time, so capping it keeps the row tidy
-                // without depending on anyone writing to a length.
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: 2,
-                overflow: 'hidden',
-              }}
-            >
-              {project.description}
-            </Typography>
-            {/* Pinned to the bottom of the stretched card so these rows line
-                up across a grid row instead of floating at whatever height
-                each description happens to end at. */}
-            <Box sx={{ mt: 'auto', pt: 1 }}>
-              {/* Live metadata (F1): only rendered once the API has actually
-                  matched this repo, so a fallback or still-static card never
-                  shows a stray "0 stars" for a repo we have no data for. */}
-              {project.live && (
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    color: 'text.secondary',
-                  }}
-                >
-                  {project.live.language && (
-                    <Typography variant="caption">{project.live.language}</Typography>
-                  )}
+              <Typography
+                variant="subtitle1"
+                component="div"
+                sx={{
+                  // `h6` (20px) was set when cards were 288px wide; at 200px it
+                  // pushed most names onto the second line.
+                  fontWeight: 600,
+                  // No `gutterBottom`: the reserved two lines below already
+                  // separate the title from the body on one-line names.
+                  // Always two lines' worth of space, clamped at two. "Game
+                  // Competition Website" wraps where the other three names don't,
+                  // which started its description a line lower than its
+                  // neighbours'; reserving the space lines every card's body up.
+                  lineHeight: 1.3,
+                  minHeight: '2.6em',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                {project.name}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  // Two lines, then ellipsis. Descriptions run from 50 to 130
+                  // characters, which was most of the height difference between
+                  // cards -- and the live API can replace one with a longer repo
+                  // description at any time, so capping it keeps the row tidy
+                  // without depending on anyone writing to a length.
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                {project.description}
+              </Typography>
+              {/* Pinned to the bottom of the stretched card so these rows line
+                  up across a grid row instead of floating at whatever height
+                  each description happens to end at. */}
+              <Box sx={{ mt: 'auto', pt: 1 }}>
+                {/* Live metadata (F1): only rendered once the API has actually
+                    matched this repo, so a fallback or still-static card never
+                    shows a stray "0 stars" for a repo we have no data for. */}
+                {project.live && (
                   <Stack
                     direction="row"
-                    spacing={0.25}
+                    spacing={1}
                     sx={{
                       alignItems: 'center',
+                      flexWrap: 'wrap',
+                      color: 'text.secondary',
                     }}
                   >
-                    <StarIcon sx={{ fontSize: 14 }} />
-                    <Typography variant="caption">{project.live.stars}</Typography>
+                    {project.live.language && (
+                      <Typography variant="caption">{project.live.language}</Typography>
+                    )}
+                    <Stack
+                      direction="row"
+                      spacing={0.25}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
+                      <StarIcon sx={{ fontSize: 14 }} />
+                      <Typography variant="caption">{project.live.stars}</Typography>
+                    </Stack>
+                    {updatedAt && <Typography variant="caption">Updated {updatedAt}</Typography>}
                   </Stack>
-                  {updatedAt && <Typography variant="caption">Updated {updatedAt}</Typography>}
-                </Stack>
-              )}
-              <DetailsAffordance />
-            </Box>
-          </CardContent>
+                )}
+                <DetailsAffordance />
+              </Box>
+            </CardContent>
+          </Box>
         </CardActionArea>
         {/* Outside the CardActionArea on purpose -- see ProjectClipToggle.
             Renders nothing at all for a project with no clip.

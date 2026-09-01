@@ -26,8 +26,6 @@ export interface ProjectMediaPlayerProps {
    * media sideways instead, which the tinted panel already handles.
    */
   maxHeight?: string;
-  /** Dialog only: native controls, so pause/mute/scrub are all reachable. */
-  controls?: boolean;
   /** Dialog only: loop the clip rather than stopping on the last frame. */
   loop?: boolean;
 }
@@ -48,7 +46,6 @@ export const ProjectMediaPlayer = ({
   alt,
   aspectRatio,
   maxHeight,
-  controls = false,
   loop = false,
 }: ProjectMediaPlayerProps) => {
   const { clip: media, mounted, videoRef, handleError } = clip;
@@ -82,7 +79,6 @@ export const ProjectMediaPlayer = ({
         muted
         playsInline
         loop={loop}
-        controls={controls}
         // The element only mounts once something wants to play it, so there is
         // nothing to gain from preloading and a whole clip to lose if the
         // visitor never hovers.

@@ -78,11 +78,18 @@ const controlNames = (page: Page) =>
   );
 
 test.describe('keyboard', () => {
-  test('the controls are the first eight tab stops, in a fixed order, each with a visible focus ring', async ({
+  test('the controls are the first eight tab stops after the skip link, in a fixed order, each with a visible focus ring', async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP);
     await gotoHome(page);
+
+    // The actual first tab stop on any page is now the "Skip to main
+    // content" link (see AppShellLayout.tsx) -- consumed here so the loop
+    // below still walks the eight theme/layout controls it was written to
+    // check, which sit right behind it.
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
 
     for (const expected of ALL_CONTROLS) {
       await page.keyboard.press('Tab');
@@ -1134,16 +1141,16 @@ test.describe('the hamburger it replaced', () => {
     await gotoHome(page);
 
     // Nothing in the hero opens the settings drawer any more...
-    await expect(page.locator('#landing [aria-label="Open Settings Drawer"]')).toHaveCount(0);
+    await expect(page.locator('#landing [aria-label="Open settings drawer"]')).toHaveCount(0);
     // ...and the global NavBar's gear is hidden while the hero is on screen,
     // which is what made the hamburger the only trigger here in the first
     // place. (If this ever becomes visible, the hero has two triggers again.)
-    await expect(page.locator('header [aria-label="Open Settings Drawer"]')).toBeHidden();
+    await expect(page.locator('header [aria-label="Open settings drawer"]')).toBeHidden();
 
     // Once the hero's arrow has gone, the bar and its gear come back, and the
     // drawer still holds both pickers.
     await page.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
-    await page.getByLabel('Open Settings Drawer').click();
+    await page.getByLabel('Open settings drawer').click();
 
     const drawer = page.locator('[role="dialog"]');
     await expect(drawer).toBeVisible();
