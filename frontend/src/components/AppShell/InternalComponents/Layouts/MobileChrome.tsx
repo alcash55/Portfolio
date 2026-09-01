@@ -1,7 +1,8 @@
 import Menu from '@mui/icons-material/Menu';
 import { Fragment, SyntheticEvent, useState } from 'react';
-import { BottomNavigation, BottomNavigationAction, Fab } from '@mui/material';
+import { BottomNavigation, BottomNavigationAction, Fab, useMediaQuery } from '@mui/material';
 import { navLinks } from '../navLinks';
+import { useMobileFabVisibility } from '../useMobileFabVisibility';
 
 interface MobileChromeProps {
   setSettingDrawer: (value: boolean) => void;
@@ -15,6 +16,14 @@ interface MobileChromeProps {
  */
 export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
   const [value, setValue] = useState(`#${navLinks[0].id}`);
+  // Same fade the sideNav layout's own Fab uses, and for the same two
+  // reasons: hidden over the hero (Portfolio#22) and hidden while it would
+  // sit on top of a `data-fab-avoid` control such as Contact's Send button
+  // (Portfolio#42) -- see `useMobileFabVisibility` for why repositioning
+  // alone cannot fix the second one.
+  const showFab = useMobileFabVisibility();
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const fabDuration = prefersReducedMotion ? 0 : showFab ? 220 : 160;
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -27,7 +36,24 @@ export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
         color="secondary"
         aria-label="Open settings drawer"
         onClick={() => setSettingDrawer(true)}
-        sx={{ position: 'fixed', bottom: 65, right: 30 }}
+        sx={{
+          position: 'fixed',
+          bottom: 65,
+          right: 30,
+          opacity: showFab ? 1 : 0,
+          transform: showFab || prefersReducedMotion ? 'none' : 'translateY(10px)',
+          // `visibility`, not a conditional render: takes the hidden Fab out
+          // of the tab order and off the hit-testing surface while it is
+          // covering the hero or a control it must not sit on, while leaving
+          // it mounted so the transition has something to animate. Delayed
+          // to the end of the exit so it does not vanish mid-fade.
+          visibility: showFab ? 'visible' : 'hidden',
+          transition: (theme) =>
+            `${theme.transitions.create(['opacity', 'transform'], {
+              duration: fabDuration,
+            })}, visibility 0s linear ${showFab ? 0 : fabDuration}ms`,
+          pointerEvents: showFab ? 'auto' : 'none',
+        }}
       >
         <Menu />
       </Fab>

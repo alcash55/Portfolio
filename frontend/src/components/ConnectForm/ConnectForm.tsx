@@ -15,6 +15,7 @@ import ConnectNotification from './ConnectNotification';
 import useConnectNotification from './useConnectNotification';
 import { CONTACT_SUCCESS_MESSAGE, getContactErrorMessage } from './contactErrors';
 import { ANALYTICS_EVENTS, useAnalytics } from '../../hooks/useAnalytics';
+import { FAB_AVOID_ATTR } from '../AppShell/InternalComponents/useMobileFabVisibility';
 
 // Don't show the slow-request copy for a normal-latency request: it's alarming
 // to see it flash by on a request that resolves in 200ms. Only switch to it
@@ -274,6 +275,9 @@ const ConnectForm = () => {
         <Button
           type="submit"
           variant="contained"
+          // Tells the mobile settings FAB to hide rather than sit on top of
+          // this button (Portfolio#42). See `useMobileFabVisibility`.
+          {...{ [FAB_AVOID_ATTR]: true }}
           // Native `disabled` is reserved for the transient "request in
           // flight" state, where removing Send from the tab order for a
           // moment is expected. While the form is merely invalid, Send stays
