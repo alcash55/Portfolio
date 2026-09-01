@@ -24,10 +24,15 @@ const ConnectNotification = ({
       <Alert
         variant="filled"
         onClose={setClose}
+        // No `severity` used to mean MUI defaulted to `success`, so a failed
+        // submit rendered the success checkmark next to a manually reddened
+        // background (Portfolio#41). Passing `severity` supplies both the
+        // color and the matching icon from the same source, so they can't
+        // disagree again.
+        severity={messageSent ? 'success' : 'error'}
         sx={{
           display: 'flex',
           alignItems: 'center',
-          bgcolor: messageSent ? 'rgb(56, 142, 60)' : 'rgb(211, 47, 47)',
           fontSize: 18,
           fontWeight: 600,
         }}
