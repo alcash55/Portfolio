@@ -83,7 +83,16 @@ test('at 320px, the FAB never overlaps the Contact form Send button while scroll
   // would intersect, the FAB must not be the one that is visible there.
   for (let step = -80; step <= 80; step += 8) {
     await page.mouse.wheel(0, step >= 0 ? 4 : -4);
-    await page.waitForTimeout(20); // let the rAF-coalesced listener settle
+    // `useMobileFabVisibility`'s scroll listener reads the layout inside a
+    // single `requestAnimationFrame`, so wait out two frames rather than a
+    // fixed duration: one for the hook's own coalesced read, one more for
+    // React to commit and paint the result. A fixed delay only measures how
+    // long this machine happened to take; the CI runner's real webfonts and
+    // different scheduling are exactly the conditions a guessed number
+    // stops covering.
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
 
     const overlap = await page.evaluate(() => {
       const fabEl = document.querySelector('.MuiFab-root');

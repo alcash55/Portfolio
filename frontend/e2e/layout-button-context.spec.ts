@@ -33,13 +33,14 @@ async function gotoHome(page: Page) {
 }
 
 /**
- * Opens the settings drawer via the chrome's own gear/Fab, which -- in both
- * the `default` and `sideNav` layouts -- only becomes visible/clickable once
- * the hero's down arrow has scrolled past the top of the screen (see
- * `useShowNavBar`, `sidenav-fab.spec.ts`). The hero replaced its own inline
- * settings trigger with `HeroControls`'s floating buttons (see
- * `e2e/hero-controls.spec.ts`'s "the hamburger it replaced"), so this is the
- * only route to the drawer while the viewport starts on the hero.
+ * Opens the settings drawer via the chrome's own gear/Fab, which in every
+ * layout -- `default`, `sideNav`, and `mobile` -- only becomes
+ * visible/clickable once the hero's down arrow has scrolled past the top of
+ * the screen (see `useShowNavBar`, `sidenav-fab.spec.ts`, `mobile-fab.spec.ts`).
+ * The hero replaced its own inline settings trigger with `HeroControls`'s
+ * floating buttons (see `e2e/hero-controls.spec.ts`'s "the hamburger it
+ * replaced"), so this is the only route to the drawer while the viewport
+ * starts on the hero.
  */
 async function scrollPastHeroAndOpenDrawer(page: Page) {
   await page.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
@@ -149,9 +150,9 @@ test.describe('at mobile width, where the shell forces the mobile layout', () =>
     await page.setViewportSize({ width: 390, height: 844 });
     await gotoHome(page);
 
-    // MobileChrome's Fab, unlike the desktop gear/Fab, is not scroll-gated.
-    await page.getByRole('button', { name: /open settings drawer/i }).click();
-    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    // MobileChrome's Fab is scroll-gated the same way the desktop gear/Fab
+    // is (Portfolio#22: it used to sit over the hero unconditionally).
+    await scrollPastHeroAndOpenDrawer(page);
 
     await expect(page.getByRole('heading', { name: 'Select a Layout' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Top Nav' })).toHaveCount(0);
