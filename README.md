@@ -146,9 +146,11 @@ Vite is configured with `envDir: './src'`, so frontend env files live in
 `frontend/src/`, not the `frontend/` root. Copy `frontend/src/.env.example` to
 `frontend/src/.env`.
 
-| Variable       | Required | Purpose                                               |
-| -------------- | -------- | ----------------------------------------------------- |
-| `VITE_API_URL` | no       | Backend base URL. Defaults to `http://localhost:8080` |
+| Variable                     | Required | Purpose                                                                                |
+| ----------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `VITE_API_URL`                | no       | Backend base URL. Defaults to `http://localhost:8080`                                   |
+| `VITE_POSTHOG_PROJECT_TOKEN`  | no       | PostHog project token, a write-only ingest key, not a secret. Unset disables analytics  |
+| `VITE_POSTHOG_HOST`           | no       | PostHog ingest host, e.g. `https://us.i.posthog.com`. Required alongside the token       |
 
 ```sh
 cd frontend
@@ -252,6 +254,12 @@ the API; it is currently set to `https://portfolio-api-0mta.onrender.com`. Keep
 it a variable. `VITE_`-prefixed values are inlined into the client bundle, and
 Vite inlines **every** `VITE_` variable present at build time, whether the source
 references it or not.
+
+Two more repository variables, `VITE_POSTHOG_PROJECT_TOKEN` and `VITE_POSTHOG_HOST`,
+configure PostHog the same way. The project token is a write-only ingest key, not a
+secret, so it belongs as a variable too. Leave either unset and the build still
+succeeds; analytics just stays off, since `loadAnalytics` (`frontend/src/hooks/useAnalytics.ts`)
+never loads the SDK without a token.
 
 `ALLOWED_ORIGINS` is set to `https://alcash55.github.io` in the blueprint. That
 **replaces** the local-development defaults rather than adding to them, so the
