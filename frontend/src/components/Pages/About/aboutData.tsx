@@ -20,7 +20,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 export const bioParagraphs: string[] = [
   "Hey, I'm Alex Cash, a software engineer who works the whole stack. Right now that means Go services and React micro-frontends for an energy trading platform, where a wrong number costs real money and the interface has to make that number obvious.",
-  'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with MUI, Tailwind, Vite and Bun filling in around them.',
+  'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with shadcn/ui, Tailwind, MUI, Vite and Bun filling in around them.',
 ];
 
 export interface DrivePoint {

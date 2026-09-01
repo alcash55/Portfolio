@@ -30,3 +30,8 @@ frontend/playwright/.cache
 *.sw?
 .env
 frontend/test-results
+
+# Sprint scratch. Briefs are written per sprint and deleted at merge;
+# committing one means the next sprint inherits a stale brief.
+TEAM-BRIEF.md
+SPRINT-STATUS.md

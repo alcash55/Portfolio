@@ -16,9 +16,14 @@ import useConnectNotification from './useConnectNotification';
 import { CONTACT_SUCCESS_MESSAGE, getContactErrorMessage } from './contactErrors';
 import { ANALYTICS_EVENTS, useAnalytics } from '../../hooks/useAnalytics';
 
-// Don't show the "server is waking up" copy for a normal-latency request --
-// it's alarming to see it flash by on a request that resolves in 200ms. Only
-// switch to it once the request has genuinely been hanging for a while.
+// Don't show the slow-request copy for a normal-latency request: it's alarming
+// to see it flash by on a request that resolves in 200ms. Only switch to it
+// once the request has genuinely been hanging for a while.
+//
+// The wording deliberately does not mention the hosting plan. `keep-alive.yml`
+// pings the API every 10 minutes to stop Render spinning it down, so a cold
+// start is already mitigated. It is not eliminated, because GitHub queues
+// scheduled runs and can delay them, so the hint still earns its place.
 const COLD_START_HINT_DELAY_MS = 4000;
 
 /**
@@ -259,7 +264,7 @@ const ConnectForm = () => {
               color: 'text.secondary',
             }}
           >
-            Still waking the server up. On the free plan that can take a minute.
+            Still sending. This can take a moment.
           </Typography>
         )}
       </Stack>
