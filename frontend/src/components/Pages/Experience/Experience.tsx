@@ -80,9 +80,9 @@ const Experience = () => {
           }}
         >
           <Typography variant="h6" component={'p'} sx={{ fontWeight: 500, maxWidth: '72ch' }}>
-            Four years of software engineering, a master&apos;s in Web and Mobile Information
-            Systems, and a background in Division I athletics. I approach problems analytically and
-            see them through &mdash; whether I&apos;m working with a team or on my own.
+            Five years of software engineering, a master&apos;s in Web and Mobile Information
+            Systems, and a background in Division I athletics. Most of that has been spent owning
+            features end to end, from the data model up to the page that reads it.
           </Typography>
 
           {/* Rebuilt from stable @mui/material primitives. @mui/lab's Timeline
