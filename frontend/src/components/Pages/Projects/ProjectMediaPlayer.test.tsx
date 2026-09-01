@@ -47,18 +47,18 @@ const CardHarness = ({ media }: { media?: ProjectMedia }) => {
   );
 };
 
-/** The dialog's usage: autoplay, looping, native controls. */
+/**
+ * The dialog's usage: autoplay, looping, a custom pause control rather than
+ * the browser's native `controls` (see ProjectDialog.tsx for why -- ~14 tab
+ * stops per video was the bug).
+ */
 const DialogHarness = ({ media }: { media?: ProjectMedia }) => {
   const clip = useProjectClip({ media, autoPlay: true });
   return (
-    <ProjectMediaPlayer
-      clip={clip}
-      image={STILL}
-      alt="a screenshot"
-      aspectRatio="16 / 9"
-      controls
-      loop
-    />
+    <div data-testid="dialog-media" style={{ position: 'relative' }}>
+      <ProjectMediaPlayer clip={clip} image={STILL} alt="a screenshot" aspectRatio="16 / 9" loop />
+      <ProjectClipToggle clip={clip} active projectName="Portfolio Website" />
+    </div>
   );
 };
 
@@ -299,7 +299,7 @@ describe('ProjectMediaPlayer', () => {
   });
 
   describe('the dialog variant', () => {
-    it('autoplays the clip muted, looping, with native controls', async () => {
+    it('autoplays the clip muted and looping, with a custom pause control instead of native controls', async () => {
       stubReducedMotion(false);
       render(<DialogHarness media={fakeMedia} />);
 
@@ -307,10 +307,17 @@ describe('ProjectMediaPlayer', () => {
       expect(element, 'the dialog is where the visitor asked to see the clip').not.toBeNull();
       expect(element.muted).toBe(true);
       expect(element).toHaveAttribute('loop');
-      // WCAG 2.2.2: anything that moves for more than five seconds has to be
-      // stoppable, and the browser's own control does it better than ours.
-      expect(element).toHaveAttribute('controls');
+      // Native `controls` is what put ~14 extra tab stops (play, timeline,
+      // volume, captions, fullscreen) between the dialog opening and the
+      // GitHub/live-site links. WCAG 2.2.2 still has to be met -- it is, by
+      // the single custom pause button below, which is exactly one tab stop.
+      expect(element).not.toHaveAttribute('controls');
       await waitFor(() => expect(play).toHaveBeenCalled());
+
+      const toggle = screen.getByRole('button', { name: /^Pause the .* preview$/ });
+      toggle.focus();
+      await userEvent.setup().keyboard('{Enter}');
+      await waitFor(() => expect(pause).toHaveBeenCalled());
     });
 
     it('renders the screenshot when the project has no clip', () => {

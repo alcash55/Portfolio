@@ -19,6 +19,8 @@ export const ThemeButton = () => {
 
   return (
     <Box
+      role="group"
+      aria-label="Colour theme"
       sx={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))',

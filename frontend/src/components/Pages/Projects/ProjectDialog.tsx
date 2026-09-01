@@ -22,7 +22,7 @@ import { formatUpdatedAt } from './displayProject';
 import { projectDetails } from './projectDetails';
 import { projectLinks } from './projectLinks';
 import { projectMedia } from './projectMedia';
-import { ProjectMediaPlayer } from './ProjectMediaPlayer';
+import { ProjectClipToggle, ProjectMediaPlayer } from './ProjectMediaPlayer';
 import { useProjectClip } from './useProjectClip';
 
 /**
@@ -126,9 +126,12 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
   const media = project ? projectMedia[project.name] : undefined;
   // Autoplays because it is the thing the visitor just asked to see, muted and
   // looping because it has no sound and a six-second clip that stops on a dead
-  // frame reads as a broken video. Native controls are on: WCAG 2.2.2 wants
-  // anything that moves for more than five seconds to be stoppable, and the
-  // browser's own control is better than one I would write.
+  // frame reads as a broken video. WCAG 2.2.2 wants anything that moves for
+  // more than five seconds to be stoppable -- handled by the custom
+  // `ProjectClipToggle` below rather than the browser's native `controls`,
+  // whose per-control shadow-DOM tab stops (play, timeline, volume, captions,
+  // fullscreen) cost a keyboard user ~14 extra Tab presses to get past one
+  // video, on every project that has a clip instead of a screenshot.
   const clip = useProjectClip({ media, autoPlay: open });
 
   const detail = project ? projectDetails[project.name] : undefined;
@@ -174,8 +177,13 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
         },
       }}
     >
-      <DialogTitle
-        id={TITLE_ID}
+      {/* The close button used to live inside the `<h2>` below, as a sibling
+          of the title text. A heading's accessible name is computed from
+          everything inside it, so the dialog announced as "<title> Close
+          project details" instead of just "<title>" -- every open, every
+          project. It is a flex row sibling of `DialogTitle` now, so
+          `aria-labelledby={TITLE_ID}` only ever picks up the title. */}
+      <Box
         sx={{
           display: 'flex',
           alignItems: 'flex-start',
@@ -184,18 +192,18 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
           pr: 1,
         }}
       >
-        <Box component="span" sx={{ flexGrow: 1, minWidth: 0 }}>
+        <DialogTitle id={TITLE_ID} sx={{ flexGrow: 1, minWidth: 0 }}>
           {project?.name}
-        </Box>
+        </DialogTitle>
         <IconButton
           aria-label="Close project details"
           onClick={onClose}
-          // Nudged up to sit on the title's optical line rather than its box.
-          sx={{ mt: -0.5 }}
+          // Nudged to sit on the title's optical line rather than its box.
+          sx={{ mt: 1, mr: 1.5 }}
         >
           <CloseIcon />
         </IconButton>
-      </DialogTitle>
+      </Box>
 
       <DialogContent
         dividers
@@ -209,21 +217,31 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
       >
         {project && (
           <>
-            <ProjectMediaPlayer
-              clip={clip}
-              image={project.img}
-              alt={project.alt}
-              // Wider than the card's 2:1. The dialog has the room, and a clip
-              // recorded from a browser window letterboxes into 16:9 with far
-              // less dead space than into the card's strip.
-              aspectRatio="16 / 9"
-              // Measured: without this the media ran to ~470px on a 1280x800
-              // window and the first line of the story sat below the fold, on
-              // the one panel whose entire purpose is the story.
-              maxHeight="40vh"
-              controls
-              loop
-            />
+            {/* `position: relative` is what lets `ProjectClipToggle` place
+                itself against this box instead of the dialog as a whole --
+                same pairing the card uses for the same reason. */}
+            <Box sx={{ position: 'relative' }}>
+              <ProjectMediaPlayer
+                clip={clip}
+                image={project.img}
+                alt={project.alt}
+                // Wider than the card's 2:1. The dialog has the room, and a
+                // clip recorded from a browser window letterboxes into 16:9
+                // with far less dead space than into the card's strip.
+                aspectRatio="16 / 9"
+                // Measured: without this the media ran to ~470px on a
+                // 1280x800 window and the first line of the story sat below
+                // the fold, on the one panel whose entire purpose is the
+                // story.
+                maxHeight="40vh"
+                loop
+              />
+              {/* `active` is always true here, not the card's hover/focus
+                  flag -- the dialog has no resting/raised state for this
+                  control to distinguish, it is simply always the one visible
+                  affordance for a clip that is already playing. */}
+              <ProjectClipToggle clip={clip} active projectName={project.name} />
+            </Box>
 
             <Box sx={{ mt: 2 }}>
               {/* Falls back to the card's own description, so a project nobody

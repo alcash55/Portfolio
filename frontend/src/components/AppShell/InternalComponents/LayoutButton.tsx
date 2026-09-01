@@ -23,6 +23,8 @@ export const LayoutButton = () => {
   return (
     <Stack
       direction={'row'}
+      role="group"
+      aria-label="Layout"
       sx={{
         justifyContent: 'space-evenly',
         alignItems: 'center',

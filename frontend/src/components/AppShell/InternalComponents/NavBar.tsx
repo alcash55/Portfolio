@@ -85,7 +85,7 @@ export const NavBar = ({ setSettingDrawer }: NavBarProps) => {
               </Button>
             ))}
           </Box>
-          <IconButton aria-label="Open Settings Drawer" onClick={() => setSettingDrawer(true)}>
+          <IconButton aria-label="Open settings drawer" onClick={() => setSettingDrawer(true)}>
             <Menu sx={{ color: 'text.primary' }} />
           </IconButton>
         </Toolbar>

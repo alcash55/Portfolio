@@ -25,7 +25,7 @@ export const MobileChrome = ({ setSettingDrawer }: MobileChromeProps) => {
       <Fab
         size="medium"
         color="secondary"
-        aria-label="open settings drawer"
+        aria-label="Open settings drawer"
         onClick={() => setSettingDrawer(true)}
         sx={{ position: 'fixed', bottom: 65, right: 30 }}
       >

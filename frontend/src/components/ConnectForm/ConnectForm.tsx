@@ -22,6 +22,29 @@ import { ANALYTICS_EVENTS, useAnalytics } from '../../hooks/useAnalytics';
 const COLD_START_HINT_DELAY_MS = 4000;
 
 /**
+ * Announces field-level validation on blur, independent of the submit-result
+ * Snackbar below.
+ *
+ * `aria-describedby` (MUI's `helperText` wiring) only gets read on focus, not
+ * on every mutation -- so a user who tabs past an empty required field and on
+ * to the next one never hears that it just turned invalid. This region is
+ * mounted from the very first render (unlike the Snackbar, which does not
+ * exist in the DOM until the first submit) specifically so a validation error
+ * on blur has somewhere to announce into before any submit has happened.
+ */
+const visuallyHidden = {
+  border: 0,
+  clip: 'rect(0 0 0 0)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: '1px',
+} as const;
+
+/**
  * Form in the connect section
  * @returns {JSX.Element}
  */
@@ -65,6 +88,9 @@ const ConnectForm = () => {
   const [nameTouched, setNameTouched] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [messageTouched, setMessageTouched] = useState(false);
+  // What the always-mounted live region below announces. Set on blur, from
+  // whichever field just turned invalid -- see the region's own comment.
+  const [validationAnnouncement, setValidationAnnouncement] = useState('');
   const [sending, setSending] = useState(false);
   const [showColdStartHint, setShowColdStartHint] = useState(false);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -131,6 +157,12 @@ const ConnectForm = () => {
 
   return (
     <>
+      {/* Present from first render, unlike the Snackbar below (which does not
+          exist in the DOM until the first submit) -- see the comment on
+          `visuallyHidden` above for why this has to be a separate region. */}
+      <Box role="status" aria-live="polite" aria-atomic="true" sx={visuallyHidden}>
+        {validationAnnouncement}
+      </Box>
       <Stack
         component="form"
         noValidate
@@ -166,6 +198,10 @@ const ConnectForm = () => {
               setNameTouched(true);
               setName(e.target.value);
             }}
+            onBlur={() => {
+              setNameTouched(true);
+              if (fieldErrors.name) setValidationAnnouncement(fieldErrors.name);
+            }}
             inputRef={nameInputRef}
           />
           <TextField
@@ -180,6 +216,10 @@ const ConnectForm = () => {
             onChange={(e) => {
               setEmailTouched(true);
               setEmail(e.target.value);
+            }}
+            onBlur={() => {
+              setEmailTouched(true);
+              if (fieldErrors.email) setValidationAnnouncement(fieldErrors.email);
             }}
             inputRef={emailInputRef}
           />
@@ -197,6 +237,10 @@ const ConnectForm = () => {
           onChange={(e) => {
             setMessageTouched(true);
             setMessage(e.target.value);
+          }}
+          onBlur={() => {
+            setMessageTouched(true);
+            if (fieldErrors.message) setValidationAnnouncement(fieldErrors.message);
           }}
           inputRef={messageInputRef}
         />
