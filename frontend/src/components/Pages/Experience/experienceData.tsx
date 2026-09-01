@@ -14,7 +14,7 @@ export const experienceData = [
           <ListItemText primary="Piped in-store kitchen data from NCR APIs into Google Cloud Platform for the business intelligence team" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Built order routing that reacted to real-time kitchen capacity, using Python machine learning libraries" />
+          <ListItemText primary="Built order routing that reacted to real-time kitchen capacity, using machine learning libraries" />
         </ListItem>
       </List>
     ),
