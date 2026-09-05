@@ -73,16 +73,25 @@ test('at 320px, the FAB never overlaps the Contact form Send button while scroll
   await page.setViewportSize({ width: 320, height: 700 });
   await gotoHome(page);
 
-  const send = page.getByRole('button', { name: 'Send' });
-  await send.scrollIntoViewIfNeeded();
+  // The overlap this pins happens well before Send comes to rest --
+  // `scrollIntoViewIfNeeded` lands past it -- so the sweep below is built off
+  // the section's own geometry instead of Send's resting position. Starting
+  // a full viewport above #contact's top and running to its bottom covers
+  // every scroll position the section is ever partially on screen at, which
+  // is the whole range the fixed FAB can pass across it.
+  const contact = page.locator('#contact');
+  const { top: contactTop, height: contactHeight } = await contact.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { top: rect.top + window.scrollY, height: rect.height };
+  });
+  const viewportHeight = 700;
+  const start = Math.max(0, contactTop - viewportHeight);
+  const end = contactTop + contactHeight;
 
-  // Walk the Contact section a few pixels at a time -- the failure this
-  // pins was a specific mid-scroll position, not the resting one
-  // `scrollIntoViewIfNeeded` lands on, so a single snapshot at rest would
-  // have missed it. Read both rects at each step: whenever the two boxes
-  // would intersect, the FAB must not be the one that is visible there.
-  for (let step = -80; step <= 80; step += 8) {
-    await page.mouse.wheel(0, step >= 0 ? 4 : -4);
+  let sawOverlap = false;
+
+  for (let y = start; y <= end; y += 8) {
+    await page.evaluate((target) => window.scrollTo({ top: target, behavior: 'instant' }), y);
     // `useMobileFabVisibility`'s scroll listener reads the layout inside a
     // single `requestAnimationFrame`, so wait out two frames rather than a
     // fixed duration: one for the hook's own coalesced read, one more for
@@ -94,7 +103,7 @@ test('at 320px, the FAB never overlaps the Contact form Send button while scroll
       () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
     );
 
-    const overlap = await page.evaluate(() => {
+    const read = await page.evaluate(() => {
       const fabEl = document.querySelector('.MuiFab-root');
       const sendEl = Array.from(document.querySelectorAll('button')).find(
         (button) => button.textContent === 'Send',
@@ -103,16 +112,37 @@ test('at 320px, the FAB never overlaps the Contact form Send button while scroll
       const a = fabEl.getBoundingClientRect();
       const b = sendEl.getBoundingClientRect();
       const intersects = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-      const fabVisible = getComputedStyle(fabEl).visibility !== 'hidden';
-      return { intersects, fabVisible };
+      // `pointer-events`, not `visibility`: the FAB's fade-out is a genuine
+      // CSS transition (see MobileChrome's `sx`), so `visibility` can still
+      // read "visible" for one frame into a correct hide. `pointer-events`
+      // flips the instant React re-renders, and it is what actually decides
+      // whether a tap here lands on the FAB instead of Send -- the property
+      // this test exists to guard.
+      const clickable = getComputedStyle(fabEl).pointerEvents !== 'none';
+      return { intersects, clickable };
     });
 
-    if (overlap?.intersects) {
-      expect(overlap.fabVisible, 'the FAB overlapped Send while still visible/hit-testable').toBe(
-        false,
-      );
-    }
+    if (read?.intersects) sawOverlap = true;
+
+    // Unconditional: this runs at every step, overlap or not, so a
+    // regression that stops the sweep from reaching the overlap zone again
+    // cannot silently turn this back into a test that always passes. A
+    // step with no overlap reduces to `false !== true`, which is a no-op
+    // assertion rather than a skipped one.
+    expect(
+      Boolean(read?.intersects && read.clickable),
+      `at scrollY ${y}, the FAB overlapped Send and was still clickable`,
+    ).toBe(false);
   }
+
+  // The sweep has to have found the overlap zone at least once, or this is
+  // back to being unable to fail -- it proves the range above actually
+  // reaches the geometry the test exists to check, not just a wider stretch
+  // of empty scroll.
+  expect(
+    sawOverlap,
+    'the sweep never found a scroll position where the FAB and Send overlap',
+  ).toBe(true);
 });
 
 test('the FAB is reachable again once scrolled past the Contact section', async ({ page }) => {
