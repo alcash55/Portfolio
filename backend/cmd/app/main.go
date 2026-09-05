@@ -27,6 +27,15 @@ import (
 // Real environment variables always win, so deployments - where no .env exists
 // - are unaffected.
 func loadEnv() {
+	// The os.Getwd() error path below is intentionally untested. Triggering
+	// it for real means deleting the process's current directory out from
+	// under it mid-test, which is fragile, platform-dependent, and would
+	// fight the working-directory tests elsewhere in this file, which
+	// already can't run in parallel because they share that same process-
+	// global state. The alternative, taking the directory as a parameter so
+	// a fake can return an error, would add a seam with no caller besides
+	// this one test. Neither trade is worth it for a branch that just logs
+	// and falls back to the existing environment. See issue #52.
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Printf("could not determine working directory (%v), using the existing environment", err)
