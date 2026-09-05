@@ -2,9 +2,12 @@
 // limiter.
 //
 // It exists specifically to protect POST /api/v1/contact: that endpoint
-// forwards to a Discord webhook URL that is permanently public (it was
-// inlined into a deployed bundle and is not being rotated), so this limiter
-// is the only thing standing between that known URL and a flooded channel.
+// forwards to a Discord webhook URL that was inlined into a public GitHub
+// Pages bundle for roughly two years before the contact form moved
+// server-side (issue #29 tracks rotating the credential itself). Rotation
+// closes that specific exposure, but this limiter stays regardless: it is
+// generic per-IP protection for the endpoint, not a workaround for one
+// leaked credential.
 package ratelimit
 
 import (
