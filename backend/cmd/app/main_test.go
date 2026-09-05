@@ -1,10 +1,31 @@
 package main
 
 import (
+	"bytes"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+// captureLog redirects the standard logger's output into a buffer for the
+// duration of the test, restoring the previous output and flags on cleanup.
+// loadEnv reports through log.Printf rather than returning an error, so this
+// is the only way to assert on what it told the operator.
+func captureLog(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	prevOutput := log.Writer()
+	prevFlags := log.Flags()
+	log.SetOutput(&buf)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(prevOutput)
+		log.SetFlags(prevFlags)
+	})
+	return &buf
+}
 
 // chdir points the process at dir for the duration of the test and restores
 // the original working directory on cleanup. loadEnv reads os.Getwd()
@@ -131,6 +152,59 @@ func TestLoadEnv_DirectoryWalk(t *testing.T) {
 				t.Errorf("loadEnv() from %q set %s=%q, want %q", cwd, tt.wantKey, got, "loaded")
 			}
 		})
+	}
+}
+
+// TestLoadEnv_MalformedEnvFile pins the behaviour when loadEnv finds a .env
+// file that godotenv cannot parse: it must log the failure, leave the
+// environment untouched (godotenv parses the whole file before setting
+// anything, so even the well-formed lines above the bad one must not leak
+// through), and return rather than continuing the walk upward to a valid
+// .env further up the tree. That last part is the one a naive fix could get
+// wrong: "found but broken" and "not found here" look similar unless the
+// test checks that the walk actually stopped.
+func TestLoadEnv_MalformedEnvFile(t *testing.T) {
+	const (
+		keyFromBrokenFile = "LOAD_ENV_TEST_GOOD_LINE"
+		keyFromParentEnv  = "LOAD_ENV_TEST_PARENT_ENV"
+	)
+	for _, key := range []string{keyFromBrokenFile, keyFromParentEnv} {
+		os.Unsetenv(key)
+	}
+	t.Cleanup(func() {
+		for _, key := range []string{keyFromBrokenFile, keyFromParentEnv} {
+			os.Unsetenv(key)
+		}
+	})
+
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "go.mod"), "module fixture\n")
+	// A valid .env sits above the working directory. If loadEnv fell back
+	// to searching further up after a parse failure, this is what it would
+	// find and load.
+	writeFile(t, filepath.Join(root, ".env"), keyFromParentEnv+"=loaded\n")
+
+	cwd := filepath.Join(root, "cmd", "app")
+	// A syntactically invalid line ("bad line without equals!" has no "="
+	// or ":" and a "!" outside the [A-Za-z0-9_.] godotenv accepts in a
+	// variable name) fails the whole file, including the well-formed line
+	// before it.
+	writeFile(t, filepath.Join(cwd, ".env"), keyFromBrokenFile+"=good\nbad line without equals!\n")
+	chdir(t, cwd)
+
+	buf := captureLog(t)
+	loadEnv()
+
+	gotLog := buf.String()
+	if !strings.Contains(gotLog, "could not load it") {
+		t.Errorf("loadEnv() log output = %q, want it to report that the .env it found could not be loaded", gotLog)
+	}
+
+	if v, ok := os.LookupEnv(keyFromBrokenFile); ok {
+		t.Errorf("loadEnv() set %s=%q from a .env that failed to parse, want no variables set from it (godotenv should reject the whole file, not apply the lines before the error)", keyFromBrokenFile, v)
+	}
+	if v, ok := os.LookupEnv(keyFromParentEnv); ok {
+		t.Errorf("loadEnv() set %s=%q from the .env above the working directory, want the walk to stop at the broken file instead of falling back to search further up", keyFromParentEnv, v)
 	}
 }
 
