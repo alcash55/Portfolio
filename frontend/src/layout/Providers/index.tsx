@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { ThemeProvider } from '../Theme';
 import AppShellProvider from '../../components/AppShell/AppShell';
 interface ProvidersProps {

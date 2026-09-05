@@ -54,44 +54,77 @@ export const ProjectMediaPlayer = ({
     width: '100%',
     aspectRatio,
     maxHeight,
-    // `contain`, not `cover`: two of these are logos and one is a marketplace
-    // listing, all of which lose their subject when cropped. The tinted panel
-    // behind makes the resulting letterboxing look deliberate rather than like
-    // a gap -- and it is what a 9:16 clip will letterbox against too.
-    objectFit: 'contain',
+    position: 'relative',
     bgcolor: 'action.hover',
+  } as const;
+
+  // Both layers share this box exactly: `contain`, not `cover`, because two
+  // of the screenshots are logos and one is a marketplace listing, all of
+  // which lose their subject when cropped. Stacked with `position: absolute`
+  // rather than one replacing the other -- see the note below on why the img
+  // has to stay mounted once the clip is.
+  const layerSx = {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
     display: 'block',
   } as const;
 
-  if (media && mounted) {
+  if (media || image) {
     return (
-      <Box
-        component="video"
-        ref={videoRef}
-        // Poster is the screenshot the card has always shown, so the swap from
-        // still to clip is invisible: same image, same box, no reflow, and no
-        // black frame while the first keyframe decodes.
-        poster={media.poster}
-        src={media.src}
-        // Muted and inline are not decoration -- they are the conditions every
-        // browser puts on programmatic playback without a user gesture. A clip
-        // here has no soundtrack worth hearing anyway.
-        muted
-        playsInline
-        loop={loop}
-        // The element only mounts once something wants to play it, so there is
-        // nothing to gain from preloading and a whole clip to lose if the
-        // visitor never hovers.
-        preload="none"
-        aria-label={media.caption}
-        onError={handleError}
-        sx={boxSx}
-      />
+      <Box sx={boxSx}>
+        {/* Stays mounted underneath the video rather than being replaced by
+            it. A card's onClick lives on the CardActionArea *around* this,
+            and depends on the browser's native click synthesis -- which
+            drops the event outright if the element a press started on gets
+            removed from the document before release. Swapping this img out
+            for the video mid-press did exactly that: hover mounts the clip,
+            and if that finishes between a click's mousedown and mouseup the
+            press's own target vanishes and no click ever fires. Keeping both
+            elements mounted, layered instead of swapped, means a press that
+            started on the img still resolves normally even if the video has
+            since appeared on top of it. */}
+        {image && (
+          <Box
+            component="img"
+            src={image}
+            // Inert once the clip is up: the video below carries the same
+            // picture plus its own `aria-label`, and a hidden img with its
+            // own alt text would double up the announcement.
+            alt={media && mounted ? undefined : (alt ?? '')}
+            aria-hidden={media && mounted ? true : undefined}
+            loading="lazy"
+            sx={layerSx}
+          />
+        )}
+        {media && mounted && (
+          <Box
+            component="video"
+            ref={videoRef}
+            // Poster is the screenshot the card has always shown, so the swap from
+            // still to clip is invisible: same image, same box, no reflow, and no
+            // black frame while the first keyframe decodes.
+            poster={media.poster}
+            src={media.src}
+            // Muted and inline are not decoration -- they are the conditions every
+            // browser puts on programmatic playback without a user gesture. A clip
+            // here has no soundtrack worth hearing anyway.
+            muted
+            playsInline
+            loop={loop}
+            // The element only mounts once something wants to play it, so there is
+            // nothing to gain from preloading and a whole clip to lose if the
+            // visitor never hovers.
+            preload="none"
+            aria-label={media.caption}
+            onError={handleError}
+            sx={layerSx}
+          />
+        )}
+      </Box>
     );
-  }
-
-  if (image) {
-    return <Box component="img" src={image} alt={alt ?? ''} loading="lazy" sx={boxSx} />;
   }
 
   return (
