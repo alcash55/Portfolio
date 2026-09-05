@@ -17,8 +17,8 @@ export interface SiteStats {
 }
 
 export const siteStats: SiteStats = {
-  unitTests: 140,
-  browserTests: 62,
+  unitTests: 170,
+  browserTests: 194,
 };
 
 export default siteStats;

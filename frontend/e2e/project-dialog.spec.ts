@@ -132,6 +132,25 @@ test.describe('opening and closing', () => {
     }
   });
 
+  test('a card with a demo clip still opens on a single click, not just a keyboard Enter', async ({
+    page,
+  }) => {
+    // Regression test: the React 19 migration broke exactly this path. A
+    // `.click()` always hovers the target first, and hovering a card with a
+    // demo clip mounts a `<video>` in place of the still `<img>` a moment
+    // later. Under React 19 that mount can land between the click's own
+    // mousedown and mouseup, so the element the press started on is gone by
+    // the time the pointer releases -- browsers drop the click outright when
+    // that happens, with nothing thrown anywhere. `game-competition-website`
+    // is one of the three cards with a clip (`portfolio-website` and
+    // `vs-code-royalty-theme` are the other two); a card with no clip never
+    // swaps its media element and could not have shown this.
+    await page.setViewportSize(DESKTOP);
+    await gotoHome(page);
+
+    await openDialog(page, 'game-competition-website');
+  });
+
   test('Escape, the backdrop and the close button all dismiss it', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await gotoHome(page);

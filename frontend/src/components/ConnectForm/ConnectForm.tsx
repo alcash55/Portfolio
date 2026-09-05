@@ -99,7 +99,7 @@ const ConnectForm = () => {
   const [validationAnnouncement, setValidationAnnouncement] = useState('');
   const [sending, setSending] = useState(false);
   const [showColdStartHint, setShowColdStartHint] = useState(false);
-  const hintTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const theme = useTheme();
   const largeMobile = useMediaQuery(theme.breakpoints.down(425));
 
