@@ -108,6 +108,32 @@ func TestRoot_RespondsPromptly(t *testing.T) {
 	}
 }
 
+// TestResumeRoutes_Mounted proves both /api/v1/resume and
+// /api/v1/resume/:variant are wired into the router. With no
+// RESUME_GH_TOKEN configured (testConfig sets none), both come back 502 -
+// the resume handler's documented behavior with no cached data and no token
+// - rather than 404, which is what an unmounted route would return.
+// internal/handlers/resume has the full behavioral coverage; this test only
+// pins that routes.New actually mounts it.
+func TestResumeRoutes_Mounted(t *testing.T) {
+	router := New(testConfig([]string{"https://example.com"}, false))
+
+	for _, path := range []string{"/api/v1/resume", "/api/v1/resume/frontend"} {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			if rec.Code == http.StatusNotFound {
+				t.Fatalf("GET %s: status = 404, want the route mounted (502 with no token configured)", path)
+			}
+			if rec.Code != http.StatusBadGateway {
+				t.Errorf("GET %s: status = %d, want %d (no RESUME_GH_TOKEN configured, nothing cached)", path, rec.Code, http.StatusBadGateway)
+			}
+		})
+	}
+}
+
 // preflightRequest builds a CORS preflight OPTIONS request the way a real
 // browser sends one: Origin plus Access-Control-Request-Method are both
 // required for gin-contrib/cors to recognize it as a preflight at all.

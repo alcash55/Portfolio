@@ -33,6 +33,7 @@ type Config struct {
 	WebhookURL     string   `env:"WEBHOOK_URL"`
 	Port           int      `env:"PORT"`
 	GHToken        string   `env:"GH_TOKEN"`
+	ResumeGHToken  string   `env:"RESUME_GH_TOKEN"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS"`
 	ProjectRepos   []string `env:"PROJECT_REPOS"`
 
@@ -64,6 +65,7 @@ func Load() (Config, error) {
 		WebhookURL:        os.Getenv("WEBHOOK_URL"),
 		Port:              port,
 		GHToken:           os.Getenv("GH_TOKEN"),
+		ResumeGHToken:     os.Getenv("RESUME_GH_TOKEN"),
 		AllowedOrigins:    origins,
 		ProjectRepos:      projectRepos,
 		AllowAnyLocalhost: usingDefaultOrigins,
@@ -76,6 +78,22 @@ func Load() (Config, error) {
 	// dashboard - requiring it here would let an unset dashboard field stop
 	// the live API from booting, a self-inflicted outage over a token that
 	// only raises a rate limit the endpoint comes nowhere near.
+	//
+	// RESUME_GH_TOKEN is a separate variable from GH_TOKEN, not a reused one,
+	// and is optional for the same boot-safety reason. The two tokens serve
+	// different repos with different privacy: GH_TOKEN's only job today is
+	// raising the projects handler's rate limit against public repos, and
+	// that handler already degrades to an unauthenticated call if the token
+	// is missing or rejected. The Resume repo is private, so a token good
+	// enough for /api/v1/resume must carry read access to it - a strictly
+	// bigger grant than "raise a public rate limit". Reusing GH_TOKEN would
+	// mean either widening that existing token's scope (so a public-repo
+	// listing feature starts depending on a credential with private-repo
+	// reach) or accepting that /api/v1/projects's graceful unauthenticated
+	// fallback no longer describes what a rejected token actually costs.
+	// Two tokens keep each endpoint's blast radius to the repos it reads.
+	// See internal/handlers/resume for where this is consumed and
+	// scripts/resume-token-wizard.sh for how Alex provisions it.
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
 			return Config{}, fmt.Errorf("%s is required", env)
