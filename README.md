@@ -97,7 +97,8 @@ carries `Content-Type: application/pdf`, `Content-Disposition: inline;
 filename="Alex-Cash-Resume-<variant>.pdf"`, and `Cache-Control: public, max-age=300`.
 
 Unlike `/api/v1/projects`, there's no unauthenticated fallback: the Resume repo is private, so
-every fetch needs `RESUME_GH_TOKEN` (below). If a refresh fails and a previous successful fetch is
+every fetch needs a token that can read it. `RESUME_GH_TOKEN` (below) is used when set, and
+`GH_TOKEN` is the fallback, which works while that token carries the `repo` scope. If a refresh fails and a previous successful fetch is
 still cached for that variant, the stale copy is served instead of erroring - the same behavior
 that covers a GitHub outage. With nothing cached yet, a failed fetch (including a missing token)
 returns `502`.
