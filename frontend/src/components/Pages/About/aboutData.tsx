@@ -4,8 +4,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ArchitectureIcon from '@mui/icons-material/Architecture';
-import Diversity3Icon from '@mui/icons-material/Diversity3';
-import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+import DesignServicesIcon from '@mui/icons-material/DesignServices';
 
 /**
  * Sprint 11 (A1): single source of truth for About's copy. The bio and the
@@ -58,11 +57,11 @@ export const outsideOfWork =
 
 /**
  * Issue #70: replaces the "Continuous Learning" card (a course-completion
- * list), which read as a junior signal rather than a senior one. Each line
- * traces to a bullet already on this site's own Experience and Projects
- * data -- `experienceData.tsx`'s Solea and NCR entries, and
- * `staticProjects.ts`'s `ac-composite-actions` -- so nothing here is a new
- * claim, just a different cut of what was already shipped and shown.
+ * list), which read as a junior signal rather than a senior one. Both lines
+ * restate a bullet already in `experienceData.tsx`, Solea and NCR, so nothing
+ * here is a new claim. The NCR line matches that entry word for word on
+ * purpose: Alex cut "drove adoption across teams" from it, and a card that
+ * kept the old wording would put the claim back.
  */
 export const trackRecord: DrivePoint[] = [
   {
@@ -70,11 +69,7 @@ export const trackRecord: DrivePoint[] = [
     icon: <ArchitectureIcon />,
   },
   {
-    text: "Built components into NCR's design system and drove adoption across other product teams",
-    icon: <Diversity3Icon />,
-  },
-  {
-    text: 'Still maintain the accessibility CI check I built at NCR, now open source as AC Composite Actions',
-    icon: <AllInclusiveIcon />,
+    text: 'Designed in Figma and built custom React components into the NCR Design System',
+    icon: <DesignServicesIcon />,
   },
 ];
