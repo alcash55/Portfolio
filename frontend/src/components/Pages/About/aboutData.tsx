@@ -3,6 +3,9 @@ import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import ArchitectureIcon from '@mui/icons-material/Architecture';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 
 /**
  * Sprint 11 (A1): single source of truth for About's copy. The bio and the
@@ -19,7 +22,10 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
  */
 
 export const bioParagraphs: string[] = [
-  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Right now that means Go services and React micro-frontends for an energy trading platform, where a wrong number costs real money and the interface has to make that number obvious.",
+  // Was present tense ("Right now that means...") until issue #71: Solea's
+  // end date moved from "Present" to 8/2026 in the same edit, which made this
+  // read as a current role again once September rolled past that date.
+  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Most recently that meant Go services and React micro-frontends for an energy trading platform, where a wrong number cost real money and the interface had to make that number obvious.",
   'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with shadcn/ui, Tailwind, MUI, Vite and Bun filling in around them.',
 ];
 
@@ -51,20 +57,24 @@ export const outsideOfWork =
   "When I'm not coding, you'll probably find me coaching lacrosse or out with my two dogs. Coaching is mostly explaining the same thing four different ways until one lands, which turns out to be the job on a code review too.";
 
 /**
- * From Alex's Obsidian vault (`Learning/Frontend Masters (Master.dev)/`),
- * cleared for use by the Sprint 11 brief: 7 completed courses, verbatim
- * titles. Nothing here is inferred -- no dates, providers, or credentials
- * beyond what the brief listed.
+ * Issue #70: replaces the "Continuous Learning" card (a course-completion
+ * list), which read as a junior signal rather than a senior one. Each line
+ * traces to a bullet already on this site's own Experience and Projects
+ * data -- `experienceData.tsx`'s Solea and NCR entries, and
+ * `staticProjects.ts`'s `ac-composite-actions` -- so nothing here is a new
+ * claim, just a different cut of what was already shipped and shown.
  */
-export const continuousLearning = {
-  provider: 'Frontend Masters',
-  courses: [
-    'API Design in Node',
-    'Basics of Go',
-    'Complete Intro to Containers',
-    'Fullstack for Frontend',
-    'Interviewing for Frontend Engineers',
-    'Intro to Databases',
-    'Web Authentication APIs',
-  ],
-};
+export const trackRecord: DrivePoint[] = [
+  {
+    text: "Architected Solea's seven-ISO trade submission platform in Go, from validation through delivery",
+    icon: <ArchitectureIcon />,
+  },
+  {
+    text: "Built components into NCR's design system and drove adoption across other product teams",
+    icon: <Diversity3Icon />,
+  },
+  {
+    text: 'Still maintain the accessibility CI check I built at NCR, now open source as AC Composite Actions',
+    icon: <AllInclusiveIcon />,
+  },
+];

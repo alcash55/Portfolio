@@ -17,7 +17,6 @@ import Mail from '@mui/icons-material/Mail';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import { Logo } from '../../../assets/icons/Logo';
 import { navLinks } from './navLinks';
-import resumePdf from '../../../assets/AlexResume.pdf';
 import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 
 // Same targets as the hero's social buttons (Landing.tsx) and About's resume
@@ -26,6 +25,12 @@ import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 const GITHUB_URL = 'https://github.com/alcash55';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/alexander-cash';
 const EMAIL = 'alex.e.cash28@gmail.com';
+
+// Same contract as About's resume button (Resume #18): the backend always
+// serves the latest fullstack PDF committed in the Resume repo, so neither
+// link carries its own bundled copy to drift out of date against it.
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+const RESUME_URL = `${API_URL}/api/v1/resume`;
 
 // primary.light, not the MuiLink default of primary.main: primary.main
 // clears WCAG AA body-text contrast (4.5:1) against paper on every dark-mode
@@ -144,7 +149,7 @@ export const Footer = () => {
                     underline="hover"
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={resumePdf}
+                    href={RESUME_URL}
                     // Counted separately from About's copy of this link (see
                     // there) -- same file, different intent: one is read on the
                     // way through the page, this one on the way out.
