@@ -94,6 +94,17 @@ func Load() (Config, error) {
 	// Two tokens keep each endpoint's blast radius to the repos it reads.
 	// See internal/handlers/resume for where this is consumed and
 	// scripts/resume-token-wizard.sh for how Alex provisions it.
+	//
+	// The fallback below exists because that separation describes the token
+	// Alex should end up with, not the one deployed today: GH_TOKEN is
+	// currently a classic PAT carrying the `repo` scope, which already reads
+	// the private Resume repo (verified 2026-09-15). Refusing to use it would
+	// leave /api/v1/resume returning 502 purely to honor a boundary the
+	// credential does not actually draw. RESUME_GH_TOKEN still wins when set,
+	// so narrowing GH_TOKEN later is a dashboard change and not a code change.
+	if cfg.ResumeGHToken == "" {
+		cfg.ResumeGHToken = cfg.GHToken
+	}
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
 			return Config{}, fmt.Errorf("%s is required", env)
