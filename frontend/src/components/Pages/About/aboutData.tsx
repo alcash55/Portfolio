@@ -60,8 +60,9 @@ export const outsideOfWork =
  * list), which read as a junior signal rather than a senior one. Both lines
  * restate a bullet already in `experienceData.tsx`, Solea and NCR, so nothing
  * here is a new claim. The NCR line matches that entry word for word on
- * purpose: Alex cut "drove adoption across teams" from it, and a card that
- * kept the old wording would put the claim back.
+ * purpose, and both were changed together in this branch: Alex cut "drove
+ * adoption across teams" and named Figma instead, so a card carrying the old
+ * wording would put a claim back that the Experience entry no longer makes.
  */
 export const trackRecord: DrivePoint[] = [
   {
