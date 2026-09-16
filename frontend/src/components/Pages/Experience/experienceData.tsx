@@ -86,7 +86,7 @@ export const experienceData = [
     icon: <Voyix />,
   },
   {
-    dateRange: '8/2024 - 8/2026',
+    dateRange: '8/2024 - 9/2026',
     title: 'Software Engineer at Solea Energy',
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
