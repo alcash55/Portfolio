@@ -50,6 +50,8 @@ at compile time.
 | `GET`  | `/healthz`         | –                              | `200 {"status":"ok"}`                                                                                    |
 | `POST` | `/api/v1/contact`  | `{"name","email","message"}`  | `200` ok · `400` validation · `413` >64 KiB · `429` rate limited · `502` webhook unreachable/rejected     |
 | `GET`  | `/api/v1/projects` | –                              | `200 {"projects":[...],"stale":bool}` · `502` if every configured repo failed to fetch                   |
+| `GET`  | `/api/v1/resume`   | –                              | `200` PDF, fullstack variant · `502` if the fetch failed and nothing is cached                            |
+| `GET`  | `/api/v1/resume/:variant` | –                        | `200` PDF (`:variant` is `fullstack`, `frontend`, or `backend`) · `404` unknown variant · `502` if the fetch failed and nothing is cached |
 
 ### Contact form
 
@@ -84,6 +86,26 @@ stale data is served instead (`"stale": true`) rather than erroring. The fronten
 (`frontend/src/components/Pages/Projects/useProjects.ts`) merges this over a static fallback list
 and never surfaces a failure to the visitor beyond a `console.error`.
 
+### Live resume data
+
+`GET /api/v1/resume` and `GET /api/v1/resume/:variant` serve the PDFs that the
+[Resume](https://github.com/alcash55/Resume) repo's `build-resume.yml` workflow compiles and
+commits to `resume/<variant>.pdf` on that repo's `main`, fetched live through GitHub's Contents
+API and cached in memory per variant for **10 minutes**, single-flighted the same way
+`/api/v1/projects` is. `GET /api/v1/resume` always serves the `fullstack` variant. A response
+carries `Content-Type: application/pdf`, `Content-Disposition: inline;
+filename="Alex-Cash-Resume-<variant>.pdf"`, and `Cache-Control: public, max-age=300`.
+
+Unlike `/api/v1/projects`, there's no unauthenticated fallback: the Resume repo is private, so
+every fetch needs a token that can read it. `RESUME_GH_TOKEN` (below) is used when set, and
+`GH_TOKEN` is the fallback, which works while that token carries the `repo` scope. If a refresh fails and a previous successful fetch is
+still cached for that variant, the stale copy is served instead of erroring - the same behavior
+that covers a GitHub outage. With nothing cached yet, a failed fetch (including a missing token)
+returns `502`.
+
+The frontend links directly to these URLs rather than bundling a copy of the PDF, so a resume edit
+shows up on the site without a redeploy.
+
 ## Local development
 
 ### Backend
@@ -95,6 +117,7 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
 | `GH_TOKEN`        | no       | GitHub token `GET /api/v1/projects` sends when calling the GitHub API. Optional, see below     |
+| `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 502 until it's set |
 | `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
 | `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
 
@@ -103,6 +126,12 @@ unauthenticated against the public GitHub API (60 requests/hour, and the four de
 a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just raises the limit to
 5000/hour. A token that GitHub rejects (expired, revoked, wrong scope) doesn't fail the request
 either. The handler retries that one refresh unauthenticated instead.
+
+`RESUME_GH_TOKEN` is a separate token from `GH_TOKEN`, not a reused one: the Resume repo is
+private, so this one always needs read access to it, a bigger grant than `GH_TOKEN`'s job of
+raising a public-repo rate limit. Unset, the app still boots (`*` above), but `/api/v1/resume` and
+`/api/v1/resume/:variant` return `502` for every request - there's no unauthenticated fallback for
+a private repo. Set up with `scripts/resume-token-wizard.sh`.
 
 `.env` is read by [godotenv](https://github.com/joho/godotenv) at startup. Go
 does not read `.env` files on its own, and real environment variables always win,
@@ -226,7 +255,10 @@ changes don't trigger a redeploy) and health-checks `/healthz`.
 Set `WEBHOOK_URL` in the Render dashboard. It's marked `sync: false` in the blueprint precisely so
 the secret never lives in this repo. `GH_TOKEN` is in the blueprint the same way (`sync: false`)
 but is optional at the application level (see the env var table above), so leaving it unset in the
-dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub.
+dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub. `RESUME_GH_TOKEN`
+is also `sync: false`; unlike `GH_TOKEN`, leaving it unset means `/api/v1/resume[/:variant]` return
+`502` rather than degrading gracefully, since the Resume repo has no public, unauthenticated path
+to fall back to. `scripts/resume-token-wizard.sh` walks through creating and setting it.
 
 Two things Render handles that the app relies on:
 
