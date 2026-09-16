@@ -88,20 +88,36 @@ and never surfaces a failure to the visitor beyond a `console.error`.
 
 ### Live resume data
 
-`GET /api/v1/resume` and `GET /api/v1/resume/:variant` serve the PDFs that the
-[Resume](https://github.com/alcash55/Resume) repo's `build-resume.yml` workflow compiles and
-commits to `resume/<variant>.pdf` on that repo's `main`, fetched live through GitHub's Contents
-API and cached in memory per variant for **10 minutes**, single-flighted the same way
-`/api/v1/projects` is. `GET /api/v1/resume` always serves the `fullstack` variant. A response
-carries `Content-Type: application/pdf`, `Content-Disposition: inline;
-filename="Alex-Cash-Resume-<variant>.pdf"`, and `Cache-Control: public, max-age=300`.
+`GET /api/v1/resume` and `GET /api/v1/resume/:variant` serve the PDFs attached to the
+[Resume](https://github.com/alcash55/Resume) repo's **latest GitHub Release**. That repo's
+`build-resume.yml` workflow only cuts a release after a successful build on `main`, tagged by
+date, with `fullstack.pdf`, `frontend.pdf`, and `backend.pdf` attached - so a broken build leaves
+the previous good resume in place instead of publishing a stale or broken one. Serving a path off
+a branch can't make that guarantee, which is why this reads a release rather than a file on
+`main`.
+
+Fetching one variant is two calls: `GET /repos/alcash55/Resume/releases/latest` to find the
+release and the asset it carries for that variant, then a `GET` of that asset's own API URL (not
+its `browser_download_url`) with `Accept: application/octet-stream` for the bytes. Getting that
+header wrong is the trap in GitHub's release-asset API: it silently answers 200 with the asset's
+JSON metadata instead of the file, so every response is also checked for the `%PDF-` magic bytes
+before it's served - a 200 with the wrong body is treated as a failure, not passed through.
+
+Both calls are cached in memory per variant for **10 minutes**, single-flighted the same way
+`/api/v1/projects` is, and each cache entry carries the release tag alongside the PDF bytes.
+`GET /api/v1/resume` always serves the `fullstack` variant. A successful response carries
+`Content-Type: application/pdf`, `Content-Disposition: inline;
+filename="Alex-Cash-Resume-<variant>.pdf"`, `Cache-Control: public, max-age=300`, and
+`X-Resume-Version: <tag>` naming the release actually served, so a stale-looking resume can be
+traced to a specific release rather than guessed at.
 
 Unlike `/api/v1/projects`, there's no unauthenticated fallback: the Resume repo is private, so
 every fetch needs a token that can read it. `RESUME_GH_TOKEN` (below) is used when set, and
-`GH_TOKEN` is the fallback, which works while that token carries the `repo` scope. If a refresh fails and a previous successful fetch is
-still cached for that variant, the stale copy is served instead of erroring - the same behavior
-that covers a GitHub outage. With nothing cached yet, a failed fetch (including a missing token)
-returns `502`.
+`GH_TOKEN` is the fallback, which works while that token carries the `repo` scope. No release yet,
+a release missing that variant's asset, a failed asset download, and a non-PDF asset body all
+resolve to the same outcome: if a previous successful fetch is still cached for that variant, the
+stale copy is served instead of erroring - the same behavior that covers a GitHub outage. With
+nothing cached yet, any of those failures (including a missing token) returns `502`.
 
 The frontend links directly to these URLs rather than bundling a copy of the PDF, so a resume edit
 shows up on the site without a redeploy.
