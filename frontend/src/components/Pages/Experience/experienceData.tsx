@@ -58,7 +58,7 @@ export const experienceData = [
           <ListItemText primary="Architected the Store Health project for Starbucks UK, from design through delivery" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Built custom React components into the NCR Design System and drove adoption across teams" />
+          <ListItemText primary="Designed in Figma and built custom React components into the NCR Design System" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
           <ListItemText primary="Automated accessibility scoring across NCR products, giving every team a compliance signal per build, and rolled out Google Tag Manager and FullStory across digital connected services" />
@@ -86,7 +86,7 @@ export const experienceData = [
     icon: <Voyix />,
   },
   {
-    dateRange: '8/2024 - Present',
+    dateRange: '8/2024 - 8/2026',
     title: 'Software Engineer at Solea Energy',
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
