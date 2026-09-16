@@ -3,8 +3,6 @@ import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import ArchitectureIcon from '@mui/icons-material/Architecture';
-import DesignServicesIcon from '@mui/icons-material/DesignServices';
 
 /**
  * Sprint 11 (A1): single source of truth for About's copy. The bio and the
@@ -21,10 +19,10 @@ import DesignServicesIcon from '@mui/icons-material/DesignServices';
  */
 
 export const bioParagraphs: string[] = [
-  // Was present tense ("Right now that means...") until issue #71: Solea's
-  // end date moved from "Present" to 8/2026 in the same edit, which made this
-  // read as a current role again once September rolled past that date.
-  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Most recently that meant Go services and React micro-frontends for an energy trading platform, where a wrong number cost real money and the interface had to make that number obvious.",
+  // Past tense throughout: Solea ended 8/2026, so present tense here reads as
+  // a current role. The Solea claim restates experienceData.tsx's entry rather
+  // than making a second, separately maintained one.
+  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Most recently that meant Go services and React micro-frontends for an energy trading platform, building the validation and error handling that kept seven different markets from quietly disagreeing with each other.",
   'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with shadcn/ui, Tailwind, MUI, Vite and Bun filling in around them.',
 ];
 
@@ -52,25 +50,13 @@ export const whatDrivesMe: DrivePoint[] = [
   { text: 'Measuring the thing instead of guessing at it', icon: <AutoAwesomeIcon /> },
 ];
 
-export const outsideOfWork =
-  "When I'm not coding, you'll probably find me coaching lacrosse or out with my two dogs. Coaching is mostly explaining the same thing four different ways until one lands, which turns out to be the job on a code review too.";
-
 /**
- * Issue #70: replaces the "Continuous Learning" card (a course-completion
- * list), which read as a junior signal rather than a senior one. Both lines
- * restate a bullet already in `experienceData.tsx`, Solea and NCR, so nothing
- * here is a new claim. The NCR line matches that entry word for word on
- * purpose, and both were changed together in this branch: Alex cut "drove
- * adoption across teams" and named Figma instead, so a card carrying the old
- * wording would put a claim back that the Experience entry no longer makes.
+ * Covers all four subjects in the hero's photo grid (`Landing.tsx`'s `images`
+ * array: dogs, RMU lacrosse, coaching, Joshua Tree), so no caption is left
+ * unexplained. Two short paragraphs keep the card half-width beside "What
+ * Drives Me".
  */
-export const trackRecord: DrivePoint[] = [
-  {
-    text: "Architected Solea's seven-ISO trade submission platform in Go, from validation through delivery",
-    icon: <ArchitectureIcon />,
-  },
-  {
-    text: 'Designed in Figma and built custom React components into the NCR Design System',
-    icon: <DesignServicesIcon />,
-  },
+export const outsideOfWork: string[] = [
+  "When I'm not coding, you'll probably find me out with my two dogs, Troy and Leon, or on a lacrosse field. I played Division I at RMU, then coached it, middle school first and high school after. Coaching is mostly explaining the same thing four different ways until one lands, which turns out to be the job on a code review too.",
+  "The rest of the time I'm probably somewhere new. Joshua Tree was the most recent stop.",
 ];

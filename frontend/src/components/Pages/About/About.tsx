@@ -14,12 +14,13 @@ import LinkIcon from '@mui/icons-material/Link';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import PetsIcon from '@mui/icons-material/Pets';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import Logo from '../../../assets/icons/Logo';
 import ReactIcon from '../../../assets/icons/React';
 import Typescript from '../../../assets/icons/Typescript';
 import Go from '../../../assets/icons/Go';
 import TechIcon from '../Skills/TechIcon';
-import { bioParagraphs, whatDrivesMe, outsideOfWork, trackRecord } from './aboutData';
+import { bioParagraphs, whatDrivesMe, outsideOfWork } from './aboutData';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
 import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 
@@ -269,69 +270,43 @@ const About = () => {
               </Card>
             </Grid>
 
-            {/* Track Record -- issue #70 replaced "Continuous Learning" (a course
-                list, which read as junior) with this: concrete architecture and
-                adoption bullets pulled from Experience and Projects, in the same
-                icon-plus-text layout as "What Drives Me" below. */}
+            {/* Half-width so it pairs with "What Drives Me" from sm up. One
+                icon pair per paragraph, matching that card's icon-plus-text
+                rhythm. */}
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Card sx={panelSx}>
-                <CardHeader
-                  title="Track Record"
-                  slotProps={{ title: { component: 'h3', variant: 'h6' } }}
-                />
-                <CardContent>
-                  <Grid container spacing={2}>
-                    {trackRecord.map((point) => (
-                      <Grid key={point.text} size={{ xs: 12 }}>
-                        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-                          <Box
-                            aria-hidden
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: 32,
-                              height: 32,
-                              flexShrink: 0,
-                              borderRadius: '50%',
-                              bgcolor: 'action.hover',
-                              color: 'primary.main',
-                              '& svg': { fontSize: 18 },
-                            }}
-                          >
-                            {point.icon}
-                          </Box>
-                          <Typography variant="body2" sx={{ pt: 0.5 }}>
-                            {point.text}
-                          </Typography>
-                        </Stack>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Outside of Work */}
-            <Grid size={{ xs: 12 }}>
               <Card sx={panelSx}>
                 <CardHeader
                   title="Outside of Work"
                   slotProps={{ title: { component: 'h3', variant: 'h6' } }}
                 />
                 <CardContent>
-                  <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                    <SportsHandballIcon
-                      aria-hidden
-                      sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-                    />
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      {outsideOfWork}
-                    </Typography>
-                    <PetsIcon
-                      aria-hidden
-                      sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-                    />
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        sx={{ flexShrink: 0, pt: 0.25, display: { xs: 'none', sm: 'flex' } }}
+                      >
+                        <PetsIcon aria-hidden sx={{ color: 'text.secondary' }} />
+                        <SportsHandballIcon aria-hidden sx={{ color: 'text.secondary' }} />
+                      </Stack>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {outsideOfWork[0]}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                      <FlightTakeoffIcon
+                        aria-hidden
+                        sx={{
+                          color: 'text.secondary',
+                          flexShrink: 0,
+                          display: { xs: 'none', sm: 'block' },
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {outsideOfWork[1]}
+                      </Typography>
+                    </Stack>
                   </Stack>
                 </CardContent>
               </Card>
