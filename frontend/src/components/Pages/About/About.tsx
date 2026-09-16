@@ -270,12 +270,9 @@ const About = () => {
               </Card>
             </Grid>
 
-            {/* Outside of Work -- issue #80 moved this into the slot the Track
-                Record card left behind (removed: it restated Experience
-                bullets a reader had just scrolled past) and expanded it from
-                one sentence to two paragraphs, one icon each, so all four of
-                the hero's photos (dogs, RMU lacrosse, coaching, Joshua Tree)
-                get a line instead of half of them. */}
+            {/* Half-width so it pairs with "What Drives Me" from sm up. One
+                icon pair per paragraph, matching that card's icon-plus-text
+                rhythm. */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <Card sx={panelSx}>
                 <CardHeader

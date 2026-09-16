@@ -2,14 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import About from './About';
 
-/**
- * Issue #80: the Track Record card restated two bullets Experience already
- * carries, and the bio's closing clause had been reused across cover letters
- * and LinkedIn drafts until Alex was done seeing it. Both are regressions
- * that are easy to reintroduce by copy-pasting an old panel back in, so this
- * file pins their absence rather than trusting the diff.
- */
-describe('About (issue #80: drop Track Record, move Outside of Work up)', () => {
+/** Pins what About must not render, since a deleted panel is easy to paste back. */
+describe('About panels', () => {
   it('renders no Track Record card', () => {
     render(<About />);
 

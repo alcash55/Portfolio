@@ -19,18 +19,10 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
  */
 
 export const bioParagraphs: string[] = [
-  // Was present tense ("Right now that means...") until issue #71: Solea's
-  // end date moved from "Present" to 8/2026 in the same edit, which made this
-  // read as a current role again once September rolled past that date.
-  //
-  // Issue #80: the closing clause ("where a wrong number cost real money and
-  // the interface had to make that number obvious") had been reused across
-  // cover letters and LinkedIn drafts to the point Alex didn't want to see it
-  // again here. Replaced with the same claim experienceData.tsx's Solea entry
-  // already makes -- "standardizing validation, error handling and fault
-  // resilience across all seven markets" -- said in the bio's own voice
-  // instead of a new one.
-  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Most recently that meant Go services and React micro-frontends for an energy trading platform, where the same validation logic had to hold across seven different markets so traders could trust the number in front of them.",
+  // Past tense throughout: Solea ended 8/2026, so present tense here reads as
+  // a current role. The Solea claim restates experienceData.tsx's entry rather
+  // than making a second, separately maintained one.
+  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Most recently that meant Go services and React micro-frontends for an energy trading platform, building the validation and error handling that kept seven different markets from quietly disagreeing with each other.",
   'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with shadcn/ui, Tailwind, MUI, Vite and Bun filling in around them.',
 ];
 
@@ -59,16 +51,12 @@ export const whatDrivesMe: DrivePoint[] = [
 ];
 
 /**
- * Issue #80: expanded from one sentence covering two of the four things the
- * hero's photo grid shows (`Landing.tsx`'s `images` array: dogs, RMU
- * lacrosse, coaching, Joshua Tree) to cover all four, so a visitor who reads
- * the captions isn't left with the other two unexplained. Two short
- * paragraphs so the card still fits half-width beside "What Drives Me";
- * the coaching sentence is carried over near-verbatim since it was already
- * the target shape -- a personal detail that lands a point about the work,
- * not a list of hobbies.
+ * Covers all four subjects in the hero's photo grid (`Landing.tsx`'s `images`
+ * array: dogs, RMU lacrosse, coaching, Joshua Tree), so no caption is left
+ * unexplained. Two short paragraphs keep the card half-width beside "What
+ * Drives Me".
  */
 export const outsideOfWork: string[] = [
-  "When I'm not coding, you'll probably find me out with my two dogs, Troy and Leon, or on a lacrosse field. I played Division I at RMU, and now I coach middle school lacrosse, which is mostly explaining the same thing four different ways until one lands. That turns out to be the job on a code review too.",
+  "When I'm not coding, you'll probably find me out with my two dogs, Troy and Leon, or on a lacrosse field. I played Division I at RMU, then coached it, middle school first and high school after. Coaching is mostly explaining the same thing four different ways until one lands, which turns out to be the job on a code review too.",
   "The rest of the time I'm probably somewhere new. Joshua Tree was the most recent stop.",
 ];
