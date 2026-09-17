@@ -232,9 +232,13 @@ deploying the frontend to GitHub Pages. A push to `main` only deploys if CI pass
 deploys separately: Render watches `main` directly via the `render.yaml` blueprint and isn't gated
 on this repo's CI.
 
-Two more workflows exist outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
-stop the Render free plan from spinning down (see below), and `check-resume.yml` runs an ATS check
-against `frontend/src/assets/AlexResume.pdf` when that file changes. Neither blocks a deploy.
+One more workflow exists outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
+stop the Render free plan from spinning down (see below). It doesn't block a deploy.
+
+The old `check-resume.yml` ATS check is gone: it ran against a bundled `frontend/src/assets/AlexResume.pdf`
+that no longer exists now that the resume is served live from the Resume repo (see "Live resume
+data" above). The same ATS check now runs in the Resume repo's own `resume-analysis.yml`, against
+all three variants, on every PR there.
 
 ## Deployment
 
