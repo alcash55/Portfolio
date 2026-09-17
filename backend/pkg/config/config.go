@@ -33,6 +33,7 @@ type Config struct {
 	WebhookURL     string   `env:"WEBHOOK_URL"`
 	Port           int      `env:"PORT"`
 	GHToken        string   `env:"GH_TOKEN"`
+	ResumeGHToken  string   `env:"RESUME_GH_TOKEN"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS"`
 	ProjectRepos   []string `env:"PROJECT_REPOS"`
 
@@ -64,18 +65,23 @@ func Load() (Config, error) {
 		WebhookURL:        os.Getenv("WEBHOOK_URL"),
 		Port:              port,
 		GHToken:           os.Getenv("GH_TOKEN"),
+		ResumeGHToken:     os.Getenv("RESUME_GH_TOKEN"),
 		AllowedOrigins:    origins,
 		ProjectRepos:      projectRepos,
 		AllowAnyLocalhost: usingDefaultOrigins,
 	}
 
-	// GH_TOKEN is optional: the /api/v1/projects handler (internal/handlers/
-	// projects) reads it, but sends requests unauthenticated when it's empty
-	// rather than failing to boot. render.yaml declares the key with
-	// sync: false, so whether a value actually exists depends on the Render
-	// dashboard - requiring it here would let an unset dashboard field stop
-	// the live API from booting, a self-inflicted outage over a token that
-	// only raises a rate limit the endpoint comes nowhere near.
+	// GH_TOKEN is optional: the /api/v1/projects handler degrades to an
+	// unauthenticated call when it's empty rather than failing to boot. See
+	// README.md's "Live resume data" and "Local development" sections for the
+	// full token setup.
+	//
+	// RESUME_GH_TOKEN falls back to GH_TOKEN when unset, because GH_TOKEN
+	// already carries read access to the private Resume repo. A dedicated,
+	// narrower-scoped token is still preferred; see scripts/resume-token-wizard.sh.
+	if cfg.ResumeGHToken == "" {
+		cfg.ResumeGHToken = cfg.GHToken
+	}
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
 			return Config{}, fmt.Errorf("%s is required", env)
