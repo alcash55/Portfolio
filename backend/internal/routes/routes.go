@@ -139,8 +139,13 @@ func New(cfg config.Config) *gin.Engine {
 			// Contents API call) is already bounded to at most one per
 			// variant every ~10 minutes by resume.Handler's per-variant
 			// cache, regardless of request volume.
+			//
+			// /status is registered before /:variant so gin resolves it as
+			// the static route rather than treating "status" as a variant
+			// value.
 			resumeRoutes := v1.Group("/resume")
 			resumeRoutes.GET("", resumeHandler.GetResume)
+			resumeRoutes.GET("/status", resumeHandler.GetResumeStatus)
 			resumeRoutes.GET("/:variant", resumeHandler.GetResumeVariant)
 		}
 	}

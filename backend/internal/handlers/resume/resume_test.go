@@ -1,7 +1,10 @@
 package resume
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -133,13 +136,33 @@ func newFakeGitHub(t *testing.T, fx releaseFixture) (*httptest.Server, *fakeGitH
 	return server, counts
 }
 
-// newTestRouter wires both resume routes into a real gin router, matching
-// how projects_test.go tests its handler.
+// newTestRouter wires all resume routes into a real gin router, matching how
+// projects_test.go tests its handler. /status is registered alongside
+// /:variant to pin that gin resolves the static segment first - the same
+// requirement production routing depends on.
 func newTestRouter(h *Handler) *gin.Engine {
 	r := gin.New()
 	r.GET("/api/v1/resume", h.GetResume)
+	r.GET("/api/v1/resume/status", h.GetResumeStatus)
 	r.GET("/api/v1/resume/:variant", h.GetResumeVariant)
 	return r
+}
+
+// captureLog redirects the standard logger's output to a buffer for the
+// duration of the calling test and restores the previous output when the
+// test ends, so log-content assertions don't depend on run order.
+func captureLog(t *testing.T) *bytes.Buffer {
+	t.Helper()
+	var buf bytes.Buffer
+	prevOutput := log.Writer()
+	prevFlags := log.Flags()
+	log.SetOutput(&buf)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(prevOutput)
+		log.SetFlags(prevFlags)
+	})
+	return &buf
 }
 
 func getResume(t *testing.T, router *gin.Engine, path string) *httptest.ResponseRecorder {
@@ -488,11 +511,15 @@ func TestGetResume_StaleOnFailure(t *testing.T) {
 const wantNotLoadedBody = `{"error":"could not load resume"}`
 
 // TestGetResume_NoReleaseExists_502 covers a repo with no releases at all:
-// GET releases/latest itself 404s.
+// GET releases/latest itself 404s. It also pins that the failure logs a
+// distinct, greppable line naming the release-resolution stage and the
+// upstream status, which is what turns "the endpoint is down" into "GitHub
+// answered 404 to releases/latest" without a debugger.
 func TestGetResume_NoReleaseExists_502(t *testing.T) {
 	server, counts := newFakeGitHub(t, releaseFixture{status: http.StatusNotFound})
 	defer server.Close()
 
+	logs := captureLog(t)
 	h := New(testCfg(), WithBaseURL(server.URL))
 	router := newTestRouter(h)
 
@@ -506,10 +533,16 @@ func TestGetResume_NoReleaseExists_502(t *testing.T) {
 	if got := atomic.LoadInt32(&counts.asset); got != 0 {
 		t.Errorf("no release exists: asset download calls = %d, want 0 (nothing to download)", got)
 	}
+	if got := logs.String(); !strings.Contains(got, "stage=resolve_release") || !strings.Contains(got, "status=404") {
+		t.Errorf("no release exists: log output = %q, want it to contain %q and %q", got, "stage=resolve_release", "status=404")
+	}
 }
 
 // TestGetResume_NoAssetForVariant_502 covers a release that exists but
-// shipped without the requested variant's PDF attached.
+// shipped without the requested variant's PDF attached, and pins that the
+// failure logs the asset-selection stage - distinct from the release-lookup
+// stage above, since the two need different fixes (cut a release, versus fix
+// what build-resume.yml attaches to it).
 func TestGetResume_NoAssetForVariant_502(t *testing.T) {
 	fx := releaseFixture{
 		tag: "v2026.09.16",
@@ -522,6 +555,7 @@ func TestGetResume_NoAssetForVariant_502(t *testing.T) {
 	server, counts := newFakeGitHub(t, fx)
 	defer server.Close()
 
+	logs := captureLog(t)
 	h := New(testCfg(), WithBaseURL(server.URL))
 	router := newTestRouter(h)
 
@@ -535,15 +569,20 @@ func TestGetResume_NoAssetForVariant_502(t *testing.T) {
 	if got := atomic.LoadInt32(&counts.asset); got != 0 {
 		t.Errorf("release missing the fullstack asset: asset download calls = %d, want 0 (nothing to download)", got)
 	}
+	if got := logs.String(); !strings.Contains(got, "stage=select_asset") {
+		t.Errorf("release missing the fullstack asset: log output = %q, want it to contain %q", got, "stage=select_asset")
+	}
 }
 
 // TestGetResume_AssetDownloadFails_502 covers a release that lists the
-// asset, but whose download URL itself fails.
+// asset, but whose download URL itself fails, and pins that the failure logs
+// the download stage plus the upstream status.
 func TestGetResume_AssetDownloadFails_502(t *testing.T) {
 	fx := singleAssetRelease("v2026.09.16", "fullstack.pdf", assetFixture{status: http.StatusNotFound})
 	server, _ := newFakeGitHub(t, fx)
 	defer server.Close()
 
+	logs := captureLog(t)
 	h := New(testCfg(), WithBaseURL(server.URL))
 	router := newTestRouter(h)
 
@@ -553,6 +592,9 @@ func TestGetResume_AssetDownloadFails_502(t *testing.T) {
 	}
 	if got := rec.Body.String(); got != wantNotLoadedBody {
 		t.Errorf("asset download fails: body = %q, want %q", got, wantNotLoadedBody)
+	}
+	if got := logs.String(); !strings.Contains(got, "stage=download_asset") || !strings.Contains(got, "status=404") {
+		t.Errorf("asset download fails: log output = %q, want it to contain %q and %q", got, "stage=download_asset", "status=404")
 	}
 }
 
@@ -566,6 +608,7 @@ func TestGetResume_AssetBodyNotPDF_502(t *testing.T) {
 	server, _ := newFakeGitHub(t, fx)
 	defer server.Close()
 
+	logs := captureLog(t)
 	h := New(testCfg(), WithBaseURL(server.URL))
 	router := newTestRouter(h)
 
@@ -576,13 +619,22 @@ func TestGetResume_AssetBodyNotPDF_502(t *testing.T) {
 	if got := rec.Body.String(); got != wantNotLoadedBody {
 		t.Errorf("non-PDF asset body: body = %q, want %q", got, wantNotLoadedBody)
 	}
+	// This is the magic-byte check's own failure path, distinct from
+	// stage=download_asset above: a 200 status with the wrong body is a
+	// different bug (wrong Accept header) than a non-200 status.
+	if got := logs.String(); !strings.Contains(got, "stage=verify_pdf") {
+		t.Errorf("non-PDF asset body: log output = %q, want it to contain %q", got, "stage=verify_pdf")
+	}
 }
 
-// TestGetResume_NoTokenConfigured_502WithoutCallingUpstream pins the state
+// TestGetResume_NoTokenConfigured_503WithoutCallingUpstream pins the state
 // the endpoint is in until Alex runs scripts/resume-token-wizard.sh: no
-// RESUME_GH_TOKEN, no cached data yet, so every request is a 502, and the
-// handler never bothers dialing a private repo it has no credential for.
-func TestGetResume_NoTokenConfigured_502WithoutCallingUpstream(t *testing.T) {
+// RESUME_GH_TOKEN, no cached data yet. It answers 503, not 502 - a missing
+// token is a misconfiguration the deploy can fix, not an upstream failure -
+// and the handler never bothers dialing a private repo it has no credential
+// for. The JSON body stays the existing error string either way, so the
+// frontend does not need to change for this to ship.
+func TestGetResume_NoTokenConfigured_503WithoutCallingUpstream(t *testing.T) {
 	server, counts := newFakeGitHub(t, allVariantsRelease("v2026.09.16"))
 	defer server.Close()
 
@@ -591,11 +643,11 @@ func TestGetResume_NoTokenConfigured_502WithoutCallingUpstream(t *testing.T) {
 	router := newTestRouter(h)
 
 	rec := getResume(t, router, "/api/v1/resume")
-	if rec.Code != http.StatusBadGateway {
-		t.Fatalf("no token configured: status = %d, want %d; body: %s", rec.Code, http.StatusBadGateway, rec.Body.String())
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("no token configured: status = %d, want %d; body: %s", rec.Code, http.StatusServiceUnavailable, rec.Body.String())
 	}
 	if got := rec.Body.String(); got != wantNotLoadedBody {
-		t.Errorf("no token configured: body = %q, want %q", got, wantNotLoadedBody)
+		t.Errorf("no token configured: body = %q, want %q (human-facing text unchanged)", got, wantNotLoadedBody)
 	}
 	if got := atomic.LoadInt32(&counts.release); got != 0 {
 		t.Errorf("no token configured: releases/latest calls = %d, want 0 (a private repo with no credential can only fail)", got)
@@ -617,6 +669,60 @@ func TestGetResume_TokenNeverLeaksOnFailure(t *testing.T) {
 	rec := getResume(t, router, "/api/v1/resume")
 	if strings.Contains(rec.Body.String(), testToken) {
 		t.Errorf("cold cache + failing upstream: response body leaked the token. Got: %s", rec.Body.String())
+	}
+}
+
+// TestGetResume_TokenNeverLeaksInLogs is the hard rule from the brief made
+// executable: with a token configured, every failure path's log output -
+// resolving the release, selecting the asset, downloading it, the PDF check,
+// and the response headers a real upstream call would have carried - must
+// contain no part of the token. It runs each failure fixture against a
+// token deliberately shaped to be easy to spot if it ever leaked.
+func TestGetResume_TokenNeverLeaksInLogs(t *testing.T) {
+	const sentinelToken = "sentinel-token-must-never-appear-anywhere"
+
+	cases := []struct {
+		name string
+		fx   releaseFixture
+	}{
+		{"release lookup fails", releaseFixture{status: http.StatusInternalServerError}},
+		{"no release published", releaseFixture{status: http.StatusNotFound}},
+		{"release missing the asset", releaseFixture{tag: "v1", assets: map[string]assetFixture{}}},
+		{"asset download fails", singleAssetRelease("v1", "fullstack.pdf", assetFixture{status: http.StatusInternalServerError})},
+		{"asset body not a PDF", singleAssetRelease("v1", "fullstack.pdf", assetFixture{body: `{"not":"a pdf"}`})},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			server, _ := newFakeGitHub(t, tc.fx)
+			defer server.Close()
+
+			logs := captureLog(t)
+			cfg := config.Config{ResumeGHToken: sentinelToken}
+			h := New(cfg, WithBaseURL(server.URL))
+			router := newTestRouter(h)
+
+			rec := getResume(t, router, "/api/v1/resume")
+
+			if strings.Contains(rec.Body.String(), sentinelToken) {
+				t.Errorf("%s: response body leaked the token: %s", tc.name, rec.Body.String())
+			}
+			for name, values := range rec.Header() {
+				for _, v := range values {
+					if strings.Contains(v, sentinelToken) {
+						t.Errorf("%s: response header %s leaked the token: %s", tc.name, name, v)
+					}
+				}
+			}
+			if strings.Contains(logs.String(), sentinelToken) {
+				t.Errorf("%s: log output leaked the token: %s", tc.name, logs.String())
+			}
+
+			statusRec := getResume(t, router, "/api/v1/resume/status")
+			if strings.Contains(statusRec.Body.String(), sentinelToken) {
+				t.Errorf("%s: /status response leaked the token: %s", tc.name, statusRec.Body.String())
+			}
+		})
 	}
 }
 
@@ -750,5 +856,176 @@ func TestGetResume_SingleFlight_ColdCache(t *testing.T) {
 	}
 	if got := atomic.LoadInt32(&releaseCalls); got != 1 {
 		t.Errorf("releases/latest calls after %d concurrent cold-cache requests: got %d, want 1 (single-flighted across all %d callers)", concurrency, got, concurrency)
+	}
+}
+
+// --- GET /api/v1/resume/status ---
+
+// statusResponse mirrors the diagnostic's JSON shape for test decoding.
+type statusResponse struct {
+	TokenConfigured bool `json:"tokenConfigured"`
+	Variants        map[string]struct {
+		Cached            bool    `json:"cached"`
+		ReleaseTag        string  `json:"releaseTag"`
+		LastSuccessAt     *string `json:"lastSuccessAt"`
+		LastFailureReason string  `json:"lastFailureReason"`
+		LastFailureAt     *string `json:"lastFailureAt"`
+	} `json:"variants"`
+}
+
+func getStatus(t *testing.T, router *gin.Engine) (*httptest.ResponseRecorder, statusResponse) {
+	t.Helper()
+	rec := getResume(t, router, "/api/v1/resume/status")
+	var body statusResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decoding /status response: %v; body: %s", err, rec.Body.String())
+	}
+	return rec, body
+}
+
+// TestGetResumeStatus_NoTokenConfigured proves the diagnostic reports the
+// missing-token case as a bare boolean, needing no dashboard visit to see
+// it - the exact gap the incident behind this endpoint exposed.
+func TestGetResumeStatus_NoTokenConfigured(t *testing.T) {
+	cfg := config.Config{ResumeGHToken: ""}
+	h := New(cfg)
+	router := newTestRouter(h)
+
+	rec, body := getStatus(t, router)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	if body.TokenConfigured {
+		t.Errorf("token_configured = true, want false (none set)")
+	}
+	for _, variant := range []string{"fullstack", "frontend", "backend"} {
+		v, ok := body.Variants[variant]
+		if !ok {
+			t.Fatalf("variants[%q] missing from response: %s", variant, rec.Body.String())
+		}
+		if v.Cached {
+			t.Errorf("variants[%q].cached = true, want false (nothing fetched yet)", variant)
+		}
+	}
+}
+
+// TestGetResumeStatus_TokenConfigured proves the boolean flips once a token
+// is set, independent of whether any fetch has happened yet - it reports
+// configuration, not fetch history.
+func TestGetResumeStatus_TokenConfigured(t *testing.T) {
+	h := New(testCfg())
+	router := newTestRouter(h)
+
+	_, body := getStatus(t, router)
+	if !body.TokenConfigured {
+		t.Errorf("token_configured = false, want true (testCfg sets one)")
+	}
+}
+
+// TestGetResumeStatus_AfterSuccess proves a successful fetch shows up as
+// cached=true with the release tag it came from and a populated
+// last_success_at, which is what answers "is the cache actually warm" from
+// outside.
+func TestGetResumeStatus_AfterSuccess(t *testing.T) {
+	server, _ := newFakeGitHub(t, singleAssetRelease("v2026.09.16", "fullstack.pdf", pdfFixture("fullstack")))
+	defer server.Close()
+
+	h := New(testCfg(), WithBaseURL(server.URL))
+	router := newTestRouter(h)
+
+	rec := getResume(t, router, "/api/v1/resume")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("priming request: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+
+	_, body := getStatus(t, router)
+	fullstack := body.Variants["fullstack"]
+	if !fullstack.Cached {
+		t.Errorf("fullstack.cached = false, want true after a successful fetch")
+	}
+	if got, want := fullstack.ReleaseTag, "v2026.09.16"; got != want {
+		t.Errorf("fullstack.release_tag = %q, want %q", got, want)
+	}
+	if fullstack.LastSuccessAt == nil || *fullstack.LastSuccessAt == "" {
+		t.Errorf("fullstack.last_success_at = %v, want a populated timestamp", fullstack.LastSuccessAt)
+	}
+
+	other := body.Variants["frontend"]
+	if other.Cached {
+		t.Errorf("frontend.cached = true, want false (only fullstack was fetched)")
+	}
+}
+
+// TestGetResumeStatus_ReflectsFailureEvenWhenCacheServesStale proves the
+// diagnostic surfaces a failure that a stale cache hit masked from the
+// visitor-facing response - the exact case that made the 2026-09-16 incident
+// hard to see from outside: a healthy-looking 200 to visitors with GitHub
+// actually failing underneath.
+func TestGetResumeStatus_ReflectsFailureEvenWhenCacheServesStale(t *testing.T) {
+	var fail atomic.Bool
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if fail.Load() {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		switch {
+		case r.URL.Path == "/repos/alcash55/Resume/releases/latest":
+			assetURL := server.URL + "/repos/alcash55/Resume/releases/assets/fullstack.pdf"
+			fmt.Fprintf(w, `{"tag_name":"v2026.09.16","assets":[{"name":"fullstack.pdf","url":%q}]}`, assetURL)
+		case r.URL.Path == "/repos/alcash55/Resume/releases/assets/fullstack.pdf":
+			w.Write([]byte("%PDF-good"))
+		default:
+			t.Fatalf("unexpected request for path %q", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	clock := newFakeClock(time.Now())
+	h := New(testCfg(), WithBaseURL(server.URL), WithNow(clock.Now))
+	router := newTestRouter(h)
+
+	primeRec := getResume(t, router, "/api/v1/resume")
+	if primeRec.Code != http.StatusOK {
+		t.Fatalf("priming request: status = %d, want %d; body: %s", primeRec.Code, http.StatusOK, primeRec.Body.String())
+	}
+
+	clock.Advance(11 * time.Minute) // past the 10m TTL
+	fail.Store(true)
+
+	rec := getResume(t, router, "/api/v1/resume")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("stale-serving request: status = %d, want %d (stale data, not an error); body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+
+	_, body := getStatus(t, router)
+	fullstack := body.Variants["fullstack"]
+	if fullstack.LastFailureReason == "" {
+		t.Errorf("fullstack.last_failure_reason is empty, want the masked refresh failure recorded even though the request itself got a stale 200")
+	}
+	if fullstack.LastFailureAt == nil || *fullstack.LastFailureAt == "" {
+		t.Errorf("fullstack.last_failure_at = %v, want a populated timestamp", fullstack.LastFailureAt)
+	}
+	// The stale cache entry itself must be untouched by the failed refresh.
+	if !fullstack.Cached || fullstack.ReleaseTag != "v2026.09.16" {
+		t.Errorf("fullstack cache state = %+v, want the prior successful fetch left in place", fullstack)
+	}
+}
+
+// TestGetResumeStatus_UnconfiguredTokenRecordsAFailureReason proves the
+// no-token case shows up in last_failure_reason too, distinguishable from an
+// upstream failure by its text, so the diagnostic alone (without checking
+// the response status of a real GET) answers "is this misconfigured".
+func TestGetResumeStatus_UnconfiguredTokenRecordsAFailureReason(t *testing.T) {
+	cfg := config.Config{ResumeGHToken: ""}
+	h := New(cfg)
+	router := newTestRouter(h)
+
+	getResume(t, router, "/api/v1/resume")
+
+	_, body := getStatus(t, router)
+	reason := body.Variants["fullstack"].LastFailureReason
+	if !strings.Contains(reason, "not_configured") {
+		t.Errorf("fullstack.last_failure_reason = %q, want it to name the not_configured case", reason)
 	}
 }

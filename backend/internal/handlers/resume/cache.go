@@ -27,11 +27,41 @@ type cache struct {
 	mu       sync.Mutex
 	entry    *cacheEntry  // nil until this variant's first successful fetch ever completes
 	inflight *refreshCall // non-nil while a refresh is in progress
+
+	// lastFailure records the most recent refresh failure regardless of
+	// whether a stale entry masked it from a caller of get() - the
+	// GET /api/v1/resume/status diagnostic needs to see it even when every
+	// visitor-facing request is still getting a 200 from stale data.
+	lastFailure   string
+	lastFailureAt time.Time
 }
 
 type cacheEntry struct {
 	asset     resumeAsset
 	fetchedAt time.Time
+}
+
+// status is a point-in-time read of this variant's cache state, for the
+// status diagnostic. It never includes the cached PDF bytes themselves.
+type status struct {
+	cached        bool
+	releaseTag    string
+	lastSuccessAt time.Time // zero if never succeeded
+	lastFailure   string    // empty if never failed
+	lastFailureAt time.Time // zero if never failed
+}
+
+func (c *cache) status() status {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	s := status{lastFailure: c.lastFailure, lastFailureAt: c.lastFailureAt}
+	if c.entry != nil {
+		s.cached = true
+		s.releaseTag = c.entry.asset.tag
+		s.lastSuccessAt = c.entry.fetchedAt
+	}
+	return s
 }
 
 // refreshCall is the shared result of one in-flight refresh. The goroutine
@@ -76,6 +106,14 @@ func (c *cache) get(refresh func() (resumeAsset, error)) (asset resumeAsset, sta
 		c.mu.Lock()
 		if call.err == nil {
 			c.entry = &cacheEntry{asset: call.asset, fetchedAt: c.now()}
+		} else {
+			// Recorded here rather than only where get() returns an error to
+			// its caller, since a stale entry below makes that return path
+			// skip entirely - the status diagnostic still needs to see this
+			// failure even when every visitor request that TTL cycle got a
+			// stale-but-200 response.
+			c.lastFailure = failureReason(call.err)
+			c.lastFailureAt = c.now()
 		}
 		c.inflight = nil
 		c.mu.Unlock()

@@ -50,8 +50,9 @@ at compile time.
 | `GET`  | `/healthz`         | –                              | `200 {"status":"ok"}`                                                                                    |
 | `POST` | `/api/v1/contact`  | `{"name","email","message"}`  | `200` ok · `400` validation · `413` >64 KiB · `429` rate limited · `502` webhook unreachable/rejected     |
 | `GET`  | `/api/v1/projects` | –                              | `200 {"projects":[...],"stale":bool}` · `502` if every configured repo failed to fetch                   |
-| `GET`  | `/api/v1/resume`   | –                              | `200` PDF, fullstack variant · `502` if the fetch failed and nothing is cached                            |
-| `GET`  | `/api/v1/resume/:variant` | –                        | `200` PDF (`:variant` is `fullstack`, `frontend`, or `backend`) · `404` unknown variant · `502` if the fetch failed and nothing is cached |
+| `GET`  | `/api/v1/resume`   | –                              | `200` PDF, fullstack variant · `502` upstream fetch failed and nothing is cached · `503` no `RESUME_GH_TOKEN`/`GH_TOKEN` configured |
+| `GET`  | `/api/v1/resume/:variant` | –                        | `200` PDF (`:variant` is `fullstack`, `frontend`, or `backend`) · `404` unknown variant · `502` upstream fetch failed and nothing is cached · `503` no token configured |
+| `GET`  | `/api/v1/resume/status` | –                          | `200` diagnostic: token presence, per-variant cache state, last success/failure. See "Diagnosing a broken resume link" below |
 
 ### Contact form
 
@@ -117,10 +118,55 @@ every fetch needs a token that can read it. `RESUME_GH_TOKEN` (below) is used wh
 a release missing that variant's asset, a failed asset download, and a non-PDF asset body all
 resolve to the same outcome: if a previous successful fetch is still cached for that variant, the
 stale copy is served instead of erroring - the same behavior that covers a GitHub outage. With
-nothing cached yet, any of those failures (including a missing token) returns `502`.
+nothing cached yet, an upstream failure of that kind returns `502`. A missing token returns `503`
+instead, since it isn't an upstream failure at all - it's a deploy waiting on configuration, and
+the two need different responses. Either way the JSON body stays `{"error":"could not load
+resume"}`, so this doesn't change what the frontend has to handle.
+
+Every failure logs a distinct, greppable line naming which step failed (`stage=resolve_release`,
+`stage=select_asset`, `stage=download_asset`, `stage=verify_pdf`, or `stage=not_configured`) and
+the upstream HTTP status where one exists, e.g. `resume: fullstack fetch failed:
+stage=resolve_release status=404: unexpected status 404 fetching latest release`. Neither the
+token nor the `Authorization` header value is ever part of that line, a response body, or a
+response header.
 
 The frontend links directly to these URLs rather than bundling a copy of the PDF, so a resume edit
 shows up on the site without a redeploy.
+
+#### Diagnosing a broken resume link
+
+Check `GET /api/v1/resume/status` before opening the Render dashboard:
+
+```json
+{
+  "tokenConfigured": true,
+  "variants": {
+    "fullstack": {
+      "cached": true,
+      "releaseTag": "v2026.09.16",
+      "lastSuccessAt": "2026-09-16T12:00:00Z",
+      "lastFailureReason": "",
+      "lastFailureAt": null
+    },
+    "frontend": { "cached": false, "releaseTag": "", "lastSuccessAt": null, "lastFailureReason": "", "lastFailureAt": null },
+    "backend":  { "cached": false, "releaseTag": "", "lastSuccessAt": null, "lastFailureReason": "", "lastFailureAt": null }
+  }
+}
+```
+
+- `tokenConfigured: false` means no `RESUME_GH_TOKEN` or `GH_TOKEN` was ever set on the service.
+  That's the whole fix: run `scripts/resume-token-wizard.sh` and redeploy. This is what actually
+  broke the endpoint on 2026-09-16, and finding it took a Render dashboard visit because the
+  endpoint's only external signal was a 502 indistinguishable from a GitHub outage.
+- `tokenConfigured: true` but a variant's `cached: false` with a populated `lastFailureReason`
+  means the token is fine and something upstream is failing. The reason string names the stage
+  (`stage=resolve_release` is GitHub's release API itself; `stage=select_asset` is a release that
+  shipped without that variant's PDF; `stage=download_asset` is the asset download; `stage=verify_pdf`
+  is a 200 response that wasn't actually a PDF) and the HTTP status where there is one. Match that
+  against the server logs for the full error.
+- A variant can show `cached: true` with a recent `lastFailureReason` at the same time: that's the
+  stale-on-failure path serving the last good PDF while a refresh keeps failing in the background.
+  Visitors see a working resume; this endpoint is what tells you it's still worth investigating.
 
 ## Local development
 
@@ -133,7 +179,7 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
 | `GH_TOKEN`        | no       | GitHub token `GET /api/v1/projects` sends when calling the GitHub API. Optional, see below     |
-| `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 502 until it's set |
+| `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 503 until it's set (check `GET /api/v1/resume/status`) |
 | `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
 | `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
 
@@ -278,8 +324,9 @@ the secret never lives in this repo. `GH_TOKEN` is in the blueprint the same way
 but is optional at the application level (see the env var table above), so leaving it unset in the
 dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub. `RESUME_GH_TOKEN`
 is also `sync: false`; unlike `GH_TOKEN`, leaving it unset means `/api/v1/resume[/:variant]` return
-`502` rather than degrading gracefully, since the Resume repo has no public, unauthenticated path
-to fall back to. `scripts/resume-token-wizard.sh` walks through creating and setting it.
+`503` rather than degrading gracefully, since the Resume repo has no public, unauthenticated path
+to fall back to. `GET /api/v1/resume/status` reports the missing token directly, without a
+dashboard visit. `scripts/resume-token-wizard.sh` walks through creating and setting it.
 
 Two things Render handles that the app relies on:
 
