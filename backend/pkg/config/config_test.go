@@ -37,7 +37,7 @@ func unsetEnv(t *testing.T, key string) {
 // comparable with == because it embeds slices, so this checks field by
 // field instead.
 func isZeroConfig(cfg Config) bool {
-	return cfg.WebhookURL == "" && cfg.Port == 0 && cfg.GHToken == "" &&
+	return cfg.WebhookURL == "" && cfg.Port == 0 && cfg.GHToken == "" && cfg.ResumeGHToken == "" &&
 		len(cfg.AllowedOrigins) == 0 && len(cfg.ProjectRepos) == 0 && !cfg.AllowAnyLocalhost
 }
 
@@ -263,6 +263,44 @@ func TestLoad_ProjectReposSetButUnusable(t *testing.T) {
 	}
 }
 
+// TestLoad_ResumeGHTokenFallsBackToGHToken pins the fallback that keeps
+// /api/v1/resume working before a dedicated token exists. GH_TOKEN is a
+// classic PAT with the repo scope today, so it can read the private Resume
+// repo; without this, the endpoint would 502 while a working credential sat
+// unused in the same config.
+func TestLoad_ResumeGHTokenFallsBackToGHToken(t *testing.T) {
+	baseEnv(t)
+	unsetEnv(t, "RESUME_GH_TOKEN")
+	t.Setenv("GH_TOKEN", "gh-token-value")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load(): unexpected error: %v", err)
+	}
+	if cfg.ResumeGHToken != "gh-token-value" {
+		t.Errorf("ResumeGHToken = %q, want the GH_TOKEN value", cfg.ResumeGHToken)
+	}
+}
+
+// TestLoad_ResumeGHTokenWinsOverGHToken pins the precedence, so setting a
+// narrow RESUME_GH_TOKEN later takes effect without touching GH_TOKEN.
+func TestLoad_ResumeGHTokenWinsOverGHToken(t *testing.T) {
+	baseEnv(t)
+	t.Setenv("GH_TOKEN", "gh-token-value")
+	t.Setenv("RESUME_GH_TOKEN", "resume-token-value")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load(): unexpected error: %v", err)
+	}
+	if cfg.ResumeGHToken != "resume-token-value" {
+		t.Errorf("ResumeGHToken = %q, want the RESUME_GH_TOKEN value", cfg.ResumeGHToken)
+	}
+	if cfg.GHToken != "gh-token-value" {
+		t.Errorf("GHToken = %q, want it left alone", cfg.GHToken)
+	}
+}
+
 // TestLoad_GHTokenOptional pins that an absent GH_TOKEN does not fail Load()
 // - the whole point of B4's "GH_TOKEN must remain optional" requirement,
 // since render.yaml does not set it today and the projects handler is built
@@ -277,5 +315,44 @@ func TestLoad_GHTokenOptional(t *testing.T) {
 	}
 	if cfg.GHToken != "" {
 		t.Errorf("Load() with GH_TOKEN unset: GHToken = %q, want empty", cfg.GHToken)
+	}
+}
+
+// TestLoad_ResumeGHTokenOptional pins the same "must not fail boot" rule as
+// TestLoad_GHTokenOptional, for the separate RESUME_GH_TOKEN variable the
+// resume handler reads (internal/handlers/resume). Until Alex runs
+// scripts/resume-token-wizard.sh, this is unset in every environment, and
+// that must never stop the API from starting - it should just leave
+// /api/v1/resume returning 502.
+func TestLoad_ResumeGHTokenOptional(t *testing.T) {
+	baseEnv(t)
+	unsetEnv(t, "RESUME_GH_TOKEN")
+	unsetEnv(t, "GH_TOKEN")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() with RESUME_GH_TOKEN unset: unexpected error: %v", err)
+	}
+	if cfg.ResumeGHToken != "" {
+		t.Errorf("Load() with RESUME_GH_TOKEN unset: ResumeGHToken = %q, want empty", cfg.ResumeGHToken)
+	}
+}
+
+// TestLoad_ResumeGHTokenSet proves a configured value round-trips into
+// Config, and stays independent of GH_TOKEN (never conflated with it).
+func TestLoad_ResumeGHTokenSet(t *testing.T) {
+	baseEnv(t)
+	unsetEnv(t, "GH_TOKEN")
+	t.Setenv("RESUME_GH_TOKEN", "resume-token-value")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() with RESUME_GH_TOKEN set: unexpected error: %v", err)
+	}
+	if cfg.ResumeGHToken != "resume-token-value" {
+		t.Errorf("Load() with RESUME_GH_TOKEN set: ResumeGHToken = %q, want %q", cfg.ResumeGHToken, "resume-token-value")
+	}
+	if cfg.GHToken != "" {
+		t.Errorf("Load() with RESUME_GH_TOKEN set and GH_TOKEN unset: GHToken = %q, want empty (the two tokens must not leak into each other)", cfg.GHToken)
 	}
 }
