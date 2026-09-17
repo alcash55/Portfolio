@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -65,6 +66,62 @@ var variants = map[string]string{
 type resumeAsset struct {
 	pdf []byte
 	tag string
+}
+
+// fetchStage names the step of one fetch that failed, so a log line or the
+// status diagnostic can say which of "cut a release", "fix build-resume.yml's
+// asset list", "GitHub is down", or "the response wasn't really a PDF" is
+// the actual problem, instead of one opaque "could not load resume" for all
+// four.
+type fetchStage string
+
+const (
+	stageResolveRelease fetchStage = "resolve_release"
+	stageSelectAsset    fetchStage = "select_asset"
+	stageDownloadAsset  fetchStage = "download_asset"
+	stageVerifyPDF      fetchStage = "verify_pdf"
+)
+
+// fetchFailure is what fetchLatestRelease and downloadAsset return on
+// failure: the stage that failed, the upstream HTTP status when there is
+// one, and the underlying error. None of its fields, nor anything wrapped
+// into err, may ever be built from the token or an Authorization header -
+// this is what both the log line and the status diagnostic serialize
+// directly.
+type fetchFailure struct {
+	stage  fetchStage
+	status int // 0 when the failure has no associated HTTP status (a dial error, a timeout)
+	err    error
+}
+
+func (f *fetchFailure) Error() string {
+	if f.status != 0 {
+		return fmt.Sprintf("stage=%s status=%d: %v", f.stage, f.status, f.err)
+	}
+	return fmt.Sprintf("stage=%s: %v", f.stage, f.err)
+}
+
+func (f *fetchFailure) Unwrap() error { return f.err }
+
+// errTokenNotConfigured is fetchVariant's error when cfg.ResumeGHToken is
+// empty. It is a sentinel rather than a *fetchFailure because the two need
+// different HTTP responses: this is a deploy waiting on a token, not
+// GitHub failing to answer a request that was never sent.
+var errTokenNotConfigured = errors.New("resume token not configured")
+
+// failureReason turns a fetchVariant error into a short, greppable string
+// safe to log and to return from GET /api/v1/resume/status. It is built
+// only from fetchFailure's stage/status fields and errTokenNotConfigured's
+// fixed message, neither of which can ever carry the token.
+func failureReason(err error) string {
+	if errors.Is(err, errTokenNotConfigured) {
+		return "stage=not_configured: " + errTokenNotConfigured.Error()
+	}
+	var ff *fetchFailure
+	if errors.As(err, &ff) {
+		return ff.Error()
+	}
+	return err.Error()
 }
 
 // Handler carries the dependencies GET /api/v1/resume[/:variant] needs.
@@ -141,6 +198,40 @@ func (h *Handler) GetResumeVariant(c *gin.Context) {
 	h.serveVariant(c, variant)
 }
 
+// GetResumeStatus is the gin.HandlerFunc for GET /api/v1/resume/status: a
+// read-only diagnostic answering "is this misconfigured or is GitHub down"
+// from the response alone, with no Render dashboard visit needed. It never
+// returns anything but the token's presence as a bare boolean - not the
+// value, a prefix, a length, or a hash of it.
+func (h *Handler) GetResumeStatus(c *gin.Context) {
+	variantStatus := make(gin.H, len(variants))
+	for variant := range variants {
+		st := h.caches[variant].status()
+
+		entry := gin.H{
+			"cached":            st.cached,
+			"releaseTag":        st.releaseTag,
+			"lastFailureReason": st.lastFailure,
+		}
+		if st.lastSuccessAt.IsZero() {
+			entry["lastSuccessAt"] = nil
+		} else {
+			entry["lastSuccessAt"] = st.lastSuccessAt.UTC().Format(time.RFC3339)
+		}
+		if st.lastFailureAt.IsZero() {
+			entry["lastFailureAt"] = nil
+		} else {
+			entry["lastFailureAt"] = st.lastFailureAt.UTC().Format(time.RFC3339)
+		}
+		variantStatus[variant] = entry
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"tokenConfigured": h.cfg.ResumeGHToken != "",
+		"variants":        variantStatus,
+	})
+}
+
 // serveVariant fetches variant (through its cache) and writes it as the
 // contract's PDF response, or a 502 with the JSON error shape if there is
 // nothing to serve.
@@ -153,19 +244,32 @@ func (h *Handler) serveVariant(c *gin.Context, variant string) {
 	// this particular caller disconnects. Matches
 	// internal/handlers/projects's GetProjects.
 	asset, _, err := variantCache.get(func() (resumeAsset, error) {
-		return h.fetchVariant(context.Background(), variant)
+		result, fetchErr := h.fetchVariant(context.Background(), variant)
+		if fetchErr != nil {
+			// Logged at the point of failure, not only when it reaches the
+			// caller below: a stale cache entry can make get() return this
+			// same failure as a 200 with old data instead, and that path
+			// must not go silent just because a visitor never saw it.
+			// failureReason is built only from fetchFailure's stage/status
+			// fields and the not-configured sentinel - never from the
+			// token or an Authorization header.
+			log.Printf("resume: %s fetch failed: %s", variant, failureReason(fetchErr))
+		}
+		return result, fetchErr
 	})
 	if err != nil {
-		// err is a wrapped internal detail (status codes, dial errors, "no
-		// release published", "not a PDF") - never GitHub's response body,
-		// and never the token. Log it server-side and return the
-		// contract's stable, safe message. Every failure below collapses
-		// to this same 502: the caller (a visitor's browser) has no
+		// A missing token is a deploy waiting on configuration, not GitHub
+		// failing to answer - callers that can tell the two apart (uptime
+		// checks, the Render dashboard) get a different status for it. The
+		// JSON body stays the same either way: a visitor's browser has no
 		// action to take regardless of which upstream step failed, and
-		// splitting the status by cause would only give an attacker a way
+		// splitting the message by cause would only give an attacker a way
 		// to distinguish "no release" from "no asset" from "bad token".
-		log.Printf("resume: could not load %s variant: %v", variant, err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": notLoadedMessage})
+		status := http.StatusBadGateway
+		if errors.Is(err, errTokenNotConfigured) {
+			status = http.StatusServiceUnavailable
+		}
+		c.JSON(status, gin.H{"error": notLoadedMessage})
 		return
 	}
 
@@ -206,7 +310,7 @@ type ghAsset struct {
 // set (see scripts/resume-token-wizard.sh).
 func (h *Handler) fetchVariant(ctx context.Context, variant string) (resumeAsset, error) {
 	if h.cfg.ResumeGHToken == "" {
-		return resumeAsset{}, fmt.Errorf("RESUME_GH_TOKEN is not configured")
+		return resumeAsset{}, errTokenNotConfigured
 	}
 
 	release, err := h.fetchLatestRelease(ctx)
@@ -223,12 +327,15 @@ func (h *Handler) fetchVariant(ctx context.Context, variant string) (resumeAsset
 		}
 	}
 	if assetURL == "" {
-		return resumeAsset{}, fmt.Errorf("release %s has no %s asset", release.TagName, assetName)
+		return resumeAsset{}, &fetchFailure{
+			stage: stageSelectAsset,
+			err:   fmt.Errorf("release %s has no %s asset", release.TagName, assetName),
+		}
 	}
 
 	pdf, err := h.downloadAsset(ctx, assetURL)
 	if err != nil {
-		return resumeAsset{}, fmt.Errorf("downloading %s from release %s: %w", assetName, release.TagName, err)
+		return resumeAsset{}, err
 	}
 
 	return resumeAsset{pdf: pdf, tag: release.TagName}, nil
@@ -243,7 +350,7 @@ func (h *Handler) fetchLatestRelease(ctx context.Context) (ghRelease, error) {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return ghRelease{}, fmt.Errorf("building request: %w", err)
+		return ghRelease{}, &fetchFailure{stage: stageResolveRelease, err: fmt.Errorf("building request: %w", err)}
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	// GitHub rejects requests with no User-Agent at all.
@@ -252,19 +359,23 @@ func (h *Handler) fetchLatestRelease(ctx context.Context) (ghRelease, error) {
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return ghRelease{}, fmt.Errorf("request failed: %w", err)
+		return ghRelease{}, &fetchFailure{stage: stageResolveRelease, err: fmt.Errorf("request failed: %w", err)}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		// GitHub's error body is not forwarded anywhere - just the status,
 		// which is enough to diagnose from server-side logs.
-		return ghRelease{}, fmt.Errorf("unexpected status %d fetching latest release", resp.StatusCode)
+		return ghRelease{}, &fetchFailure{
+			stage:  stageResolveRelease,
+			status: resp.StatusCode,
+			err:    fmt.Errorf("unexpected status %d fetching latest release", resp.StatusCode),
+		}
 	}
 
 	var release ghRelease
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return ghRelease{}, fmt.Errorf("decoding release: %w", err)
+		return ghRelease{}, &fetchFailure{stage: stageResolveRelease, err: fmt.Errorf("decoding release: %w", err)}
 	}
 	return release, nil
 }
@@ -286,7 +397,7 @@ const pdfMagic = "%PDF-"
 func (h *Handler) downloadAsset(ctx context.Context, assetURL string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, assetURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("building request: %w", err)
+		return nil, &fetchFailure{stage: stageDownloadAsset, err: fmt.Errorf("building request: %w", err)}
 	}
 	req.Header.Set("Accept", "application/octet-stream")
 	req.Header.Set("User-Agent", "alcash55-portfolio-backend")
@@ -294,20 +405,27 @@ func (h *Handler) downloadAsset(ctx context.Context, assetURL string) ([]byte, e
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
+		return nil, &fetchFailure{stage: stageDownloadAsset, err: fmt.Errorf("request failed: %w", err)}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d", resp.StatusCode)
+		return nil, &fetchFailure{
+			stage:  stageDownloadAsset,
+			status: resp.StatusCode,
+			err:    fmt.Errorf("unexpected status %d", resp.StatusCode),
+		}
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading response: %w", err)
+		return nil, &fetchFailure{stage: stageDownloadAsset, err: fmt.Errorf("reading response: %w", err)}
 	}
 	if !bytes.HasPrefix(body, []byte(pdfMagic)) {
-		return nil, fmt.Errorf("response was not a PDF (%d bytes, missing %q magic bytes)", len(body), pdfMagic)
+		return nil, &fetchFailure{
+			stage: stageVerifyPDF,
+			err:   fmt.Errorf("response was not a PDF (%d bytes, missing %q magic bytes)", len(body), pdfMagic),
+		}
 	}
 	return body, nil
 }
