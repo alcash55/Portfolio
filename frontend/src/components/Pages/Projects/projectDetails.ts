@@ -196,7 +196,7 @@ export const projectDetails: Partial<Record<string, ProjectDetail>> = {
       "Golem Miners is a co-op mining game prototype built in Unity 6: contracts send up to eight players down through destructible voxel terrain to haul loot back to camp, with golem boss fights designed but not yet built. Every block change funnels through one method, `VoxelWorld.SetBlock`, the single choke point that will let terrain sync over the network once FishNet, already downloaded but not yet imported, goes in. The spawn camp, six trading NPCs in a hexagon around a campfire, is assembled entirely in code instead of placed by hand in a scene, for the same reason the game's one scene builds itself at runtime rather than being saved as a `.unity` file: a scene file is a merge-conflict magnet and code reviews as a diff. The active hotbar slot is the held item, so the tool tier a dig reads off comes from what is in hand, not what is sitting in the pack. Unity steals focus from WSL on every launch, so `tools/compile-check.py` compiles the whole project against Unity's own reference assemblies with the editor closed.",
     tech: ['Unity 6', 'C#', 'Unity Test Framework'],
     facts: [
-      'Compile-check: 64 files, 296 references, 0 warnings, measured 2026-09-16',
+      'Compile-check: 67 files, 296 references, 0 warnings, measured 2026-09-17',
       'Camp: six trading NPCs in a hexagon around the campfire, built entirely in code',
       '27 EditMode test files across world generation, camp, inventory and skills',
       'FishNet 4.7.2 downloaded, not yet imported',
