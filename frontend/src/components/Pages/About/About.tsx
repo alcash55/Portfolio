@@ -4,7 +4,6 @@ import {
   Card,
   CardHeader,
   CardContent,
-  Chip,
   Grid,
   IconButton,
   Stack,
@@ -13,18 +12,24 @@ import {
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
-import SchoolIcon from '@mui/icons-material/School';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import PetsIcon from '@mui/icons-material/Pets';
-import resumePdf from '../../../assets/AlexResume.pdf';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import Logo from '../../../assets/icons/Logo';
 import ReactIcon from '../../../assets/icons/React';
 import Typescript from '../../../assets/icons/Typescript';
 import Go from '../../../assets/icons/Go';
 import TechIcon from '../Skills/TechIcon';
-import { bioParagraphs, whatDrivesMe, outsideOfWork, continuousLearning } from './aboutData';
+import { bioParagraphs, whatDrivesMe, outsideOfWork } from './aboutData';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
 import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
+
+// Same contract Footer's resume link and useProjects/useConnectForm read from:
+// the backend always serves the latest fullstack PDF committed in the Resume
+// repo (Resume #18), so the site never carries its own bundled copy to drift
+// out of date against it.
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+const RESUME_URL = `${API_URL}/api/v1/resume`;
 
 const About = () => {
   const theme = useTheme();
@@ -152,7 +157,7 @@ const About = () => {
                     </Stack>
                   </Box>
                   <Button
-                    href={resumePdf}
+                    href={RESUME_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     // The resume is this site's actual conversion -- the one
@@ -265,43 +270,43 @@ const About = () => {
               </Card>
             </Grid>
 
-            {/* Continuous Learning -- Frontend Masters courses, from the vault */}
+            {/* Half-width so it pairs with "What Drives Me" from sm up. One
+                icon pair per paragraph, matching that card's icon-plus-text
+                rhythm. */}
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Card sx={panelSx}>
-                <CardHeader
-                  avatar={<SchoolIcon aria-hidden sx={{ color: 'primary.main' }} />}
-                  title="Continuous Learning"
-                  subheader={`${continuousLearning.courses.length} ${continuousLearning.provider} courses completed`}
-                  slotProps={{ title: { component: 'h3', variant: 'h6' } }}
-                />
-                <CardContent sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {continuousLearning.courses.map((course) => (
-                    <Chip key={course} label={course} size="small" variant="outlined" />
-                  ))}
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Outside of Work */}
-            <Grid size={{ xs: 12 }}>
               <Card sx={panelSx}>
                 <CardHeader
                   title="Outside of Work"
                   slotProps={{ title: { component: 'h3', variant: 'h6' } }}
                 />
                 <CardContent>
-                  <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                    <SportsHandballIcon
-                      aria-hidden
-                      sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-                    />
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      {outsideOfWork}
-                    </Typography>
-                    <PetsIcon
-                      aria-hidden
-                      sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-                    />
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        sx={{ flexShrink: 0, pt: 0.25, display: { xs: 'none', sm: 'flex' } }}
+                      >
+                        <PetsIcon aria-hidden sx={{ color: 'text.secondary' }} />
+                        <SportsHandballIcon aria-hidden sx={{ color: 'text.secondary' }} />
+                      </Stack>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {outsideOfWork[0]}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                      <FlightTakeoffIcon
+                        aria-hidden
+                        sx={{
+                          color: 'text.secondary',
+                          flexShrink: 0,
+                          display: { xs: 'none', sm: 'block' },
+                        }}
+                      />
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {outsideOfWork[1]}
+                      </Typography>
+                    </Stack>
                   </Stack>
                 </CardContent>
               </Card>
