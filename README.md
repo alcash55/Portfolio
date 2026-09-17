@@ -143,11 +143,12 @@ a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just rai
 5000/hour. A token that GitHub rejects (expired, revoked, wrong scope) doesn't fail the request
 either. The handler retries that one refresh unauthenticated instead.
 
-`RESUME_GH_TOKEN` is a separate token from `GH_TOKEN`, not a reused one: the Resume repo is
-private, so this one always needs read access to it, a bigger grant than `GH_TOKEN`'s job of
-raising a public-repo rate limit. Unset, the app still boots (`*` above), but `/api/v1/resume` and
-`/api/v1/resume/:variant` return `502` for every request - there's no unauthenticated fallback for
-a private repo. Set up with `scripts/resume-token-wizard.sh`.
+`RESUME_GH_TOKEN` is meant to be a dedicated, narrower-scoped token: reading the private Resume
+repo is a bigger grant than `GH_TOKEN`'s job of raising a public-repo rate limit. When unset, it
+falls back to `GH_TOKEN` instead of failing outright, since that token currently carries the `repo`
+scope and already reads the Resume repo too (see "Live resume data" above for what happens if both
+are missing). Set a dedicated token with `scripts/resume-token-wizard.sh` to keep the two
+endpoints' access separate again.
 
 `.env` is read by [godotenv](https://github.com/joho/godotenv) at startup. Go
 does not read `.env` files on its own, and real environment variables always win,
