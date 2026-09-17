@@ -1,4 +1,5 @@
 import vsCodeTheme from '../../../assets/images/vsCodeTheme.webp';
+import golemMiners from '../../../assets/images/golemMiners.webp';
 import littleTown from '../../../assets/images/littleTown.webp';
 import compositeActions from '../../../assets/images/compositeActions.webp';
 import portfolio from '../../../assets/images/portfolio.webp';
@@ -104,11 +105,12 @@ export const staticProjects: StaticProject[] = [
       'A website built to showcase my skills and experiences using modern web technologies',
   },
   {
-    // No `repoName`, `href` or `img`: the repo is private, there is no live
-    // build yet, and the game is too early for a screenshot worth showing.
-    // The card draws its placeholder panel and the dialog shows no link
-    // buttons rather than one that 404s for every visitor.
+    // No `repoName` or `href`: the repo is private and there is no live build,
+    // so the dialog shows no link buttons rather than one that 404s for every
+    // visitor.
     name: 'Golem Miners',
+    img: golemMiners,
+    alt: 'The Golem Miners camp: four NPCs standing around a campfire beside a tent, with the six-slot hotbar along the bottom of the screen',
     description:
       'A Unity 6 co-op mining game prototype: destructible voxel terrain, tiered tools, and a hexagonal camp of six NPCs built entirely in code',
   },
