@@ -20,9 +20,9 @@ const HASH_PREFIX = 'projects/';
  * Derived from the display name rather than stored on the project, so a slug
  * cannot drift from the card it opens and `staticProjects.ts` stays the source
  * of truth for which projects exist. The cost is that renaming a project
- * breaks any link somebody had already shared -- acceptable for five entries
+ * breaks any link somebody had already shared -- acceptable for six entries
  * that have never been renamed, and the alternative (a hand-maintained `slug`
- * field) is one more thing to forget on the sixth.
+ * field) is one more thing to forget on the next one.
  */
 export const projectSlug = (project: StaticProject | { name: string }): string =>
   project.name

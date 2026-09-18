@@ -191,6 +191,18 @@ export const projectDetails: Partial<Record<string, ProjectDetail>> = {
     facts: ['36 tests on the `diff` action', 'Consumed at `@main`, no tagged releases yet'],
   },
 
+  'Golem Miners': {
+    summary:
+      "Golem Miners is a co-op mining game prototype built in Unity 6: contracts send up to eight players down through destructible voxel terrain to haul loot back to camp, with golem boss fights designed but not yet built. Every block change funnels through one method, `VoxelWorld.SetBlock`, the single choke point that will let terrain sync over the network once FishNet, already downloaded but not yet imported, goes in. The spawn camp, six trading NPCs in a hexagon around a campfire, is assembled entirely in code instead of placed by hand in a scene, for the same reason the game's one scene builds itself at runtime rather than being saved as a `.unity` file: a scene file is a merge-conflict magnet and code reviews as a diff. The active hotbar slot is the held item, so the tool tier a dig reads off comes from what is in hand, not what is sitting in the pack. Unity steals focus from WSL on every launch, so `tools/compile-check.py` compiles the whole project against Unity's own reference assemblies with the editor closed.",
+    tech: ['Unity 6', 'C#', 'Unity Test Framework'],
+    facts: [
+      'Compile-check: 67 files, 296 references, 0 warnings, measured 2026-09-17',
+      'Camp: six trading NPCs in a hexagon around the campfire, built entirely in code',
+      '27 EditMode test files across world generation, camp, inventory and skills',
+      'FishNet 4.7.2 downloaded, not yet imported',
+    ],
+  },
+
   'VS Code Royalty Theme': {
     summary:
       'A published VS Code colour theme built from the colours of 16th-19th century European royalty: white, gold and purple. v3.0.0 was an accessibility rebuild, because measurement showed why the theme was hard to read: five of nine syntax colours were below WCAG AA against the editor background, with keywords at 2.96:1 and storage types at 2.45:1, roughly half the readable minimum on two of the most common token types in any file. The cause was the background rather than the syntax colours, since nothing reaches AA against a mid-tone grey-purple, so it moved to a deep plum and the palette was rebuilt on top of that. The theme JSON is generated from a single palette module now rather than hand-maintained across 2110 lines, contrast is measured against the surface each colour actually renders on, and `npm run check` fails the build on any regression: 174 colour pairs, 0 failures, 158 at AAA.',
