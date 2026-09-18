@@ -1,9 +1,7 @@
 import { SvgIcon, SvgIconProps } from '@mui/material';
 
-// Anthropic's brand rust (#D97757) -- the mark is Claude's spark glyph, not
-// a wordmark, so the chip keeps its text label. Mid-tone and saturated
-// enough to read on light's near-white background and on all five dark
-// ones without a per-theme swap.
+// Brand rust (#D97757) is mid-tone enough to read on the light theme and all
+// five dark ones, so this icon needs no per-theme swap.
 const Claude = (props: SvgIconProps) => {
   const svg = (
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

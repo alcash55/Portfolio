@@ -1,11 +1,8 @@
 import { SvgIcon, SvgIconProps } from '@mui/material';
 
-// `fill="currentColor"` so the cube flips with the theme (stated rather
-// than inherited -- MUI's nested-svg merge drops inherited fill to black).
-// Cursor's mark is pure black (#000000), the same problem as Vercel's
-// triangle: unreadable against every dark background. Inverting to the
-// surrounding text colour is the same fix, not a departure from the brand,
-// since Cursor's own dark-mode assets already use white.
+// Cursor's mark is pure black and disappears on the dark themes, same as
+// Vercel's. currentColor follows the text colour instead. It is set here
+// rather than inherited because MUI's nested svg merge resets fill to black.
 const Cursor = (props: SvgIconProps) => {
   const svg = (
     <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

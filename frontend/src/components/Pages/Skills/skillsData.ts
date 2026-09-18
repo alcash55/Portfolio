@@ -113,8 +113,8 @@ export const skillCategories: SkillCategory[] = [
       { label: 'shadcn/UI', icon: ShadcnUi },
       { label: 'Vitest', icon: Vitest },
       { label: 'Figma', icon: Figma },
-      // Claude's mark covers the whole product line, not a Claude
-      // Code-specific glyph -- same as how Next's icon stands for Next.js.
+      // Claude has no Claude Code-specific mark, so the product-wide one
+      // stands in, as Next's icon does for Next.js.
       { label: 'Claude Code', icon: Claude },
       { label: 'Cursor', icon: Cursor },
     ],
