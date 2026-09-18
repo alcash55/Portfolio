@@ -53,13 +53,8 @@ export const projectMedia: Partial<Record<string, ProjectMedia>> = {
     poster: portfolio,
     width: 1000,
     height: 500,
-    // Recorded against the Settings drawer, which is where theme switching
-    // lived when this was captured. The hero now carries its own floating
-    // theme and layout controls, so this clip shows a route to the same
-    // settings that is no longer the primary one -- worth re-recording
-    // against the hero controls next time the site is captured.
     caption:
-      "This site's Settings drawer cycling all six themes, then switching from top nav to a side nav layout.",
+      "This site's hero cycling through its colour themes, then switching from top nav to a side nav layout.",
   },
   'VS Code Royalty Theme': {
     src: vsCodeThemeClip,

@@ -48,7 +48,9 @@ export const ProjectMediaPlayer = ({
   maxHeight,
   loop = false,
 }: ProjectMediaPlayerProps) => {
-  const { clip: media, mounted, videoRef, handleError } = clip;
+  const { clip: media, mounted, wanted, videoRef, handleError } = clip;
+  // Narrower than `mounted` on purpose. See `wanted` in useProjectClip.
+  const showingVideo = Boolean(media) && mounted && wanted;
 
   const boxSx = {
     width: '100%',
@@ -90,11 +92,11 @@ export const ProjectMediaPlayer = ({
           <Box
             component="img"
             src={image}
-            // Inert once the clip is up: the video below carries the same
-            // picture plus its own `aria-label`, and a hidden img with its
-            // own alt text would double up the announcement.
-            alt={media && mounted ? undefined : (alt ?? '')}
-            aria-hidden={media && mounted ? true : undefined}
+            // Inert only while the video is the visible layer, which carries
+            // its own aria-label. Otherwise this image is what a visitor sees,
+            // so it keeps its alt text.
+            alt={showingVideo ? undefined : (alt ?? '')}
+            aria-hidden={showingVideo ? true : undefined}
             loading="lazy"
             sx={layerSx}
           />
@@ -103,9 +105,8 @@ export const ProjectMediaPlayer = ({
           <Box
             component="video"
             ref={videoRef}
-            // Poster is the screenshot the card has always shown, so the swap from
-            // still to clip is invisible: same image, same box, no reflow, and no
-            // black frame while the first keyframe decodes.
+            // The poster covers the first play only. After that the img above
+            // stands in between hovers.
             poster={media.poster}
             src={media.src}
             // Muted and inline are not decoration -- they are the conditions every
@@ -121,6 +122,11 @@ export const ProjectMediaPlayer = ({
             aria-label={media.caption}
             onError={handleError}
             sx={layerSx}
+            // Hidden, not unmounted, while idle. Unmounting refetches the clip
+            // on every hover and removes the element mid-click. visibility
+            // also takes it out of hit-testing, which opacity would not.
+            // Kept out of sx so both layers share one class for their box.
+            style={{ visibility: showingVideo ? 'visible' : 'hidden' }}
           />
         )}
       </Box>
