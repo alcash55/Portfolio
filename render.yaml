@@ -16,5 +16,7 @@ services:
         sync: false # secret, set in the Render dashboard
       - key: GH_TOKEN
         sync: false # secret, set in the Render dashboard
+      - key: RESUME_GH_TOKEN
+        sync: false # secret, set in the Render dashboard - fine-grained PAT, read-only Contents access to alcash55/Resume only (see scripts/resume-token-wizard.sh)
       - key: ALLOWED_ORIGINS
         value: https://alcash55.github.io

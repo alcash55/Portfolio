@@ -8,6 +8,7 @@ import (
 
 	"github.com/alcash55/Portfolio/internal/handlers/contact"
 	"github.com/alcash55/Portfolio/internal/handlers/projects"
+	"github.com/alcash55/Portfolio/internal/handlers/resume"
 	"github.com/alcash55/Portfolio/internal/ratelimit"
 	"github.com/alcash55/Portfolio/pkg/config"
 	"github.com/gin-contrib/cors"
@@ -96,6 +97,7 @@ func New(cfg config.Config) *gin.Engine {
 
 	contactHandler := contact.New(cfg)
 	projectsHandler := projects.New(cfg)
+	resumeHandler := resume.New(cfg)
 
 	// One instance on Render, so an in-process limiter needs no shared
 	// store. Built fresh per call to New() rather than as a package-level
@@ -131,6 +133,20 @@ func New(cfg config.Config) *gin.Engine {
 			// flight onto that one call, so there's no per-request cost for
 			// a limiter to protect against here.
 			v1.GET("/projects", projectsHandler.GetProjects)
+
+			// /api/v1/resume[/:variant] - deliberately not behind the rate
+			// limiter, same reasoning as /projects: its real cost (a GitHub
+			// Contents API call) is already bounded to at most one per
+			// variant every ~10 minutes by resume.Handler's per-variant
+			// cache, regardless of request volume.
+			//
+			// /status is registered before /:variant so gin resolves it as
+			// the static route rather than treating "status" as a variant
+			// value.
+			resumeRoutes := v1.Group("/resume")
+			resumeRoutes.GET("", resumeHandler.GetResume)
+			resumeRoutes.GET("/status", resumeHandler.GetResumeStatus)
+			resumeRoutes.GET("/:variant", resumeHandler.GetResumeVariant)
 		}
 	}
 

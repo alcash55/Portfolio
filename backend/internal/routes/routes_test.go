@@ -108,6 +108,58 @@ func TestRoot_RespondsPromptly(t *testing.T) {
 	}
 }
 
+// TestResumeRoutes_Mounted proves /api/v1/resume and /api/v1/resume/:variant
+// are wired into the router. With no RESUME_GH_TOKEN configured (testConfig
+// sets none), both come back 503 - the resume handler's documented signal
+// for "misconfigured, not an upstream failure" - rather than 404, which is
+// what an unmounted route would return. internal/handlers/resume has the
+// full behavioral coverage; this test only pins that routes.New actually
+// mounts it.
+func TestResumeRoutes_Mounted(t *testing.T) {
+	router := New(testConfig([]string{"https://example.com"}, false))
+
+	for _, path := range []string{"/api/v1/resume", "/api/v1/resume/frontend"} {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			if rec.Code == http.StatusNotFound {
+				t.Fatalf("GET %s: status = 404, want the route mounted (503 with no token configured)", path)
+			}
+			if rec.Code != http.StatusServiceUnavailable {
+				t.Errorf("GET %s: status = %d, want %d (no RESUME_GH_TOKEN configured, nothing cached)", path, rec.Code, http.StatusServiceUnavailable)
+			}
+		})
+	}
+}
+
+// TestResumeStatusRoute_Mounted proves GET /api/v1/resume/status resolves to
+// the status diagnostic rather than being swallowed by the /:variant route -
+// the ordering routes.New registers them in is what makes gin prefer the
+// static match.
+func TestResumeStatusRoute_Mounted(t *testing.T) {
+	router := New(testConfig([]string{"https://example.com"}, false))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/resume/status", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /api/v1/resume/status: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+
+	var body struct {
+		TokenConfigured bool `json:"tokenConfigured"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decoding response: %v; body: %s", err, rec.Body.String())
+	}
+	if body.TokenConfigured {
+		t.Errorf("tokenConfigured = true, want false (testConfig sets no RESUME_GH_TOKEN or GH_TOKEN)")
+	}
+}
+
 // preflightRequest builds a CORS preflight OPTIONS request the way a real
 // browser sends one: Origin plus Access-Control-Request-Method are both
 // required for gin-contrib/cors to recognize it as a preflight at all.
