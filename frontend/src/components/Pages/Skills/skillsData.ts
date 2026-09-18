@@ -33,6 +33,8 @@ import Vercel from '../../../assets/icons/Vercel';
 import Linux from '../../../assets/icons/Linux';
 import FullStory from '../../../assets/icons/FullStory';
 import PostHog from '../../../assets/icons/PostHog';
+import Claude from '../../../assets/icons/Claude';
+import Cursor from '../../../assets/icons/Cursor';
 
 export interface SkillItem {
   label: string;
@@ -111,11 +113,10 @@ export const skillCategories: SkillCategory[] = [
       { label: 'shadcn/UI', icon: ShadcnUi },
       { label: 'Vitest', icon: Vitest },
       { label: 'Figma', icon: Figma },
-      // 2026-09-01: added because four of the fourteen postings in the vault's
-      // Job Search 2026 note ask for AI-assisted development by name, and Alex
-      // works in Claude Code daily. No icon built for it, same as Single-SPA
-      // and CI/CD below, rather than inventing a brand mark.
-      { label: 'Claude Code' },
+      // Claude's mark covers the whole product line, not a Claude
+      // Code-specific glyph -- same as how Next's icon stands for Next.js.
+      { label: 'Claude Code', icon: Claude },
+      { label: 'Cursor', icon: Cursor },
     ],
   },
   {
