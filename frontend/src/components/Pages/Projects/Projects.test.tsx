@@ -145,7 +145,7 @@ describe('Projects', () => {
     expect(screen.getByText('VS Code Royalty Theme')).toBeInTheDocument();
   });
 
-  it("reaches a real outbound link from inside every card's dialog, including the projects that are not on GitHub", async () => {
+  it("reaches a real outbound link from every dialog that has one, and none from the project that has no public URL", async () => {
     // The successor to "links every card somewhere". The card used to *be* the
     // outbound link; it is a button that opens a dialog now, and the links
     // moved inside it. The property worth protecting did not change: for every
@@ -170,11 +170,22 @@ describe('Projects', () => {
 
       // `getAllByRole` throws when there are none, which is the failure this
       // test exists to catch.
-      const links = within(dialog).getAllByRole('link');
-      expect(
-        links.length,
-        `the "${project.name}" dialog must offer at least one outbound link`,
-      ).toBeGreaterThan(0);
+      // Golem Miners is the one project with nowhere public to send anyone:
+      // its repo is private and there is no live build. A link to a URL that
+      // 404s for every visitor is worse than no link, so it is the single
+      // allowed exception and it is named here rather than left to a
+      // `length >= 0` that would quietly excuse the next one too.
+      const links = within(dialog).queryAllByRole('link');
+      if (project.name === 'Golem Miners') {
+        expect(links, 'Golem Miners has no public URL, so its dialog shows no link buttons').toEqual(
+          [],
+        );
+      } else {
+        expect(
+          links.length,
+          `the "${project.name}" dialog must offer at least one outbound link`,
+        ).toBeGreaterThan(0);
+      }
 
       for (const link of links) {
         expect(
@@ -300,7 +311,10 @@ describe('Projects', () => {
     await waitFor(() => expect(screen.getByText('The Cliper-er')).toBeInTheDocument());
 
     const repoless = staticProjects.filter((p) => !p.repoName).map((p) => p.name);
-    expect(repoless, 'The Cliper-er is the project with no GitHub repo').toEqual(['The Cliper-er']);
+    // The Cliper-er has no GitHub repo at all. Golem Miners has one, but it
+    // is private and outside the API's allow-list, so it carries no
+    // `repoName` either -- both render from static data alone.
+    expect(repoless).toEqual(['Golem Miners', 'The Cliper-er']);
 
     const card = screen.getByText('The Cliper-er').closest('[data-testid="project-grid-item"]');
     expect(

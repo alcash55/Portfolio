@@ -1,4 +1,5 @@
 import vsCodeTheme from '../../../assets/images/vsCodeTheme.webp';
+import golemMiners from '../../../assets/images/golemMiners.webp';
 import littleTown from '../../../assets/images/littleTown.webp';
 import compositeActions from '../../../assets/images/compositeActions.webp';
 import portfolio from '../../../assets/images/portfolio.webp';
@@ -21,16 +22,23 @@ export interface StaticProject {
    * GitHub repo name (owner `alcash55`), used *only* to match this entry
    * against `GET /api/v1/projects` for live metadata.
    *
-   * Omitted for projects that don't live on GitHub at all (The Cliper-er
-   * is private and local-only). Such an entry simply never matches the API and
-   * renders from this file alone -- it is not a lookup that fails, so it must
-   * not be given a placeholder repo name to keep the type happy.
+   * Omitted for a project the API cannot serve: either it doesn't live on
+   * GitHub at all (The Cliper-er, private and local-only), or it does but
+   * isn't on the API's allow-list and is private besides (Golem Miners).
+   * Either way the entry simply never matches the API and renders from this
+   * file alone -- it is not a lookup that fails, so it must not be given a
+   * placeholder repo name to keep the type happy.
    */
   repoName?: string;
   name: string;
   /** Omitted when there's no screenshot; the card draws a placeholder panel. */
   img?: string;
-  href: string;
+  /**
+   * Omitted when every link a project has would 404 for a visitor: Golem
+   * Miners' only URL is a private repo. `projectLinks` already skips a
+   * missing `href`, so the dialog just shows fewer buttons.
+   */
+  href?: string;
   /**
    * What `href` points at, used as the label of its button inside the project
    * dialog. Written out rather than derived from the hostname: "Live site",
@@ -54,8 +62,10 @@ export interface StaticProject {
  * unavailable, so nothing here may depend on a response arriving.
  *
  * Note two entries deliberately link somewhere other than their GitHub repo
- * (a live site and a Marketplace listing), and one has no repo at all, which
- * is why `href` is never derived from the API's `url`.
+ * (a live site and a Marketplace listing), and two carry no `repoName` at all
+ * -- one because it has no GitHub repo, one because its repo is private and
+ * off the API's allow-list -- which is why `href` is never derived from the
+ * API's `url`.
  */
 export const staticProjects: StaticProject[] = [
   {
@@ -93,6 +103,16 @@ export const staticProjects: StaticProject[] = [
     alt: 'Portfolio website built with React, TypeScript, and Material UI',
     description:
       'A website built to showcase my skills and experiences using modern web technologies',
+  },
+  {
+    // No `repoName` or `href`: the repo is private and there is no live build,
+    // so the dialog shows no link buttons rather than one that 404s for every
+    // visitor.
+    name: 'Golem Miners',
+    img: golemMiners,
+    alt: 'The Golem Miners camp: four NPCs standing around a campfire beside a tent, with the six-slot hotbar along the bottom of the screen',
+    description:
+      'A Unity 6 co-op mining game prototype: destructible voxel terrain, tiered tools, and a hexagonal camp of six NPCs built entirely in code',
   },
   {
     // No `repoName`: the code is private and local-only, so there is no API
