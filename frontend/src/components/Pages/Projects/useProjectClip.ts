@@ -37,6 +37,17 @@ export interface ProjectClip {
    */
   mounted: boolean;
   /**
+   * Whether the card wants the clip on screen right now (hover, focus, or
+   * `autoPlay`), as opposed to merely having it mounted. The player shows the
+   * video only while this is true and the still image otherwise.
+   *
+   * A video drops its `poster` for good once it has played. After a pause
+   * and rewind, Chromium can paint a blank frame instead of frame zero until
+   * the next play, so leaving the video on top between hovers shows an empty
+   * card.
+   */
+  wanted: boolean;
+  /**
    * What the player is *trying* to do. Deliberately intent rather than the
    * element's own `paused` property: a browser is free to reject a play()
    * (a background tab will), and a toggle whose label flips to "Pause" only
@@ -131,7 +142,7 @@ export const useProjectClip = ({
     [media?.src],
   );
 
-  return { clip, videoRef, mounted, playing, toggle, handleError };
+  return { clip, videoRef, mounted, wanted, playing, toggle, handleError };
 };
 
 export default useProjectClip;

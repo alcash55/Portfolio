@@ -219,6 +219,42 @@ describe('ProjectMediaPlayer', () => {
       await waitFor(() => expect(play).toHaveBeenCalledTimes(2));
     });
 
+    it('defers to the still image while idle between hovers, instead of leaving a played video on top', async () => {
+      // A played video has lost its poster and can paint blank at rest, so
+      // the still image has to be the visible layer between hovers.
+      const user = userEvent.setup();
+      render(<CardHarness media={fakeMedia} />);
+
+      const card = screen.getByTestId('card');
+      const still = () => screen.getByRole('img', { hidden: true });
+
+      await user.hover(card);
+      await waitFor(() => expect(play).toHaveBeenCalledTimes(1));
+      expect(
+        (video() as HTMLVideoElement).style.visibility,
+        'hovered: the video is the layer actually showing',
+      ).not.toBe('hidden');
+      expect(still()).toHaveAttribute('aria-hidden', 'true');
+
+      await user.unhover(card);
+      await waitFor(() => expect(pause).toHaveBeenCalled());
+      expect(
+        (video() as HTMLVideoElement).style.visibility,
+        'idle after a play: the played video must not stay the visible layer',
+      ).toBe('hidden');
+      expect(
+        still(),
+        'idle after a play: the still image is what a visitor actually sees',
+      ).not.toHaveAttribute('aria-hidden');
+      expect(still()).toHaveAttribute('alt', 'a screenshot');
+
+      // And hovering again brings the video back on top, not the frame it
+      // was left showing.
+      await user.hover(card);
+      await waitFor(() => expect(play).toHaveBeenCalledTimes(2));
+      expect((video() as HTMLVideoElement).style.visibility).not.toBe('hidden');
+    });
+
     it('plays on keyboard focus too, not only on hover', async () => {
       const user = userEvent.setup();
       render(
