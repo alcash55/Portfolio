@@ -323,6 +323,38 @@ describe('Projects', () => {
     ).not.toMatch(/42|TypeScript/);
   });
 
+  it('hides the star row rather than printing a bare 0 (TEAM-BRIEF.md item 4)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(okResponse([apiProject({ name: 'Little-Town', stars: 0 })])),
+    );
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('Game Competition Website')).toBeInTheDocument());
+
+    const card = cardFor({ name: 'Game Competition Website' });
+    // The language still renders -- only the star count is gated on being
+    // above zero.
+    expect(within(card).getByText('TypeScript')).toBeInTheDocument();
+    expect(
+      within(card).queryByText('0'),
+      'a zero star count must not render at all',
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the star count once a repo actually has stars', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(okResponse([apiProject({ name: 'Little-Town', stars: 3 })])),
+    );
+    render(<Projects />);
+
+    await waitFor(() => expect(screen.getByText('Game Competition Website')).toBeInTheDocument());
+
+    const card = cardFor({ name: 'Game Competition Website' });
+    expect(within(card).getByText('3')).toBeInTheDocument();
+  });
+
   it('tells the visitor when the API served cached data (stale: true)', async () => {
     vi.stubGlobal(
       'fetch',
@@ -691,6 +723,21 @@ describe('the project dialog', () => {
     ).toBeInTheDocument();
     expect(dialog.textContent, 'the live "last updated" date never made it in').toMatch(/Updated /);
     expect(within(dialog).getAllByText('TypeScript').length).toBeGreaterThan(0);
+  });
+
+  it('hides the star row in the dialog too when a repo has zero stars', async () => {
+    const user = await renderProjects([apiProject({ name: 'Little-Town', stars: 0 })]);
+
+    await user.click(cardFor({ name: 'Game Competition Website' }));
+    const dialog = await screen.findByRole('dialog');
+
+    // "TypeScript" legitimately appears twice (the hand-written "built with"
+    // chip and the live repo language), so this only asserts it is present.
+    expect(within(dialog).getAllByText('TypeScript').length).toBeGreaterThan(0);
+    expect(
+      within(dialog).queryByText('0'),
+      'a zero star count must not render in the dialog either',
+    ).not.toBeInTheDocument();
   });
 
   it('opens a complete dialog for a project the API knows nothing about', async () => {

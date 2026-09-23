@@ -490,8 +490,8 @@ const Landing = () => {
                     lineHeight: 1.7,
                   }}
                 >
-                  Crafting elegant solutions with React, TypeScript, and Go. Building systems that
-                  are both powerful and maintainable.
+                  Software engineer who owns features end to end, from the Go API to the
+                  React page that reads it.
                 </Typography>
               </Box>
 

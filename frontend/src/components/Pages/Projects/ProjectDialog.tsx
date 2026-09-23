@@ -309,10 +309,14 @@ const ProjectDialog = ({ project, open, onClose }: ProjectDialogProps) => {
                 {project.live.language && (
                   <Typography variant="caption">{project.live.language}</Typography>
                 )}
-                <Stack direction="row" spacing={0.25} sx={{ alignItems: 'center' }}>
-                  <StarIcon sx={{ fontSize: 14 }} />
-                  <Typography variant="caption">{project.live.stars}</Typography>
-                </Stack>
+                {/* Withheld at 0, same call as the card (Projects.tsx) and for
+                    the same reason: TEAM-BRIEF.md item 4. */}
+                {project.live.stars > 0 && (
+                  <Stack direction="row" spacing={0.25} sx={{ alignItems: 'center' }}>
+                    <StarIcon sx={{ fontSize: 14 }} />
+                    <Typography variant="caption">{project.live.stars}</Typography>
+                  </Stack>
+                )}
                 {updatedAt && <Typography variant="caption">Updated {updatedAt}</Typography>}
               </Stack>
             )}

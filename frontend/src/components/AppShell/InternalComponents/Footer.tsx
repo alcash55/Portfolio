@@ -80,8 +80,7 @@ export const Footer = () => {
                 </Typography>
               </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 280 }}>
-                Software Engineer crafting elegant, reliable systems with React, TypeScript, and
-                Go.
+                Software engineer who ships React, TypeScript and Go, end to end.
               </Typography>
               {/* Same three destinations, hrefs, and aria-label wording as the hero's
                   social buttons (Landing.tsx) so the two never drift apart. */}

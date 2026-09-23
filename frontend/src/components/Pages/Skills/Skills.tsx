@@ -127,11 +127,20 @@ const Skills = () => {
  * - **glyph** -- a symbol with no lettering, so it needs the text label; the
  *   icon stays `aria-hidden` since the label already reads as text.
  * - **no icon** -- plain text.
+ *
+ * `variant` carries the depth signal (TEAM-BRIEF.md item 5): filled for the
+ * three tools aboutData.tsx's bio calls out as where Alex spends most of his
+ * time, outlined for everything else. Reusing Chip's own filled/outlined
+ * states rather than adding new colour or a label keeps this a copy and IA
+ * change, not a visual redesign.
  */
 const SkillChip = ({ item }: { item: SkillItem }) => {
+  const variant = item.core ? 'filled' : 'outlined';
+
   if (item.icon && item.wordmark) {
     return (
       <Chip
+        variant={variant}
         label={
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <TechIcon icon={item.icon} size={16} label={item.label} />
@@ -143,6 +152,7 @@ const SkillChip = ({ item }: { item: SkillItem }) => {
 
   return (
     <Chip
+      variant={variant}
       label={
         item.icon ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>

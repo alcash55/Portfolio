@@ -48,6 +48,15 @@ export interface SkillItem {
    * the mark alone and moves the name onto its accessible label instead.
    */
   wordmark?: boolean;
+  /**
+   * True for the three tools aboutData.tsx's bio names as "where I spend
+   * most of my time" (React, TypeScript, Go). Sprint: senior-signal pass,
+   * TEAM-BRIEF.md item 5 -- the wall was 30-plus logos with identical visual
+   * weight, which reads as keyword coverage rather than depth. `core` is the
+   * one distinction the page's own copy already draws, reused here as a
+   * filled-versus-outlined chip instead of restating it as new text.
+   */
+  core?: boolean;
 }
 
 export interface SkillCategory {
@@ -90,8 +99,8 @@ export const skillCategories: SkillCategory[] = [
   {
     label: 'Languages',
     items: [
-      { label: 'TypeScript', icon: Typescript },
-      { label: 'Go', icon: Go, wordmark: true },
+      { label: 'TypeScript', icon: Typescript, core: true },
+      { label: 'Go', icon: Go, wordmark: true, core: true },
       { label: 'JavaScript', icon: Javascript },
       { label: 'HTML', icon: Html5 },
       { label: 'CSS', icon: Css },
@@ -101,7 +110,7 @@ export const skillCategories: SkillCategory[] = [
   {
     label: 'Frameworks & Tools',
     items: [
-      { label: 'React', icon: ReactIcon },
+      { label: 'React', icon: ReactIcon, core: true },
       { label: 'Node.js', icon: Node, wordmark: true },
       { label: 'Bun', icon: Bun },
       { label: 'Express', icon: Express, wordmark: true },

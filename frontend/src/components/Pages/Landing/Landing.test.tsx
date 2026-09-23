@@ -12,6 +12,21 @@ import { darkTheme } from '../../../layout/Theme/darkTheme';
  * token pinned dark in every theme. These lock in that the hero's background
  * and text now both follow the active theme instead of a fixed dark value.
  */
+/**
+ * Senior-signal pass (TEAM-BRIEF.md item 1): the subhead said "Crafting
+ * elegant solutions with React, TypeScript, and Go. Building systems that are
+ * both powerful and maintainable" -- a sentence that could belong to any
+ * engineer alive and reads as machine-written.
+ */
+describe('Landing hero subhead', () => {
+  it('never says "crafting elegant" or "powerful and maintainable"', () => {
+    render(<Landing />);
+
+    const text = document.body.textContent ?? '';
+    expect(text.toLowerCase()).not.toMatch(/crafting|elegant solutions|powerful and maintainable/);
+  });
+});
+
 describe('Landing hero follows the active theme (Sprint 12 H1)', () => {
   it('renders without a ThemeProvider (falls back to MUI defaults)', () => {
     render(<Landing />);

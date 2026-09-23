@@ -66,6 +66,13 @@ export interface StaticProject {
  * -- one because it has no GitHub repo, one because its repo is private and
  * off the API's allow-list -- which is why `href` is never derived from the
  * API's `url`.
+ *
+ * Order (Sprint: senior-signal pass, TEAM-BRIEF.md item 6): the fullstack
+ * platform and the CI/CD tooling other repos actually depend on lead, since
+ * they carry the engineering the target roles are for. Portfolio Website (this
+ * site) is third -- real engineering, but a personal/meta project rather than
+ * one built for outside users. The VS Code theme, the Unity prototype and the
+ * clip pipeline are genuine work and stay on the page, just not first.
  */
 export const staticProjects: StaticProject[] = [
   {
@@ -87,15 +94,6 @@ export const staticProjects: StaticProject[] = [
     description: 'A repository of workflows and composite actions to use in CI/CD pipelines',
   },
   {
-    repoName: 'Royalty-VS-Code-Theme',
-    name: 'VS Code Royalty Theme',
-    img: vsCodeTheme,
-    href: 'https://marketplace.visualstudio.com/items?itemName=Alcash55.royaltytheme',
-    hrefLabel: 'Marketplace listing',
-    alt: 'Royalty VS Code Theme',
-    description: 'A custom theme for VS Code inspired by the colors of royalty',
-  },
-  {
     repoName: 'Portfolio',
     name: 'Portfolio Website',
     img: portfolio,
@@ -103,6 +101,15 @@ export const staticProjects: StaticProject[] = [
     alt: 'Portfolio website built with React, TypeScript, and Material UI',
     description:
       'A website built to showcase my skills and experiences using modern web technologies',
+  },
+  {
+    repoName: 'Royalty-VS-Code-Theme',
+    name: 'VS Code Royalty Theme',
+    img: vsCodeTheme,
+    href: 'https://marketplace.visualstudio.com/items?itemName=Alcash55.royaltytheme',
+    hrefLabel: 'Marketplace listing',
+    alt: 'Royalty VS Code Theme',
+    description: 'A custom theme for VS Code inspired by the colors of royalty',
   },
   {
     // No `repoName` or `href`: the repo is private and there is no live build,

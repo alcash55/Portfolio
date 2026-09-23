@@ -412,16 +412,24 @@ const ProjectCard = ({
                     {project.live.language && (
                       <Typography variant="caption">{project.live.language}</Typography>
                     )}
-                    <Stack
-                      direction="row"
-                      spacing={0.25}
-                      sx={{
-                        alignItems: 'center',
-                      }}
-                    >
-                      <StarIcon sx={{ fontSize: 14 }} />
-                      <Typography variant="caption">{project.live.stars}</Typography>
-                    </Stack>
+                    {/* Every repo-backed card sat at 0 stars, which is the
+                        weakest number on the page rendered in front of the
+                        work (TEAM-BRIEF.md item 4). A star count says
+                        something once a stranger has actually starred the
+                        repo; below that it says nothing, so it is withheld
+                        rather than shown as a zero. */}
+                    {project.live.stars > 0 && (
+                      <Stack
+                        direction="row"
+                        spacing={0.25}
+                        sx={{
+                          alignItems: 'center',
+                        }}
+                      >
+                        <StarIcon sx={{ fontSize: 14 }} />
+                        <Typography variant="caption">{project.live.stars}</Typography>
+                      </Stack>
+                    )}
                     {updatedAt && <Typography variant="caption">Updated {updatedAt}</Typography>}
                   </Stack>
                 )}
