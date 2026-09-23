@@ -485,7 +485,13 @@ const Landing = () => {
                   sx={{
                     fontSize: { xs: 18, md: 22 },
                     color: heroTextReadable,
-                    maxWidth: 680,
+                    // 560 rather than 680 so the subhead wraps to two lines at
+                    // desktop widths. At 680 the shorter copy fits on one line,
+                    // which widens the paragraph box until its left edge sits
+                    // 10px from the sideNav theme controls at 1366x768 -- inside
+                    // the 14px clearance `hero-controls.spec.ts` enforces.
+                    // Wrapping narrows the box and puts the gap back.
+                    maxWidth: 560,
                     mx: 'auto',
                     lineHeight: 1.7,
                   }}
