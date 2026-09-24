@@ -145,7 +145,7 @@ describe('Projects', () => {
     expect(screen.getByText('VS Code Royalty Theme')).toBeInTheDocument();
   });
 
-  it("reaches a real outbound link from every dialog that has one, and none from the project that has no public URL", async () => {
+  it('reaches a real outbound link from every dialog that has one, and none from the project that has no public URL', async () => {
     // The successor to "links every card somewhere". The card used to *be* the
     // outbound link; it is a button that opens a dialog now, and the links
     // moved inside it. The property worth protecting did not change: for every
@@ -177,9 +177,10 @@ describe('Projects', () => {
       // `length >= 0` that would quietly excuse the next one too.
       const links = within(dialog).queryAllByRole('link');
       if (project.name === 'Golem Miners') {
-        expect(links, 'Golem Miners has no public URL, so its dialog shows no link buttons').toEqual(
-          [],
-        );
+        expect(
+          links,
+          'Golem Miners has no public URL, so its dialog shows no link buttons',
+        ).toEqual([]);
       } else {
         expect(
           links.length,
@@ -298,6 +299,37 @@ describe('Projects', () => {
       screen.queryByRole('button', { name: /^(Play|Pause) the .* preview$/ }),
       'a phone card has no media, so it must not offer a control for it',
     ).toBeNull();
+  });
+
+  it("moves only the hovered card's Details arrow, not every arrow on the page (#101)", async () => {
+    // The outer section wrapper is itself a MUI Card, so the arrow's old rule
+    // (`.MuiCard-root:hover &`) matched that ancestor too: hovering anywhere
+    // in the grid put it in a permanent :hover state and every arrow moved
+    // together. Regression coverage for that: hover one card and check a
+    // sibling's arrow is untouched, not just that the hovered one moved.
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse([apiProject()])));
+    render(<Projects />);
+    await waitFor(() => expect(screen.getByText('The Cliper-er')).toBeInTheDocument());
+
+    const hovered = cardFor({ name: 'Game Competition Website' });
+    const untouched = cardFor({ name: 'AC Composite Actions' });
+    const hoveredArrow = within(hovered).getByTestId('details-arrow');
+    const untouchedArrow = within(untouched).getByTestId('details-arrow');
+
+    expect(getComputedStyle(hoveredArrow).transform, 'no card is hovered yet').toBe('none');
+    expect(getComputedStyle(untouchedArrow).transform, 'no card is hovered yet').toBe('none');
+
+    await user.hover(hovered);
+
+    expect(
+      getComputedStyle(hoveredArrow).transform,
+      "the hovered card's own arrow should move",
+    ).not.toBe('none');
+    expect(
+      getComputedStyle(untouchedArrow).transform,
+      "hovering one card must not move a different card's arrow",
+    ).toBe('none');
   });
 
   it('never merges live metadata onto a project that has no repoName, even for a nameless API entry', async () => {

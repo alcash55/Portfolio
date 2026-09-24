@@ -267,10 +267,19 @@ const ProjectCard = ({
             // section, and it never changes on hover.
             boxShadow: (theme: Theme) => hoverGlow(theme),
             transform: 'translateY(-4px)',
+            // Scoped through `&`, which Emotion resolves to *this* card's own
+            // generated class -- not the shared `.MuiCard-root` the arrow used
+            // to key off (see the why-comment on `detailsArrowClassName`
+            // below). That keeps the rule from ever matching a different
+            // card's arrow.
+            [`& .${detailsArrowClassName}`]: { transform: 'translateX(3px)' },
           },
           '@media (prefers-reduced-motion: reduce)': {
             transition: 'none',
-            '&:hover': { transform: 'none' },
+            '&:hover': {
+              transform: 'none',
+              [`& .${detailsArrowClassName}`]: { transform: 'none' },
+            },
           },
         }}
       >
@@ -449,6 +458,15 @@ const ProjectCard = ({
 };
 
 /**
+ * Emotion class name the arrow carries so its own card's `&:hover` rule can
+ * reach it (see that rule's why-comment). Plain and hand-rolled rather than
+ * generated, because the whole point is a name the arrow and its card agree
+ * on ahead of time -- a per-render generated one would give each of them a
+ * different string to match against.
+ */
+const detailsArrowClassName = 'project-details-arrow';
+
+/**
  * The card's "there is more behind this" signal.
  *
  * The section's real risk is depth nobody opens: the outbound link just moved
@@ -465,6 +483,16 @@ const ProjectCard = ({
  * Only the arrow moves on hover, and only by 3px -- enough to read as a
  * response, small enough not to be a second animation competing with the
  * card's own lift.
+ *
+ * The transform itself lives on the project `Card`'s own `sx` (`'&:hover'`),
+ * keyed to `detailsArrowClassName` below, not here. It used to live here as
+ * `'.MuiCard-root:hover &'`, which reads as "this card's own hover" but isn't
+ * one: `.MuiCard-root` is every MUI `Card` on the page, including the section
+ * wrapper that contains the whole grid. Hovering any project card put *that*
+ * ancestor into `:hover` too, so the selector matched every arrow at once
+ * instead of just the one under the pointer (issue #101). `&` in the card's
+ * own `sx` resolves to that card's specific generated class rather than the
+ * shared one, which is what actually scopes it.
  */
 const DetailsAffordance = () => (
   <Stack
@@ -486,17 +514,14 @@ const DetailsAffordance = () => (
       Details
     </Typography>
     <ArrowForwardIcon
+      data-testid="details-arrow"
+      className={detailsArrowClassName}
       sx={{
         fontSize: 14,
         transition: (theme: Theme) =>
           theme.transitions.create('transform', {
             duration: theme.transitions.duration.shorter,
           }),
-        '.MuiCard-root:hover &': { transform: 'translateX(3px)' },
-        '@media (prefers-reduced-motion: reduce)': {
-          transition: 'none',
-          '.MuiCard-root:hover &': { transform: 'none' },
-        },
       }}
     />
   </Stack>
