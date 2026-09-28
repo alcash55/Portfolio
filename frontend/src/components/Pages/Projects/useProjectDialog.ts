@@ -71,7 +71,10 @@ export const useProjectDialog = (): ProjectDialogState => {
   }, [project]);
 
   const open = useCallback((next: StaticProject) => {
-    window.history.pushState(null, '', projectHash(next));
+    // Repeat clicks can land before the lazy dialog's backdrop exists. Only
+    // the first one gets a history entry, or Back reopens a closed dialog.
+    const hash = projectHash(next);
+    if (window.location.hash !== hash) window.history.pushState(null, '', hash);
     setProject(next);
   }, []);
 
