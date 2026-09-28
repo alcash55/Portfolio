@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import {
   Card,
   CardActionArea,
@@ -25,7 +25,6 @@ import { projectMedia } from './projectMedia';
 import { ProjectClipToggle, ProjectMediaPlayer } from './ProjectMediaPlayer';
 import { useProjectClip } from './useProjectClip';
 import { useProjectDialog } from './useProjectDialog';
-import ProjectDialog from './ProjectDialog';
 import { useScrollReveal } from '../../../hooks/useScrollReveal';
 import { ANALYTICS_EVENTS, useAnalytics } from '../../../hooks/useAnalytics';
 import { hoverGlow } from '../../../layout/Theme/hoverGlow';
@@ -71,6 +70,12 @@ const projectCardSx = {
   // this page. Nothing here needs clipping.
   overflow: 'visible',
 };
+
+// The dialog (and the per-project copy in projectDetails) only matters once a
+// card is opened, so it ships as its own chunk. Hovering or focusing a card
+// starts the fetch, which is usually done by the time the click lands.
+const loadProjectDialog = () => import('./ProjectDialog');
+const ProjectDialog = lazy(loadProjectDialog);
 
 /**
  * @see https://mui-treasury.com/?path=/story/card-solidgame--solid-game
@@ -197,12 +202,20 @@ const Projects = () => {
 
       {/* Rendered once, outside the grid, because only one can be open. It
           portals to the end of the body, so the section's scroll-reveal
-          transform never becomes its containing block. */}
-      <ProjectDialog
-        project={activeProject ?? lastShown.current}
-        open={Boolean(activeProject)}
-        onClose={dialog.close}
-      />
+          transform never becomes its containing block. Mounted from the first
+          open on, so its chunk is not fetched before someone wants a dialog,
+          and kept mounted after that for the exit transition. A
+          `#projects/<slug>` cold load sets lastShown on the first render, so a
+          deep link fetches right away. */}
+      {lastShown.current && (
+        <Suspense fallback={null}>
+          <ProjectDialog
+            project={activeProject ?? lastShown.current}
+            open={Boolean(activeProject)}
+            onClose={dialog.close}
+          />
+        </Suspense>
+      )}
     </Stack>
   );
 };
@@ -284,6 +297,8 @@ const ProjectCard = ({
         }}
       >
         <CardActionArea
+          onPointerEnter={loadProjectDialog}
+          onFocus={loadProjectDialog}
           // The breaking change: this used to be `href={project.href}
           // target="_blank"`, i.e. the card *was* the outbound link. It is a
           // button now and the links moved inside the dialog, because two of
