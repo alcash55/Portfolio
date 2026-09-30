@@ -38,3 +38,6 @@ frontend/test-results
 # committing one means the next sprint inherits a stale brief.
 TEAM-BRIEF.md
 SPRINT-STATUS.md
+
+# UI/UX design comps (static reference files, not app code)
+.design-comps/
