@@ -35,6 +35,7 @@ import FullStory from '../../../assets/icons/FullStory';
 import PostHog from '../../../assets/icons/PostHog';
 import Claude from '../../../assets/icons/Claude';
 import Cursor from '../../../assets/icons/Cursor';
+import OpenAI from '../../../assets/icons/OpenAI';
 
 export interface SkillItem {
   label: string;
@@ -116,6 +117,7 @@ export const skillCategories: SkillCategory[] = [
       // Claude has no Claude Code-specific mark, so the product-wide one
       // stands in, as Next's icon does for Next.js.
       { label: 'Claude Code', icon: Claude },
+      { label: 'Codex', icon: OpenAI },
       { label: 'Cursor', icon: Cursor },
     ],
   },
