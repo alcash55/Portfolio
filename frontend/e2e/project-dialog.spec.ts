@@ -28,7 +28,7 @@ const PROJECTS = [
   {
     name: 'Game Competition Website',
     slug: 'game-competition-website',
-    links: ['https://github.com/alcash55/Little-Town', 'https://littletown.gay/'],
+    links: ['https://github.com/alcash55/Little-Town', 'https://diamond-dogs-bingo.onrender.com/'],
   },
   {
     name: 'AC Composite Actions',

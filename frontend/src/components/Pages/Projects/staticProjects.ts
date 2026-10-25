@@ -8,7 +8,7 @@ import theCliperEr from '../../../assets/images/theCliperEr.webp';
 /**
  * Hand-written project card: display name, copy, image, and link. This is
  * the override layer the live API is never allowed to clobber -- three of
- * these (littletown.gay, the VS Code Marketplace listing, The Cliper-er's
+ * these (the Diamond Dogs site, the VS Code Marketplace listing, The Cliper-er's
  * YouTube channel) don't link to GitHub at all.
  *
  * `repoName` never decides what is *shown*. It is matched against the API for
@@ -72,7 +72,7 @@ export const staticProjects: StaticProject[] = [
     repoName: 'Little-Town',
     name: 'Game Competition Website',
     img: littleTown,
-    href: 'https://littletown.gay/',
+    href: 'https://diamond-dogs-bingo.onrender.com/',
     hrefLabel: 'Live site',
     alt: 'Fullstack game competition platform with tournament management',
     description:

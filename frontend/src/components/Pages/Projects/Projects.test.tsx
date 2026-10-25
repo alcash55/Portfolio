@@ -218,15 +218,13 @@ describe('Projects', () => {
     render(<Projects />);
     await waitFor(() => expect(screen.getByText('The Cliper-er')).toBeInTheDocument());
 
-    // Game Competition Website: the card used to lead to littletown.gay and
-    // there was no way to reach the source from this page at all. Now it is
-    // the repo first, the live site kept as a second button rather than
-    // dropped.
+    // The source repo stays first. The live link uses the Diamond Dogs
+    // instance even when API metadata still names the Little Town site.
     await user.click(cardFor({ name: 'Game Competition Website' }));
     let links = within(await screen.findByRole('dialog')).getAllByRole('link');
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       'https://github.com/alcash55/Little-Town',
-      'https://littletown.gay/',
+      'https://diamond-dogs-bingo.onrender.com/',
     ]);
     expect(links[1]).toHaveTextContent('Live site');
     await user.keyboard('{Escape}');
