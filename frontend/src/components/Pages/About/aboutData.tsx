@@ -19,10 +19,9 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
  */
 
 export const bioParagraphs: string[] = [
-  // Past tense throughout: Solea ended 8/2026, so present tense here reads as
-  // a current role. The Solea claim restates experienceData.tsx's entry rather
-  // than making a second, separately maintained one.
-  "Hey, I'm Alex Cash, a software engineer who works the whole stack. Most recently that meant Go services and React micro-frontends for an energy trading platform, building the validation and error handling that kept seven different markets from quietly disagreeing with each other.",
+  // No role-specific claims here: they live in experienceData.tsx, so the bio
+  // cannot drift from the experience entries.
+  "Hey, I'm Alex Cash, a software engineer who works the whole stack. That means Go or Node.js services, React micro-frontends and everything in between.",
   'The projects I like best are the ones where I own both halves: the Storybook spec and the API behind it, the Snowflake data model and the page reading from it. React, TypeScript and Go are where I spend most of my time, with shadcn/ui, Tailwind, MUI, Vite and Bun filling in around them.',
 ];
 
