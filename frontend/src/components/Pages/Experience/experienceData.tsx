@@ -91,7 +91,7 @@ export const experienceData = [
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Architected and built a seven-ISO trade submission API platform (CAISO, ERCOT, MISO, NEISO, NYISO, PJM, SPP) from the ground up in Go, standardizing validation, error handling and fault resilience across all seven markets traders participate in" />
+          <ListItemText primary="Helped migrate legacy Python submit and withdraw endpoints across seven production ISO market integrations (CAISO, ERCOT, MISO, NEISO, NYISO, PJM, SPP) onto a shared Go library" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
           <ListItemText primary="Built the Portfolio Credit Analysis micro-frontend and its backing Go API from a Storybook spec, including ISO-specific bid-curve calculations and credit summary data models" />
@@ -100,13 +100,16 @@ export const experienceData = [
           <ListItemText primary="Delivered the FTR (Financial Transmission Rights) mapping feature end to end: UI mockups, REST API, Snowflake-backed data model and Beyond UI pages, retiring a recurring manual support burden" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Built the Beyond FaaS platform's worker runtime, router and Helm deployment, a Kubernetes-native function-as-a-service system running Go and Python plugins with CI/CD, MinIO-backed artifact storage and identity-aware auth middleware" />
+          <ListItemText primary="Helped migrate the trading platform onto a Kubernetes-native function-as-a-service system running Go and Python plugins" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Designed and built an internal developer portal end to end: a sync ETL pulling GitHub catalog metadata into Snowflake, a read-only catalog API and a React/TypeScript UI" />
+          <ListItemText primary="Built features across the catalog API and React UI of an internal developer portal, backed by a sync ETL pulling GitHub metadata into Snowflake" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
           <ListItemText primary="Migrated core Beyond UI components from PrimeReact/PrimeFlex to TypeScript and shadcn/ui, and built solea.energy from an empty repository in React/TypeScript/Vite with SSR pre-rendering" />
+        </ListItem>
+        <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
+          <ListItemText primary="Supported 25+ traders day to day, turning their requests and reported problems into fixes and features, and led rollout of the v3 Excel-based trade submission tool to them" />
         </ListItem>
       </List>
     ),

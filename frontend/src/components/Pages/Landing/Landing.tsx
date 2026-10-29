@@ -490,8 +490,9 @@ const Landing = () => {
                     lineHeight: 1.7,
                   }}
                 >
-                  Crafting elegant solutions with React, TypeScript, and Go. Building systems that
-                  are both powerful and maintainable.
+                  I build React and TypeScript interfaces backed by Go services. At Solea Energy,
+                  I helped migrate trading APIs across seven power markets and rolled out a React trade
+                  submission tool to 25+ traders.
                 </Typography>
               </Box>
 
