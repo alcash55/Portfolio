@@ -272,13 +272,354 @@
     transition: none;
   }
 
-  /* Headings that take programmatic focus on route change show no ring for it. */
-  :is(h1, h2, main)[tabindex='-1']:focus:not(:focus-visible) {
+  /* Headings that take programmatic focus on route change show no ring for a
+     pointer-driven move. <main> is a scroll target for the skip link, not a
+     control, so it never shows one. */
+  :is(h1, h2)[tabindex='-1']:focus:not(:focus-visible) {
     outline: none;
+  }
+  main:focus {
+    outline: none;
+    box-shadow: none;
   }
 
   /* The menu dialog locks page scroll while open. */
   html:has(dialog[open]) {
     overflow: hidden;
+  }
+}
+
+/* Shell: header, theme control, menu, footer. Ported from the comps' header and
+   footer rules so spacing and sizes match them exactly. */
+@layer components {
+  .skip {
+    position: absolute;
+    left: 12px;
+    top: -80px;
+    z-index: 50;
+    background: var(--text);
+    color: var(--paper);
+    padding: 10px 16px;
+    border-radius: 999px;
+  }
+  .skip:focus {
+    top: 8px;
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--hdr);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .hdr-in {
+    max-width: 90rem;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .mark {
+    font: 400 1.5rem/1 var(--font-display);
+    text-decoration: none;
+    word-spacing: 0.06em;
+    letter-spacing: -0.01em;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mark span {
+    padding-top: 2px;
+  }
+  .logo {
+    flex: none;
+  }
+  .hdr nav {
+    display: none;
+    gap: 4px;
+  }
+  .hdr nav a {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    border-radius: 999px;
+    transition: background-color var(--duration-color) var(--ease-color);
+  }
+  .hdr nav a:hover {
+    background: var(--fill);
+  }
+  .hdr nav a[aria-current] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  .hdr-r {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .menu-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line-strong);
+    background: none;
+    color: var(--text);
+    font: 500 0.9375rem/1 var(--font-sans);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .theme-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0;
+  }
+  .theme-btn:hover,
+  .menu-pill:hover {
+    background: var(--fill);
+  }
+
+  .theme-seg {
+    display: none;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    margin: 0;
+  }
+  .theme-seg legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .theme-seg button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 2.75rem;
+    min-width: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: 500 0.875rem/1 var(--font-sans);
+    cursor: pointer;
+    transition: background-color var(--duration-color) var(--ease-color);
+  }
+  .theme-seg button:hover {
+    background: var(--fill);
+  }
+  .theme-seg .ck {
+    display: none;
+  }
+  .theme-seg button[aria-pressed='true'] {
+    background: var(--text);
+    color: var(--paper);
+  }
+  .theme-seg button[aria-pressed='true'] .ck {
+    display: block;
+  }
+  @media (forced-colors: active) {
+    .theme-seg button[aria-pressed='true'] {
+      background: Highlight;
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hdr nav {
+      display: flex;
+    }
+    .menu-pill,
+    .theme-btn {
+      display: none;
+    }
+    .theme-seg {
+      display: inline-flex;
+    }
+    .hdr-r {
+      gap: 20px;
+    }
+  }
+
+  /* Menu dialog. The dialog fills the viewport so a click on it is a click on
+     the scrim, and the panel floats under the header. */
+  .menu-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    overflow: hidden;
+  }
+  .menu-dialog::backdrop {
+    background: var(--scrim);
+  }
+  .menu-panel {
+    position: absolute;
+    top: calc(var(--hdr) - 8px);
+    right: var(--gutter);
+    left: var(--gutter);
+    max-width: 24rem;
+    margin-left: auto;
+    padding: 12px;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+  }
+  .menu-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 2.75rem;
+    margin-bottom: 4px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    background: none;
+    color: var(--text);
+    font: 500 0.9375rem/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .menu-close:hover {
+    background: var(--fill);
+  }
+  .menu-panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .menu-panel nav a {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0 12px;
+    border-radius: 12px;
+    font: 400 1.75rem/1 var(--font-display);
+    text-decoration: none;
+  }
+  .menu-panel nav a:hover {
+    background: var(--fill);
+  }
+  .menu-panel nav a[aria-current] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .menu-dialog[open] .menu-panel {
+      transition:
+        transform var(--duration-sheet) var(--ease-drawer),
+        opacity var(--duration-sheet) var(--ease-drawer);
+      @starting-style {
+        transform: translateY(-12px);
+        opacity: 0;
+      }
+    }
+    .menu-dialog[open]::backdrop {
+      transition: background-color var(--duration-sheet) var(--ease-drawer);
+      @starting-style {
+        background-color: transparent;
+      }
+    }
+  }
+
+  .foot {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 72px var(--gutter) 40px;
+    display: grid;
+    gap: 32px;
+  }
+  .foot nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+  }
+  .foot .big a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    font: 400 1.75rem/1 var(--font-display);
+    text-decoration: none;
+  }
+  .foot .big a:hover {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+  .foot .small a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    margin-right: 20px;
+  }
+  .foot p {
+    margin: 0;
+    color: var(--text-2);
+    font-size: 0.9375rem;
+  }
+  .foot .base {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+  .foot .addr2 {
+    user-select: all;
+    overflow-wrap: anywhere;
+  }
+  .foot .tl {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-weight: 500;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
   }
 }
