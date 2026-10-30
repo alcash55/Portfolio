@@ -1,0 +1,36 @@
+import js from '@eslint/js';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: [
+      'dist',
+      '.wrangler',
+      '.tanstack',
+      'e2e/test-results',
+      'e2e/playwright-report',
+      'src/routeTree.gen.ts',
+      'worker-configuration.d.ts',
+    ],
+  },
+  js.configs.recommended,
+  tseslint.configs.recommended,
+  reactHooks.configs.flat.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+    plugins: { 'react-refresh': reactRefresh },
+    rules: {
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // Router files export Route next to their components by design.
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+  {
+    files: ['src/routes/**', 'src/test/**', '**/*.test.{ts,tsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+);

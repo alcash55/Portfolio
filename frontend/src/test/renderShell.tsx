@@ -27,7 +27,11 @@ export async function renderShell(path = '/') {
       component: () => <h1>Page body</h1>,
     });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([page('/'), page('/projects/$slug'), page('/experience/$slug')]),
+    routeTree: rootRoute.addChildren([
+      page('/'),
+      page('/projects/$slug'),
+      page('/experience/$slug'),
+    ]),
     history: createMemoryHistory({ initialEntries: [path] }),
   });
   await router.load();

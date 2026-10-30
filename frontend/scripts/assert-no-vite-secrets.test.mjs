@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { assertNoCredentialShapedViteEnv, findCredentialShapedViteEnv } from './assert-no-vite-secrets.mjs';
+import {
+  assertNoCredentialShapedViteEnv,
+  findCredentialShapedViteEnv,
+} from './assert-no-vite-secrets.mjs';
 
 describe('findCredentialShapedViteEnv', () => {
   it('flags a VITE_-prefixed Discord webhook URL', () => {
@@ -74,7 +77,9 @@ describe('findCredentialShapedViteEnv', () => {
 
 describe('assertNoCredentialShapedViteEnv', () => {
   it('throws, naming the offending key, when a VITE_ var looks like a credential', () => {
-    const env = { VITE_WEBHOOK_URL: 'https://discord.com/api/webhooks/not-a-real-id/not-a-real-token' };
+    const env = {
+      VITE_WEBHOOK_URL: 'https://discord.com/api/webhooks/not-a-real-id/not-a-real-token',
+    };
 
     expect(() => assertNoCredentialShapedViteEnv(env)).toThrowError(/VITE_WEBHOOK_URL/);
   });

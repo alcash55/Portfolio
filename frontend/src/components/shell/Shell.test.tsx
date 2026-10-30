@@ -94,9 +94,11 @@ describe('Footer', () => {
     await renderShell();
     const nav = within(screen.getByRole('contentinfo')).getByRole('navigation', { name: 'Footer' });
     expect(nav).toHaveAttribute('id', 'footer-nav');
-    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(
-      NAV.map(([label]) => label),
-    );
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(NAV.map(([label]) => label));
   });
 
   it('shows the address, the copyright and the colophon', async () => {
@@ -144,9 +146,11 @@ describe('Menu dialog', () => {
     await renderShell();
     await user.click(screen.getByRole('button', { name: 'Menu' }));
     const dialog = screen.getByRole('dialog', { name: 'Site menu' });
-    expect(within(dialog).getAllByRole('link').map((link) => link.textContent)).toEqual(
-      NAV.map(([label]) => label),
-    );
+    expect(
+      within(dialog)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(NAV.map(([label]) => label));
     expect(within(dialog).getByRole('button', { name: 'Close menu' })).toHaveFocus();
   });
 

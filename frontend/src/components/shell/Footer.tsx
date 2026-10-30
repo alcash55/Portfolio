@@ -6,8 +6,7 @@ const EMAIL = 'alex.e.cash28@gmail.com';
 function ExternalLink({ href, children }: { href: string; children: string }) {
   return (
     <a href={href} target="_blank" rel="noopener">
-      {children}{' '}
-      <span className="sr">(opens in a new tab)</span>
+      {children} <span className="sr">(opens in a new tab)</span>
     </a>
   );
 }
@@ -27,7 +26,12 @@ export function Footer() {
         </Link>
         <ExternalLink href="https://www.linkedin.com/in/alexander-cash/">LinkedIn</ExternalLink>
         <ExternalLink href="https://github.com/alcash55">GitHub</ExternalLink>
-        <a href="/resume" target="_blank" rel="noopener" aria-label="View resume (opens in a new tab)">
+        <a
+          href="/resume"
+          target="_blank"
+          rel="noopener"
+          aria-label="View resume (opens in a new tab)"
+        >
           View resume
         </a>
       </div>
