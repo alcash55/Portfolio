@@ -77,7 +77,7 @@ jobs:
         working-directory: frontend
         run: bunx tsc --noEmit -p e2e/tsconfig.json
 
-      # Keyed on bun.lockb, which pins the resolved @playwright/test version --
+      # Keyed on bun.lock, which pins the resolved @playwright/test version --
       # a Playwright upgrade changes the hash and busts the cache along with it,
       # so a stale browser binary can never sit alongside a newer test runner.
       - name: Cache Playwright browser
@@ -85,7 +85,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('frontend/bun.lockb') }}
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
 
       # `--with-deps` also installs the OS shared libraries Chromium needs to
       # launch headless; ubuntu-latest doesn't ship them. That apt step still
@@ -95,11 +95,13 @@ jobs:
         working-directory: frontend
         run: bunx playwright install --with-deps chromium
 
-      # Runs against a production build via `vite preview`, not the dev
-      # server -- see e2e/playwright.config.ts's webServer. A failure here is
-      # a real-browser rendering/runtime bug, not a lint/type/unit-test gap,
-      # so it gets its own job rather than folding into `frontend` above.
-      - name: Smoke test
+      # Playwright builds the app and serves it with `vite preview`, which runs
+      # the Workers runtime the app deploys to, not the dev server. See the
+      # webServer block in playwright.config.ts. A failure here is a real-browser
+      # rendering or runtime bug, not a lint, type or unit-test gap, so it gets
+      # its own job rather than folding into `frontend` above. The suite covers
+      # server HTML, theme, the menu dialog, focus and axe, not only a smoke test.
+      - name: Browser tests
         working-directory: frontend
         run: bun run test:e2e
 
@@ -108,7 +110,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
-          path: frontend/e2e/test-results
+          path: |
+            frontend/e2e/test-results
+            frontend/e2e/playwright-report
           retention-days: 7
 
   backend:

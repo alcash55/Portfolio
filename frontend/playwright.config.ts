@@ -7,7 +7,9 @@ const PORT = 4173;
 export default defineConfig({
   testDir: './e2e',
   outputDir: './e2e/test-results',
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never', outputFolder: './e2e/playwright-report' }]]
+    : 'list',
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   use: {
