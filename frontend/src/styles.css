@@ -231,16 +231,16 @@
     -webkit-text-size-adjust: 100%;
     /* Reserve the scrollbar so opening the menu dialog does not shift the page. */
     scrollbar-gutter: stable;
-    /* Keeps focused page content clear of the sticky header (SC 2.4.11). */
-    scroll-padding-top: calc(var(--hdr) + 16px);
   }
 
-  /* Header controls sit inside the area that scroll-padding reserves. Without
-     this, focusing one makes the browser scroll the page to "reveal" a control
-     it thinks the header hides. A negative margin cancels the reserved band for
-     the header's own controls and leaves it in place for everything else. */
-  header :is(a, button, input, select, textarea, summary, [tabindex]) {
-    scroll-margin-top: calc(var(--hdr) * -1);
+  /* Keeps focused and linked page content clear of the sticky header (SC 2.4.11).
+     This is scroll-margin on the targets, not scroll-padding on <html>. Padding
+     reserves the band under the header for the whole page, so focusing a header
+     control (which sits inside that band) made the browser scroll to "reveal"
+     it, and the page jumped. The header's own controls get no margin. */
+  main,
+  :is(a[href], button, input, select, textarea, summary, [tabindex], [id]):not(header *) {
+    scroll-margin-top: calc(var(--hdr) + 16px);
   }
 
   body {
@@ -348,11 +348,11 @@
   .logo {
     flex: none;
   }
-  .hdr nav {
+  .hdr-r > nav {
     display: none;
     gap: 4px;
   }
-  .hdr nav a {
+  .hdr-r > nav a {
     min-height: 2.75rem;
     display: flex;
     align-items: center;
@@ -363,10 +363,10 @@
     border-radius: 999px;
     transition: background-color var(--duration-color) var(--ease-color);
   }
-  .hdr nav a:hover {
+  .hdr-r > nav a:hover {
     background: var(--fill);
   }
-  .hdr nav a[aria-current] {
+  .hdr-r > nav a[aria-current] {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 6px;
@@ -459,7 +459,7 @@
   }
 
   @media (min-width: 1024px) {
-    .hdr nav {
+    .hdr-r > nav {
       display: flex;
     }
     .menu-pill,
