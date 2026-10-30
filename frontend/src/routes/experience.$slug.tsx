@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import { ContentPage } from '~/components/pages/ContentPage';
 import { NotFoundSlug } from '~/components/pages/NotFound';
-import { NOT_FOUND, findExperience } from '~/content/pages';
+import { findExperience } from '~/content/pages';
 
 export const Route = createFileRoute('/experience/$slug')({
   loader: ({ params }) => {
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/experience/$slug')({
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [{ title: loaderData.title }, { name: 'description', content: loaderData.description }]
-      : [{ title: NOT_FOUND.title }],
+      : [], // the not-found page sets its own title
   }),
   component: ExperiencePage,
   notFoundComponent: NotFoundSlug,

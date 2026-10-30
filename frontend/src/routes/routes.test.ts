@@ -57,6 +57,13 @@ describe('routing', () => {
     expect((await load(path)).notFound).toBe(true);
   });
 
+  it.each(['/projects/no-such-project', '/experience/no-such-job'])(
+    'leaves the title to the not-found page on %s, so the document has one title',
+    async (path) => {
+      expect((await load(path)).title).toBeUndefined();
+    },
+  );
+
   it('does not treat a known page as not found', async () => {
     expect((await load('/projects/clipper')).notFound).toBe(false);
   });
