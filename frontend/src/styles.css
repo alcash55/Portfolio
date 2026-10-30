@@ -345,6 +345,12 @@
   .mark span {
     padding-top: 2px;
   }
+  /* The comps let the wordmark wrap onto two lines at 320px. Shrinking it keeps one line. */
+  @media (max-width: 359px) {
+    .mark {
+      font-size: 1.25rem;
+    }
+  }
   .logo {
     flex: none;
   }
