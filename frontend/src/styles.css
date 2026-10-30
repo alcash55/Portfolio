@@ -33,7 +33,7 @@
   --shadow-1: 0 10px 40px #1c191714;
   color-scheme: light;
 
-  /* Layout. --hdr is the sticky header height and feeds scroll-padding below. */
+  /* Layout. --hdr is the sticky header height and feeds the scroll-margin rule below. */
   --gutter: 1rem;
   --hdr: 3.75rem;
   --panel-gap: 0.75rem;
