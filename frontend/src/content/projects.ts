@@ -222,8 +222,8 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     ],
     facts: [
       {
-        lead: '10 times lighter',
-        body: 'The page is 10 times lighter: 4.03 MB down to 397 KB. Resizing eight images to their measured render size did it. Largest paint fell from 4.4 s to 3.2 s.', // PD-12
+        lead: '10 times lighter, first version',
+        body: 'On the first version of this site the page got 10 times lighter: 4.03 MB down to 397 KB. Resizing eight images to their measured render size did it. Largest paint fell from 4.4 s to 3.2 s.', // PD-12
       },
       {
         lead: '50 requests, 2 calls',
