@@ -45,6 +45,20 @@ test.describe('home, assembled', () => {
   });
 });
 
+test.describe('the Projects anchor', () => {
+  test.use({ viewport: VIEWPORTS.desktop });
+
+  test('/#projects lands on the first project chapter, with no section of its own', async ({
+    page,
+  }) => {
+    await page.goto('/#projects');
+    await expect(page.locator('section.projects-intro')).toHaveCount(0);
+    const chapter = page.locator('#projects');
+    await expect(chapter).toHaveAttribute('data-ch', '2');
+    await expect(chapter.getByRole('heading', { level: 2 })).toBeInViewport();
+  });
+});
+
 test.describe('home chapter heights, desktop', () => {
   test.use({ viewport: VIEWPORTS.desktop });
 

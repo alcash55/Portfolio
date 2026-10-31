@@ -1,7 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { About } from './About';
-import { ProjectsIntro } from './ProjectsIntro';
 
 describe('About', () => {
   it('is the page h1 and names its region', () => {
@@ -65,19 +64,5 @@ describe('About', () => {
     expect(img).toHaveAttribute('height', '424');
     expect(img).not.toHaveAttribute('loading', 'lazy');
     expect(within(fig).getByText('Joshua Tree')).toBeInTheDocument();
-  });
-});
-
-describe('ProjectsIntro', () => {
-  it('is a region with the Projects h2 and the one-line intro', () => {
-    render(<ProjectsIntro />);
-    const region = screen.getByRole('region', { name: 'Projects.' });
-    expect(region).toHaveAttribute('id', 'projects');
-    expect(
-      within(region).getByRole('heading', { level: 2, name: 'Projects.' }),
-    ).toBeInTheDocument();
-    expect(
-      within(region).getByText('Each project links to its source, or says the code is private.'),
-    ).toBeInTheDocument();
   });
 });

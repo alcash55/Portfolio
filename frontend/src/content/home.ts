@@ -16,12 +16,18 @@ export interface IndexGroup {
  * The whole page, in reading order. Experience, Education and Contact are
  * built elsewhere; their rows live here so the numbering stays in one place.
  */
+/**
+ * The anchor for the Projects links in the header, the footer and the back links. It
+ * lands on the first project chapter, which carries this id instead of its slug.
+ */
+export const PROJECTS_ANCHOR = 'projects';
+
 export const CHAPTER_GROUPS: readonly IndexGroup[] = [
   { label: 'About', items: [{ n: 1, id: 'about', title: 'About me' }] },
   {
     label: 'Projects',
     items: [
-      { n: 2, id: 'portfolio-website', title: 'Portfolio Website' },
+      { n: 2, id: PROJECTS_ANCHOR, title: 'Portfolio Website' },
       { n: 3, id: 'game-competition-website', title: 'Game Competition' },
       { n: 4, id: 'ac-composite-actions', title: 'AC Composite Actions' },
       { n: 5, id: 'clipper', title: 'Clipper' },
@@ -83,12 +89,6 @@ export const ABOUT = {
   },
 } as const;
 
-export const PROJECTS_INTRO = {
-  id: 'projects',
-  heading: 'Projects.',
-  line: 'Each project links to its source, or says the code is private.',
-};
-
 export type Paragraph =
   | { readonly kind: 'body'; readonly text: string }
   | { readonly kind: 'proof'; readonly text: string };
@@ -108,6 +108,8 @@ export interface FigSpec {
 export interface ProjectChapterSpec {
   readonly n: number;
   readonly id: ProjectSlug;
+  /** The section's id when it is not the slug. */
+  readonly anchor?: string;
   readonly overline: string;
   readonly heading: string;
   readonly paragraphs: readonly Paragraph[];
@@ -130,6 +132,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
   {
     n: 2,
     id: 'portfolio-website',
+    anchor: PROJECTS_ANCHOR,
     overline: 'Portfolio Website',
     heading: 'A portfolio with a Go API behind it',
     paragraphs: [
