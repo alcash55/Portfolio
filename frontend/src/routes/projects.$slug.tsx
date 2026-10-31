@@ -1,7 +1,8 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
-import { ContentPage } from '~/components/pages/ContentPage';
+import { ProjectDetail } from '~/components/detail/ProjectDetail';
 import { NotFoundSlug } from '~/components/pages/NotFound';
 import { findExperience, findProject } from '~/content/pages';
+import { getDetail } from '~/content/projects';
 
 export const Route = createFileRoute('/projects/$slug')({
   beforeLoad: ({ params }) => {
@@ -12,8 +13,10 @@ export const Route = createFileRoute('/projects/$slug')({
   },
   loader: ({ params }) => {
     const page = findProject(params.slug);
-    if (!page) throw notFound();
-    return page;
+    const detail = getDetail(params.slug);
+    if (!page || !detail) throw notFound();
+    // Only the slug crosses to the client. The page body is looked up from the content module.
+    return { ...page, detailSlug: detail.slug };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -26,5 +29,5 @@ export const Route = createFileRoute('/projects/$slug')({
 
 function ProjectPage() {
   const page = Route.useLoaderData();
-  return <ContentPage h1={page.h1} back={{ label: 'All projects', hash: 'projects' }} />;
+  return <ProjectDetail slug={page.detailSlug} />;
 }
