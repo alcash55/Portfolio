@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { HomeHeader } from '~/components/home/HomeHeader';
 import { MenuControl } from './MenuControl';
 import { SectionLinks } from './SectionLinks';
 import { ThemeControl } from './ThemeControl';
@@ -28,7 +29,7 @@ function Logo() {
   );
 }
 
-export function Header({ current }: { current: NavId | null }) {
+export function Header({ current, isHome = false }: { current: NavId | null; isHome?: boolean }) {
   return (
     <header className="hdr">
       <div className="hdr-in">
@@ -36,6 +37,7 @@ export function Header({ current }: { current: NavId | null }) {
           <Logo />
           <span>Alex Cash</span>
         </Link>
+        {isHome ? <HomeHeader /> : null}
         <div className="hdr-r">
           <nav aria-label="Primary">
             <SectionLinks current={current} />

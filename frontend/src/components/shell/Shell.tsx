@@ -12,7 +12,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <a className="skip" href="#main">
         Skip to main content
       </a>
-      <Header current={sectionForPath(pathname)} />
+      <Header current={sectionForPath(pathname)} isHome={pathname === '/'} />
       <main id="main" tabIndex={-1}>
         {children}
       </main>
