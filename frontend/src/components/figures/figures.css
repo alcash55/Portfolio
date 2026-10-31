@@ -1,0 +1,136 @@
+/*
+ * Figure styles. Plain CSS, unlayered, so they sit above the Tailwind base layer
+ * without a specificity contest. Colors, type and easing come from the tokens in
+ * styles.css.
+ */
+
+/* ---------- Diagram ---------- */
+.dg {
+  margin: 0;
+  display: grid;
+  gap: 20px;
+}
+.dg h2 {
+  margin: 0;
+}
+.dg-svg {
+  display: none;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  max-height: 70svh;
+  overflow: visible;
+}
+.dg-svg text {
+  font-family: var(--font-sans);
+}
+.dg .n rect {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+}
+.dg .n.plan rect {
+  stroke-dasharray: 7 5;
+  fill: var(--paper);
+}
+.dg .n .l {
+  font-size: 17px;
+  font-weight: 500;
+  fill: var(--text);
+}
+.dg .n .s {
+  font-size: 14px;
+  fill: var(--text-2);
+}
+.dg .e path {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dg .e.plan path.ln {
+  stroke-dasharray: 7 6;
+}
+.dg .e .b circle {
+  fill: var(--text);
+}
+.dg .e .b text {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--paper);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.dg .stub {
+  font-size: 14px;
+  fill: var(--text-2);
+}
+.flows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  counter-reset: f;
+}
+.flows li {
+  position: relative;
+  padding-left: 40px;
+  line-height: 1.45;
+  color: var(--text-2);
+  counter-increment: f;
+}
+.flows li::before {
+  content: counter(f);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--paper);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+}
+.flows .plan {
+  font-style: italic;
+}
+.alt-t {
+  margin: 0;
+  max-width: 72ch;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.alt-t b {
+  color: var(--text);
+  font-weight: 500;
+}
+@media (min-width: 960px) {
+  .dg-svg {
+    display: block;
+  }
+  .flows {
+    display: none;
+  }
+}
+/* The server HTML is the finished diagram. `run` is added once, in the browser,
+   and plays each edge in from a dim start. `backwards` holds that start through
+   the delay and lets the edge settle on its normal style afterwards. */
+@keyframes dg-edge-in {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dg.run .e {
+    animation: dg-edge-in 500ms var(--ease-color) calc(var(--i) * 380ms) backwards;
+  }
+}
