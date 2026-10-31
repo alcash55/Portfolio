@@ -1,8 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import type { ExperienceSpec } from '~/content/people';
-import { PeopleChapter, PeopleFig, PeopleFigureSlot } from './PeopleChapter';
+import { Chapter } from '~/components/home/Chapter';
+import { Fig, FigureSlot } from '~/components/home/Fig';
 import { ReadMore } from './ReadMore';
+import './people.css';
 
 export interface ExperienceChapterProps {
   spec: ExperienceSpec;
@@ -12,7 +14,7 @@ export interface ExperienceChapterProps {
 
 export function ExperienceChapter({ spec, figure }: ExperienceChapterProps) {
   return (
-    <PeopleChapter
+    <Chapter
       id={spec.id}
       n={spec.n}
       title={spec.title}
@@ -20,28 +22,24 @@ export function ExperienceChapter({ spec, figure }: ExperienceChapterProps) {
       heading={spec.heading}
       reverse={spec.reverse}
       big
+      className="chapter-top"
       figure={
-        <PeopleFig
-          n={spec.fig.n}
-          label={spec.fig.label}
-          caption={spec.fig.caption}
-          meta={spec.fig.meta}
-        >
-          {figure ?? <PeopleFigureSlot />}
-        </PeopleFig>
+        <Fig n={spec.fig.n} label={spec.fig.label} caption={spec.fig.caption} meta={spec.fig.meta}>
+          {figure ?? <FigureSlot />}
+        </Fig>
       }
     >
-      <p className="pp-proof">{spec.role}</p>
+      <p className="proof">{spec.role}</p>
       <p>{spec.lead}</p>
       {spec.writeUp ? (
-        <div className="pp-links">
-          <Link className="pp-go" to="/experience/$slug" params={{ slug: spec.writeUp.slug }}>
+        <div className="links">
+          <Link className="go" to="/experience/$slug" params={{ slug: spec.writeUp.slug }}>
             {spec.writeUp.label} <span aria-hidden="true">&rarr;</span>
           </Link>
-          {spec.note ? <span className="pp-note">{spec.note}</span> : null}
+          {spec.note ? <span className="note">{spec.note}</span> : null}
         </div>
       ) : null}
       <ReadMore points={spec.more} stack={spec.stack} />
-    </PeopleChapter>
+    </Chapter>
   );
 }

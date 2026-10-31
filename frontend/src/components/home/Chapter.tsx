@@ -10,6 +10,8 @@ export interface ChapterProps {
   heading: string;
   reverse?: boolean;
   big?: boolean;
+  /** Extra class names for the section, for example a chapter's own layout hook. */
+  className?: string;
   /** The prose after the heading: paragraphs, links, notes. */
   children: ReactNode;
   /** A complete <Fig>. */
@@ -29,11 +31,12 @@ export function Chapter({
   heading,
   reverse = false,
   big = false,
+  className: extra,
   children,
   figure,
 }: ChapterProps) {
   const headingId = `c${n}-h`;
-  const className = ['chapter', reverse && 'rev', big && 'big'].filter(Boolean).join(' ');
+  const className = ['chapter', reverse && 'rev', big && 'big', extra].filter(Boolean).join(' ');
   return (
     <section
       className={className}

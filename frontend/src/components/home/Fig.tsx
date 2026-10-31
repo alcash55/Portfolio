@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 export interface FigProps {
   n: number;
   label: string;
-  caption: string;
-  meta?: string;
+  caption: ReactNode;
+  meta?: ReactNode;
   /** About's portrait is not revealed on scroll, every project figure is. */
   reveal?: boolean;
   children: ReactNode;

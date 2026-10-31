@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { Photo } from '~/content/people';
-import { PeopleFig } from './PeopleChapter';
+import { Fig } from '~/components/home/Fig';
 
 const subscribeNever = () => () => undefined;
 
@@ -83,7 +83,7 @@ export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
   }
 
   return (
-    <PeopleFig
+    <Fig
       n={fig.n}
       label={fig.label}
       caption={
@@ -145,7 +145,7 @@ export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
           </div>
         ))}
       </div>
-    </PeopleFig>
+    </Fig>
   );
 }
 

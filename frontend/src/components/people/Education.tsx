@@ -1,17 +1,19 @@
+import { Chapter } from '~/components/home/Chapter';
 import { EDUCATION } from '~/content/people';
 import { resumeInfo, resumeSizeLabel, type ResumeInfo } from '~/lib/resume';
-import { PeopleChapter } from './PeopleChapter';
 import { PhotoCarousel } from './PhotoCarousel';
 import { ResumeLink } from './ResumeLink';
+import './people.css';
 
 export function Education({ resume = resumeInfo }: { resume?: ResumeInfo }) {
   return (
-    <PeopleChapter
+    <Chapter
       id={EDUCATION.id}
       n={EDUCATION.n}
       title={EDUCATION.title}
       overline={EDUCATION.overline}
       heading={EDUCATION.heading}
+      className="chapter-top"
       figure={
         <PhotoCarousel
           fig={EDUCATION.fig}
@@ -23,12 +25,10 @@ export function Education({ resume = resumeInfo }: { resume?: ResumeInfo }) {
       {EDUCATION.lines.map((line) => (
         <p key={line}>{line}</p>
       ))}
-      <div className="pp-links">
+      <div className="links">
         <ResumeLink info={resume} className="pp-btn" />
-        {resume.available ? (
-          <small className="pp-note">{resumeSizeLabel(resume.bytes)}</small>
-        ) : null}
+        {resume.available ? <small className="note">{resumeSizeLabel(resume.bytes)}</small> : null}
       </div>
-    </PeopleChapter>
+    </Chapter>
   );
 }

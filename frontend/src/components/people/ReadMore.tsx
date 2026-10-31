@@ -90,7 +90,7 @@ export function ReadMore({ points, stack }: { points: readonly string[]; stack: 
             <li key={point}>{point}</li>
           ))}
         </ul>
-        <p className="pp-stack">{stack}</p>
+        <p className="stack">{stack}</p>
       </div>
     </details>
   );

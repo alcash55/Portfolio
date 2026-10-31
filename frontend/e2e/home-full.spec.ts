@@ -21,7 +21,7 @@ test.describe('home, assembled', () => {
   test('every project and experience figure has a real body', async ({ page }) => {
     await page.goto('/');
     const empty = await page
-      .locator('[data-slot="figure"], .pp-slot')
+      .locator('[data-slot="figure"], .fig-slot')
       .evaluateAll((els) => els.map((el) => el.closest('section')?.id));
     expect(empty, 'chapters still showing an empty figure slot').toEqual([]);
   });
