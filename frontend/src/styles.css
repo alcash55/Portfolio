@@ -1,0 +1,631 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/newsreader/opsz.css';
+
+/*
+ * Design tokens. The values are the ones in the approved comps (the stone
+ * palette with one green accent), not the earlier draft in visual.md. Light is
+ * the default. Dark applies for [data-theme='dark'], and also for visitors on
+ * "system" whose OS prefers dark, so a no-JavaScript visitor gets the right
+ * colors. The dark block below is written twice for that reason: CSS cannot
+ * share a declaration list between an attribute selector and a media query.
+ */
+:root {
+  --paper: #fafaf9;
+  --wash: #e9e8e4;
+  --band: #f2f1ee;
+  --text: #1c1917;
+  --text-2: #4a4540;
+  --text-3: #59534d;
+  --line: #1c19171a;
+  --line-soft: #1c19170d;
+  --line-strong: #85807a;
+  --fill: #1c19170d;
+  --fill-2: #1c19171a;
+  --accent: #1e5b3a;
+  --accent-hover: #144a2d;
+  --on-accent: #ffffff;
+  --error: #b42318;
+  --ring: #1c1917;
+  --scrim: #1c191766;
+  --surface: #ffffff;
+  --surface-2: #f2f1ee;
+  --shadow-1: 0 10px 40px #1c191714;
+  color-scheme: light;
+
+  /* Layout. --hdr is the sticky header height and feeds the scroll-margin rule below. */
+  --gutter: 1rem;
+  --hdr: 3.75rem;
+  --panel-gap: 0.75rem;
+}
+
+:root[data-theme='dark'] {
+  --paper: #141412;
+  --wash: #1f1e1b;
+  --band: #1a1917;
+  --text: #f2f1ee;
+  --text-2: #bfbcb6;
+  --text-3: #bfbcb6;
+  --line: #f2f1ee1a;
+  --line-soft: #f2f1ee0d;
+  --line-strong: #85817b;
+  --fill: #f2f1ee0d;
+  --fill-2: #f2f1ee1a;
+  --accent: #7fd1a0;
+  --accent-hover: #9fe0b8;
+  --on-accent: #0d1a12;
+  --error: #ff8f85;
+  --ok: #6fd99a;
+  --ring: #f2f1ee;
+  --scrim: #f2f1ee99;
+  --surface: #1c1b19;
+  --surface-2: #262522;
+  --shadow-1: none;
+  --veil: #0a0a09;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #141412;
+    --wash: #1f1e1b;
+    --band: #1a1917;
+    --text: #f2f1ee;
+    --text-2: #bfbcb6;
+    --text-3: #bfbcb6;
+    --line: #f2f1ee1a;
+    --line-soft: #f2f1ee0d;
+    --line-strong: #85817b;
+    --fill: #f2f1ee0d;
+    --fill-2: #f2f1ee1a;
+    --accent: #7fd1a0;
+    --accent-hover: #9fe0b8;
+    --on-accent: #0d1a12;
+    --error: #ff8f85;
+    --ok: #6fd99a;
+    --ring: #f2f1ee;
+    --scrim: #f2f1ee99;
+    --surface: #1c1b19;
+    --surface-2: #262522;
+    --shadow-1: none;
+    --veil: #0a0a09;
+    color-scheme: dark;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 2rem;
+    --hdr: 4.25rem;
+  }
+}
+
+/* Narrowest phones: the display size drops to a fixed value, as in the comps. */
+@media (max-width: 359px) {
+  :root {
+    --text-display: 2.125rem;
+  }
+}
+
+/* Colors, fonts, radii, type and layout as Tailwind utilities. Colors point at
+   the variables above, so a theme switch needs no utility changes. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-wash: var(--wash);
+  --color-band: var(--band);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-line-strong: var(--line-strong);
+  --color-fill: var(--fill);
+  --color-fill-2: var(--fill-2);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-error: var(--error);
+  --color-ring: var(--ring);
+  --color-scrim: var(--scrim);
+  --shadow-card: var(--shadow-1);
+}
+
+@theme {
+  --font-display:
+    'Newsreader Variable', 'Newsreader Fallback', 'Newsreader Fallback Linux', Georgia,
+    'Times New Roman', serif;
+  --font-sans:
+    'Geist Variable', 'Geist Fallback', 'Geist Fallback Linux', system-ui, -apple-system,
+    'Segoe UI', Roboto, sans-serif;
+
+  /* Width of the header row in the comps. */
+  --container-shell: 90rem;
+
+  /* Type scale, one token per role in the comps. Pair each display size with its
+     own line height and tracking where it is used. */
+  --text-hero: clamp(2.75rem, 1.5rem + 5vw, 5.5rem); /* home h1 */
+  --text-hero--line-height: 1;
+  --text-display: clamp(2.5rem, 1rem + 3.9vw, 4.5rem); /* 404 and large statements */
+  --text-display--line-height: 1.04;
+  --text-page: clamp(2rem, 1.4rem + 2.2vw, 3.25rem); /* project and experience h1 */
+  --text-page--line-height: 1.06;
+  --text-contact: clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem); /* contact chapter h2 */
+  --text-contact--line-height: 1.05;
+  --text-band: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem); /* contact band h2 */
+  --text-band--line-height: 1.08;
+  --text-section: clamp(1.625rem, 1.3rem + 1vw, 2rem); /* page section h2 */
+  --text-section--line-height: 1.1;
+  --text-claim: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  --text-claim--line-height: 1.2;
+  --text-next: clamp(1.25rem, 1rem + 0.8vw, 1.625rem);
+  --text-next--line-height: 1.15;
+
+  /* Radii the comps use for cards and stages. */
+  --radius-card: 24px;
+  --radius-stage: 28px;
+}
+
+/* Motion tokens (motion.md). Static so they are always emitted: components read
+   them through var() and no utility class names them. */
+@theme static {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-flow: linear;
+  --ease-reveal: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-lift: cubic-bezier(0, 0, 0.5, 1);
+  --ease-color: cubic-bezier(0.4, 0, 0.6, 1);
+  --duration-press: 100ms;
+  --duration-fast: 200ms;
+  --duration-base: 280ms;
+  --duration-slow: 420ms;
+  --duration-sheet: 480ms;
+  --duration-route: 240ms;
+  --duration-flow: 1600ms;
+  --stagger-flow: 400ms;
+  --duration-draw: 600ms;
+  --reveal-rise: 30px;
+  --duration-reveal: 900ms;
+  --stagger-reveal: 150ms;
+  --beat-rise: 10px;
+  --duration-lift: 300ms;
+  --scale-lift: 1.016;
+  --duration-color: 320ms;
+}
+
+/* Fallback faces sized to the web fonts, so the swap does not move the layout.
+   The Linux faces cover machines without Arial or Times. */
+@font-face {
+  font-family: 'Newsreader Fallback';
+  src: local('Times New Roman'), local('Liberation Serif'), local('Times');
+  size-adjust: 109.6%;
+}
+@font-face {
+  font-family: 'Newsreader Fallback Linux';
+  src: local('DejaVu Serif');
+  size-adjust: 86.7%;
+}
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 102%;
+}
+@font-face {
+  font-family: 'Geist Fallback Linux';
+  src: local('DejaVu Sans');
+  size-adjust: 91%;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* 16px up to 1440px wide, about 18px at 1920 and 20px at 2560. 100% keeps the
+     visitor's own font size as the floor. */
+  html {
+    font-size: clamp(100%, calc(100% + (100vw - 1440px) * 0.0045), 125%);
+    -webkit-text-size-adjust: 100%;
+    /* Reserve the scrollbar so opening the menu dialog does not shift the page. */
+    scrollbar-gutter: stable;
+  }
+
+  /* Keeps focused and linked page content clear of the sticky header (SC 2.4.11).
+     This is scroll-margin on the targets, not scroll-padding on <html>. Padding
+     reserves the band under the header for the whole page, so focusing a header
+     control (which sits inside that band) made the browser scroll to "reveal"
+     it, and the page jumped. The header's own controls get no margin. */
+  main,
+  :is(a[href], button, input, select, textarea, summary, [tabindex], [id]):not(header *) {
+    scroll-margin-top: calc(var(--hdr) + 16px);
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font: 400 1rem/1.5 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  img,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* One focus ring everywhere (a11y.md): 3px ink outline, 3px offset, and a 2px
+     paper halo in the gap so the ring reads on any surface. Appears at 0ms. */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px var(--paper);
+    transition: none;
+  }
+
+  /* Headings that take programmatic focus on route change show no ring for a
+     pointer-driven move. <main> is a scroll target for the skip link, not a
+     control, so it never shows one. */
+  :is(h1, h2)[tabindex='-1']:focus:not(:focus-visible) {
+    outline: none;
+  }
+  main:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* The menu dialog locks page scroll while open. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+/* Shell: header, theme control, menu, footer. Ported from the comps' header and
+   footer rules so spacing and sizes match them exactly. */
+@layer components {
+  .skip {
+    position: absolute;
+    left: 12px;
+    top: -80px;
+    z-index: 50;
+    background: var(--text);
+    color: var(--paper);
+    padding: 10px 16px;
+    border-radius: 999px;
+  }
+  .skip:focus {
+    top: 8px;
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--hdr);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .hdr-in {
+    max-width: 90rem;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .mark {
+    font: 400 1.5rem/1 var(--font-display);
+    text-decoration: none;
+    word-spacing: 0.06em;
+    letter-spacing: -0.01em;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mark span {
+    padding-top: 2px;
+  }
+  /* The comps let the wordmark wrap onto two lines at 320px. Shrinking it keeps one line. */
+  @media (max-width: 359px) {
+    .mark {
+      font-size: 1.25rem;
+    }
+  }
+  .logo {
+    flex: none;
+  }
+  .hdr-r > nav {
+    display: none;
+    gap: 4px;
+  }
+  .hdr-r > nav a {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    border-radius: 999px;
+    transition: background-color var(--duration-color) var(--ease-color);
+  }
+  .hdr-r > nav a:hover {
+    background: var(--fill);
+  }
+  .hdr-r > nav a[aria-current] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  .hdr-r {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .menu-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line-strong);
+    background: none;
+    color: var(--text);
+    font: 500 0.9375rem/1 var(--font-sans);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .theme-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0;
+  }
+  .theme-btn:hover,
+  .menu-pill:hover {
+    background: var(--fill);
+  }
+
+  .theme-seg {
+    display: none;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    margin: 0;
+  }
+  .theme-seg legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .theme-seg button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 2.75rem;
+    min-width: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: 500 0.875rem/1 var(--font-sans);
+    cursor: pointer;
+    transition: background-color var(--duration-color) var(--ease-color);
+  }
+  .theme-seg button:hover {
+    background: var(--fill);
+  }
+  .theme-seg .ck {
+    display: none;
+  }
+  .theme-seg button[aria-pressed='true'] {
+    background: var(--text);
+    color: var(--paper);
+  }
+  .theme-seg button[aria-pressed='true'] .ck {
+    display: block;
+  }
+  @media (forced-colors: active) {
+    .theme-seg button[aria-pressed='true'] {
+      background: Highlight;
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hdr-r > nav {
+      display: flex;
+    }
+    .menu-pill,
+    .theme-btn {
+      display: none;
+    }
+    .theme-seg {
+      display: inline-flex;
+    }
+    .hdr-r {
+      gap: 20px;
+    }
+  }
+
+  /* Menu dialog. The dialog fills the viewport so a click on it is a click on
+     the scrim, and the panel floats under the header. */
+  .menu-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    overflow: hidden;
+  }
+  .menu-dialog::backdrop {
+    background: var(--scrim);
+  }
+  .menu-panel {
+    position: absolute;
+    top: calc(var(--hdr) - 8px);
+    right: var(--gutter);
+    left: var(--gutter);
+    max-width: 24rem;
+    margin-left: auto;
+    padding: 12px;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+  }
+  .menu-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 2.75rem;
+    margin-bottom: 4px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    background: none;
+    color: var(--text);
+    font: 500 0.9375rem/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .menu-close:hover {
+    background: var(--fill);
+  }
+  .menu-panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .menu-panel nav a {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0 12px;
+    border-radius: 12px;
+    font: 400 1.75rem/1 var(--font-display);
+    text-decoration: none;
+  }
+  .menu-panel nav a:hover {
+    background: var(--fill);
+  }
+  .menu-panel nav a[aria-current] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .menu-dialog[open] .menu-panel {
+      transition:
+        transform var(--duration-sheet) var(--ease-drawer),
+        opacity var(--duration-sheet) var(--ease-drawer);
+      @starting-style {
+        transform: translateY(-12px);
+        opacity: 0;
+      }
+    }
+    .menu-dialog[open]::backdrop {
+      transition: background-color var(--duration-sheet) var(--ease-drawer);
+      @starting-style {
+        background-color: transparent;
+      }
+    }
+  }
+
+  .foot {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 72px var(--gutter) 40px;
+    display: grid;
+    gap: 32px;
+  }
+  .foot nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 28px;
+  }
+  .foot .big a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    font: 400 1.75rem/1 var(--font-display);
+    text-decoration: none;
+  }
+  .foot .big a:hover {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+  .foot .small a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    margin-right: 20px;
+  }
+  .foot p {
+    margin: 0;
+    color: var(--text-2);
+    font-size: 0.9375rem;
+  }
+  .foot .base {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+  .foot .addr2 {
+    user-select: all;
+    overflow-wrap: anywhere;
+  }
+  .foot .tl {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-weight: 500;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+  }
+}

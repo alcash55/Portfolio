@@ -1,0 +1,432 @@
+/*
+ * Figure styles. Plain CSS, unlayered, so they sit above the Tailwind base layer
+ * without a specificity contest. Colors, type and easing come from the tokens in
+ * styles.css.
+ */
+
+/* ---------- Diagram ---------- */
+.dg {
+  margin: 0;
+  display: grid;
+  gap: 20px;
+}
+.dg h2 {
+  margin: 0;
+}
+.dg-svg {
+  display: none;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  max-height: 70svh;
+  overflow: visible;
+}
+.dg-svg text {
+  font-family: var(--font-sans);
+}
+.dg .n rect {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+}
+.dg .n.plan rect {
+  stroke-dasharray: 7 5;
+  fill: var(--paper);
+}
+.dg .n .l {
+  font-size: 17px;
+  font-weight: 500;
+  fill: var(--text);
+}
+.dg .n .s {
+  font-size: 14px;
+  fill: var(--text-2);
+}
+.dg .e path {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dg .e.plan path.ln {
+  stroke-dasharray: 7 6;
+}
+.dg .e .b circle {
+  fill: var(--text);
+}
+.dg .e .b text {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--paper);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.dg .stub {
+  font-size: 14px;
+  fill: var(--text-2);
+}
+.flows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  counter-reset: f;
+}
+.flows li {
+  position: relative;
+  padding-left: 40px;
+  line-height: 1.45;
+  color: var(--text-2);
+  counter-increment: f;
+}
+.flows li::before {
+  content: counter(f);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--paper);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+}
+.flows .plan {
+  font-style: italic;
+}
+.alt-t {
+  margin: 0;
+  max-width: 72ch;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.alt-t b {
+  color: var(--text);
+  font-weight: 500;
+}
+@media (min-width: 960px) {
+  .dg-svg {
+    display: block;
+  }
+  .flows {
+    display: none;
+  }
+}
+/* The server HTML is the finished diagram. `run` is added once, in the browser,
+   and plays each edge in from a dim start. `backwards` holds that start through
+   the delay and lets the edge settle on its normal style afterwards. */
+@keyframes dg-edge-in {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dg.run .e {
+    animation: dg-edge-in 500ms var(--ease-color) calc(var(--i) * 380ms) backwards;
+  }
+}
+
+/* ---------- Checks figure ---------- */
+.checks {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow-1);
+}
+.ck-h {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.ck-h span:last-child {
+  color: var(--accent);
+}
+.ck-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.ck-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+}
+.ck-row:first-child {
+  border-top: 0;
+}
+.ico {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+}
+.ico svg {
+  position: absolute;
+  inset: 0;
+}
+.spin {
+  opacity: 0;
+  color: var(--text-3);
+}
+.nm {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.nm code {
+  font:
+    500 0.9375rem/1.25 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  overflow-wrap: break-word;
+}
+.ds {
+  color: var(--text-2);
+  font-size: 0.8125rem;
+}
+.st {
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.ck-f {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 0.8125rem;
+}
+.ck-f code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+@keyframes ck-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ck-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ck-st {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ck-vis {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+/* Every row is passed in the HTML. The spinner shows only while the row waits its turn. */
+@media (prefers-reduced-motion: no-preference) {
+  .checks.run .ck-row {
+    --t: calc(var(--i) * 520ms + 600ms);
+  }
+  .checks.run .tick {
+    animation: ck-in 320ms var(--ease-lift) var(--t) backwards;
+  }
+  .checks.run .st {
+    animation: ck-st 240ms linear var(--t) backwards;
+  }
+  .checks.run .spin {
+    animation:
+      ck-spin 700ms linear infinite,
+      ck-vis var(--t) linear;
+  }
+}
+
+/* ---------- Media ---------- */
+.mfig {
+  margin: 0;
+  position: relative;
+}
+.mbox {
+  position: relative;
+  border-radius: 28px;
+  background: var(--wash);
+  overflow: clip;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 2 / 1;
+}
+.mbox video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vctl {
+  display: grid;
+  position: absolute;
+  z-index: 6;
+  right: 12px;
+  bottom: 12px;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+.vctl:focus-visible {
+  outline: 3px solid var(--paper);
+  box-shadow: 0 0 0 3px var(--ring);
+  outline-offset: 0;
+  border-radius: 50%;
+}
+.vctl .i-play {
+  display: none;
+}
+.vctl[data-state='paused'] .i-play {
+  display: block;
+}
+.vctl[data-state='paused'] .i-pause {
+  display: none;
+}
+.frame {
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  position: relative;
+}
+.frame .bar {
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+.frame .bar i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  flex: none;
+}
+/* Window controls in the standard close, minimize, zoom order and colors. */
+.bar i:nth-of-type(1) {
+  background: #ff5f57;
+}
+.bar i:nth-of-type(2) {
+  background: #febc2e;
+}
+.bar i:nth-of-type(3) {
+  background: #28c840;
+}
+.frame .mbox {
+  border-radius: 0;
+  aspect-ratio: 2 / 1;
+}
+.gal .mbox video {
+  background: #000;
+}
+.gthumbs {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (min-width: 700px) {
+  .gthumbs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.gth {
+  all: unset;
+  position: relative;
+  z-index: 2; /* above the home chapters' stretched .go link overlay */
+  box-sizing: border-box;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font: 500 0.9375rem/1.2 var(--font-sans);
+  color: var(--text);
+}
+.gth img {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+.gth span {
+  padding: 0 4px 4px;
+}
+.gth:hover {
+  border-color: var(--line-strong);
+}
+.gth[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.gth:focus-visible {
+  outline: 3px solid var(--paper);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.mcap {
+  margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 14px 20px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.mcap strong {
+  font: 400 1.375rem/1.1 var(--font-display);
+  word-spacing: 0.05em;
+}
+.mcap span {
+  color: var(--text-2);
+  font-size: 0.9375rem;
+}

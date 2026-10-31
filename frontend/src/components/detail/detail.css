@@ -1,0 +1,330 @@
+/*
+ * Detail pages. Plain CSS, unlayered, so it sits above the Tailwind base layer
+ * without a specificity contest. The generic names (.stack, .acts, .btn) are scoped
+ * under .pg and .dband: unlayered rules beat the home page's layered ones, and this
+ * file stays loaded after a client-side navigation back to the home page.
+ */
+:root {
+  --crumb: 3.25rem;
+}
+
+/* ---------- Sticky breadcrumb ---------- */
+.crumb {
+  position: sticky;
+  top: var(--hdr);
+  z-index: 19;
+  height: var(--crumb);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.crumb-in {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.crumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 2.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  flex: none;
+  /* The crumb sits inside the band it would otherwise scroll clear of, so its own
+     link takes no margin. Otherwise focusing it scrolls the page. */
+  scroll-margin-top: 0;
+}
+.crumb a:hover span {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.crumb .sep {
+  color: var(--text-3);
+  flex: none;
+}
+.crumb .cur {
+  color: var(--text-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Anything on the page that can take focus or a hash stays clear of the header
+   and the crumb together (SC 2.4.11). */
+.pg :is(a[href], button, [tabindex], [id]),
+.dband :is(a[href], button, input, textarea, [tabindex], [id]) {
+  scroll-margin-top: calc(var(--hdr) + var(--crumb) + 16px);
+}
+
+/* ---------- Page ---------- */
+.pg {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.top {
+  padding: 32px 0 8px;
+}
+.top h1 {
+  margin: 0;
+  font: 400 clamp(2rem, 1.4rem + 2.2vw, 3.25rem) / 1.06 var(--font-display);
+  letter-spacing: -0.02em;
+  word-spacing: 0.06em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.top-g {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+.sum {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: 46ch;
+}
+.pg .stack {
+  margin: 14px 0 0;
+  color: var(--text-3);
+  font-size: 0.9375rem;
+  max-width: 60ch;
+}
+.status {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--fill);
+  border: 1px solid var(--line);
+  max-width: 54ch;
+  font-size: 0.9375rem;
+}
+.status b {
+  font-weight: 600;
+}
+.pg .acts {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.pg .acts .note {
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25em 0.5em;
+  min-height: 2.75rem;
+  font-size: 1rem;
+}
+.pg .acts .itch-n {
+  margin: 0;
+  flex-basis: 100%;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+}
+@media (min-width: 768px) {
+  .top-g {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .pg .acts {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  :is(.pg, .dband) .btn {
+    white-space: nowrap;
+    padding: 0 24px;
+  }
+}
+
+/* ---------- Buttons ---------- */
+:is(.pg, .dband) .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 3rem;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font: 500 1rem/1.2 var(--font-sans);
+  text-decoration: none;
+  text-align: center;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 100ms linear,
+    transform 300ms var(--ease-lift);
+}
+:is(.pg, .dband) .btn svg {
+  flex: none;
+}
+:is(.pg, .dband) .btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+:is(.pg, .dband) .btn-primary:hover {
+  background: var(--accent-hover);
+}
+:is(.pg, .dband) .btn-2 {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: transparent;
+}
+:is(.pg, .dband) .btn-2:hover {
+  background: var(--fill);
+}
+:is(.pg, .dband) .btn:active {
+  transform: translateY(1px);
+}
+
+/* ---------- Sections ---------- */
+.sec {
+  margin-top: 56px;
+}
+.sec h2 {
+  margin: 0;
+  font: 400 clamp(1.625rem, 1.3rem + 1vw, 2rem) / 1.1 var(--font-display);
+  letter-spacing: -0.015em;
+  word-spacing: 0.06em;
+}
+.panel {
+  border-radius: 28px;
+  background: var(--wash);
+  padding: 24px 16px;
+}
+@media (min-width: 768px) {
+  .panel {
+    padding: 40px 32px;
+  }
+}
+
+/* ---------- Built, measured ---------- */
+.built {
+  display: grid;
+  gap: 20px;
+}
+.built .ps {
+  display: grid;
+  gap: 18px;
+}
+.built p {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+@media (min-width: 900px) {
+  .built {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
+    gap: 48px;
+  }
+}
+.facts {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fact {
+  display: grid;
+  gap: 8px 32px;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+.fact .lead {
+  font: 400 1.5rem/1.1 var(--font-display);
+  letter-spacing: -0.015em;
+  word-spacing: 0.05em;
+  overflow-wrap: anywhere;
+}
+.fact .body {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--text-2);
+  max-width: 62ch;
+}
+@media (min-width: 768px) {
+  .fact {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: baseline;
+  }
+  .fact .lead {
+    font-size: 1.75rem;
+  }
+}
+
+/* ---------- Next ---------- */
+.next {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 80px;
+  padding: 20px 24px;
+  border-radius: 28px;
+  background: var(--band);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  transition: background-color 320ms var(--ease-color);
+}
+.next:hover {
+  background: var(--wash);
+}
+.next span {
+  font: 400 clamp(1.25rem, 1rem + 0.8vw, 1.625rem) / 1.15 var(--font-display);
+  letter-spacing: -0.02em;
+  word-spacing: 0.05em;
+  overflow-wrap: anywhere;
+}
+.next svg {
+  flex: none;
+}
+
+/* ---------- Message band ---------- */
+.dband {
+  margin: 56px var(--panel-gap) 0;
+  border-radius: 28px;
+  background: var(--band);
+  border: 1px solid var(--line-soft);
+}
+.dband-in {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 32px var(--gutter) 40px;
+  display: grid;
+  gap: 28px;
+}
+.dband h2 {
+  margin: 0;
+  font: 400 clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem) / 1.08 var(--font-display);
+  letter-spacing: -0.015em;
+  word-spacing: 0.06em;
+}
+.dband-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+.dband-mail {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+@media (min-width: 900px) {
+  .dband-in {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 64px;
+    align-items: start;
+    padding: 40px 48px 48px;
+  }
+}

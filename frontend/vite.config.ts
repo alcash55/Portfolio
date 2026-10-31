@@ -1,45 +1,28 @@
-// The `vitest/config` import below carries the `test` block's types, so the
-// triple-slash reference this file used to need is redundant (and is an
-// eslint error under @typescript-eslint/triple-slash-reference).
 import { defineConfig, loadEnv } from 'vite';
-import { configDefaults } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { cloudflare } from '@cloudflare/vite-plugin';
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import viteReact from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { assertNoCredentialShapedViteEnv } from './scripts/assert-no-vite-secrets.mjs';
 
 export default defineConfig(({ mode, command }) => {
-  const envDir = './src';
-
-  // Fails the build if a VITE_-prefixed env var looks like a credential
-  // (see scripts/assert-no-vite-secrets.mjs). Scoped to `command === 'build'`
-  // (not `serve`) so local dev iteration on an env var isn't blocked before
-  // it's ever going to reach a bundle.
+  // Vite inlines every VITE_ value into the public bundle. Fail the build if one
+  // looks like a credential (see scripts/assert-no-vite-secrets.mjs). Build only,
+  // so dev iteration on an env var is never blocked.
   if (command === 'build') {
-    assertNoCredentialShapedViteEnv(loadEnv(mode, envDir, ''));
+    assertNoCredentialShapedViteEnv(loadEnv(mode, process.cwd(), ''));
   }
 
   return {
-    envDir,
-    build: {
-      outDir: './dist',
-    },
-    assetsInclude: ['**/*.pdf'],
-    base: '/Portfolio/',
-    plugins: [react()],
-    server: {
-      port: 3005,
-      host: 'localhost',
-      open: true,
-    },
-    test: {
-      environment: 'jsdom',
-      globals: true,
-      setupFiles: ['./src/setupTests.ts'],
-      // Vitest's default include is `**/*.{test,spec}.?(c|m)[jt]s?(x)`, which
-      // also matches the Playwright specs under e2e/. Collecting those throws
-      // "Playwright Test did not expect test.describe() to be called here",
-      // since the two runners' `test` exports are different APIs. The e2e
-      // suite has its own runner and config -- `bun run test:e2e`.
-      exclude: [...configDefaults.exclude, 'e2e/**'],
-    },
+    server: { port: 3005, host: 'localhost' },
+    resolve: { tsconfigPaths: true },
+    plugins: [
+      // The Cloudflare plugin must run the SSR environment, and the React plugin
+      // must come after Start's plugin.
+      cloudflare({ viteEnvironment: { name: 'ssr' } }),
+      tanstackStart(),
+      viteReact(),
+      tailwindcss(),
+    ],
   };
 });

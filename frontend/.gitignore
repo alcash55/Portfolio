@@ -1,0 +1,9 @@
+.wrangler/
+.dev.vars
+.tanstack/
+dist/
+e2e/test-results/
+e2e/playwright-report/
+public/play/
+public/resume.pdf
+src/generated/
