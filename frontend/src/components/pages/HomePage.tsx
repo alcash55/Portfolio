@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { ChecksFigure, Diagram, Gallery, RevealVideo } from '~/components/figures';
+import { ChecksFigure, Gallery, HomeDiagram, RevealVideo } from '~/components/figures';
 import { Home } from '~/components/home/Home';
 import { PeopleSections } from '~/components/people/PeopleSections';
-import { DETAILS, SOLEA_DIAGRAM, type DetailSlug } from '~/content/projects';
+import { DETAILS, HOME_DIAGRAMS, type DetailSlug } from '~/content/projects';
 import type { ProjectSlug } from '~/content/pages';
 
 function mediaFigure(slug: DetailSlug): ReactNode {
@@ -30,11 +30,6 @@ function mediaFigure(slug: DetailSlug): ReactNode {
   }
 }
 
-function diagramFigure(slug: DetailSlug): ReactNode {
-  const { name, diagram } = DETAILS[slug];
-  return <Diagram name={name} diagram={diagram} />;
-}
-
 const PROJECT_FIGURES: Partial<Record<ProjectSlug, ReactNode>> = {
   'portfolio-website': mediaFigure('portfolio-website'),
   'game-competition-website': mediaFigure('game-competition-website'),
@@ -52,9 +47,9 @@ export function HomePage() {
       after={
         <PeopleSections
           figures={{
-            experience: <Diagram name="Solea Energy" diagram={SOLEA_DIAGRAM} />,
-            'ncr-voyix': diagramFigure('ncr-voyix-docs'),
-            'ncr-store-health': diagramFigure('starbucks-store-health'),
+            experience: <HomeDiagram diagram={HOME_DIAGRAMS.solea} />,
+            'ncr-voyix': <HomeDiagram diagram={HOME_DIAGRAMS['ncr-voyix']} />,
+            'ncr-store-health': <HomeDiagram diagram={HOME_DIAGRAMS['ncr-store-health']} />,
           }}
         />
       }

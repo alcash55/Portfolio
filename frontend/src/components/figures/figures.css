@@ -135,6 +135,112 @@
   }
 }
 
+/* ---------- Home diagram ---------- */
+/* The tall variant the home chapters draw at every width. Its own class names keep
+   it clear of the wide .dg rules above, which hide the drawing under 960px. */
+.hd {
+  position: relative;
+  padding: 8px 18px 12px;
+}
+.hd-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.hd-svg text {
+  font-family: var(--font-sans);
+}
+.hd-svg .n rect {
+  fill: var(--surface-2);
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+}
+.hd-svg .n .l {
+  font-size: 16px;
+  font-weight: 500;
+  fill: var(--text);
+}
+.hd-svg .n .s {
+  font-size: 15px;
+  fill: var(--text-2);
+}
+.hd-svg .e path,
+.hd-svg .n > path {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hd-svg .n.in rect {
+  fill: var(--surface);
+}
+/* The text version stays in the DOM for screen readers and does not print in the frame. */
+.hd-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 900px) {
+  .hd-svg {
+    height: min(calc(100svh - var(--hdr) - 13rem), 34rem);
+  }
+}
+/* Each edge draws in accent green, thick, then settles to the normal stroke. */
+@keyframes hd-line {
+  0% {
+    opacity: 0.2;
+    stroke: var(--accent);
+    stroke-width: 4.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  45% {
+    opacity: 1;
+    stroke: var(--accent);
+    stroke-width: 4.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke: var(--text-3);
+    stroke-width: 2;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hd-head {
+  0%,
+  30% {
+    opacity: 0.2;
+    stroke: var(--accent);
+    stroke-width: 4.5;
+  }
+  60% {
+    opacity: 1;
+    stroke: var(--accent);
+    stroke-width: 4.5;
+  }
+  100% {
+    stroke: var(--text-3);
+    stroke-width: 2;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hd.run .e .ln {
+    animation: hd-line 1500ms ease backwards;
+    animation-delay: calc(var(--i) * 520ms);
+  }
+  .hd.run .e path:not(.ln) {
+    animation: hd-head 1500ms ease backwards;
+    animation-delay: calc(var(--i) * 520ms);
+  }
+}
+
 /* ---------- Checks figure ---------- */
 .checks {
   max-width: 34rem;
