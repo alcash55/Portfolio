@@ -9,6 +9,7 @@ import {
   type FormEvent,
   type MouseEvent,
 } from 'react';
+import { CONTACT_EMAIL } from '~/content/people';
 import './contact.css';
 import { CopyEmailButton } from './CopyEmailButton';
 import { defaultSendDeps } from './defaultDeps';
@@ -22,7 +23,6 @@ import {
   type ContactValues,
 } from './validate';
 
-export const CONTACT_EMAIL = 'alex.e.cash28@gmail.com';
 
 // Shown after this long without a reply, so a cold API host reads as slow, not broken.
 const SLOW_HINT_MS = 4000;
