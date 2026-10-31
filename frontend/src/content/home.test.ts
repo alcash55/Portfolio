@@ -80,7 +80,7 @@ describe('project chapters', () => {
       'One command turns a YouTube or Twitch clip into a captioned, upload-ready Short. 387 tests pass.',
     );
     expect(proof('vscode-royalty-theme')).toBe(
-      'Keyword contrast raised from 2.96:1 to 8.1:1. A build check blocks any colour below WCAG AA.',
+      'Keyword contrast raised from 2.96:1 to 8.1:1. A build check blocks any color below WCAG AA.',
     );
   });
 

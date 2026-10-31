@@ -46,7 +46,7 @@ export type DiagramEdge =
       /** The flow written out. Null draws the arrow without a number or a sentence. */
       readonly text: string | null;
     })
-  /** An arrow that leaves the diagram, labelled "The build". */
+  /** An arrow that leaves the diagram, labeled "The build". */
   | (EdgeBase & { readonly kind: 'exit'; readonly text: string });
 
 export interface Diagram {
@@ -597,7 +597,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     kind: 'project',
     name: 'VS Code Royalty Theme', // RV-01
     summary:
-      'A VS Code colour theme built from the colours of 16th to 19th century European royalty: white, gold and purple. Version 3 rebuilds it so every colour it ships passes WCAG AA.', // RV-02
+      'A VS Code color theme built from the colors of 16th to 19th century European royalty: white, gold and purple. Version 3 rebuilds it so every color it ships passes WCAG AA.', // RV-02
     stack: 'VS Code, Node.js, JSON', // RV-03
     links: [
       {
@@ -616,14 +616,14 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     diagram: {
       nodes: [
-        node('pal', 'Palette module', 'One source of colour', 0, 90),
+        node('pal', 'Palette module', 'One source of color', 0, 90),
         node('gen', 'Theme generator', 'Writes the theme JSON', 1, 0),
         node('json', 'Theme JSON', 'Replaces 2110 lines', 2, 0),
         node('mk', 'VS Code Marketplace', 'v3.0.0 not yet published', 3, 0, true),
-        node('cc', 'Contrast check', '174 colour pairs', 1, 180),
+        node('cc', 'Contrast check', '174 color pairs', 1, 180),
       ],
       edges: [
-        link('pal', 'r', 'gen', 'l', 'Palette module to Theme generator: one source of colour.', {
+        link('pal', 'r', 'gen', 'l', 'Palette module to Theme generator: one source of color.', {
           fromAt: 0.3,
           toAt: 0.5,
         }),
@@ -639,7 +639,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'r',
           'cc',
           'l',
-          'Palette module to Contrast check: 174 colour pairs against their surface.',
+          'Palette module to Contrast check: 174 color pairs against their surface.',
           { fromAt: 0.7, toAt: 0.5 },
         ),
         exit('cc', 'r', 'Contrast check to the build: fails on any regression.'),
@@ -652,16 +652,16 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           { fromAt: 0.5, toAt: 0.5, planned: true },
         ),
       ],
-      alt: 'One palette module is the source of every colour. A generator writes the theme JSON from it, replacing 2110 lines kept by hand. A contrast check measures 174 colour pairs against the surface each one renders on and fails the build on any regression. The theme JSON is packaged for the VS Code Marketplace, where version 3.0.0 is not yet published, so that link is dashed.',
+      alt: 'One palette module is the source of every color. A generator writes the theme JSON from it, replacing 2110 lines kept by hand. A contrast check measures 174 color pairs against the surface each one renders on and fails the build on any regression. The theme JSON is packaged for the VS Code Marketplace, where version 3.0.0 is not yet published, so that link is dashed.',
     },
     built: [
-      'v3.0.0 was an accessibility rebuild. Five of nine syntax colours were below WCAG AA against the editor background, with keywords at 2.96:1 and storage types at 2.45:1.', // RV-05
-      'The background was the cause, since nothing reaches AA against a mid-tone grey-purple. I moved it to a deep plum and rebuilt the palette on top. The theme JSON is now generated from one palette module instead of hand-maintained across 2110 lines.', // RV-06
+      'v3.0.0 was an accessibility rebuild. Five of nine syntax colors were below WCAG AA against the editor background, with keywords at 2.96:1 and storage types at 2.45:1.', // RV-05
+      'The background was the cause, since nothing reaches AA against a mid-tone gray-purple. I moved it to a deep plum and rebuilt the palette on top. The theme JSON is now generated from one palette module instead of hand-maintained across 2110 lines.', // RV-06
     ],
     facts: [
       {
         lead: '174 of 174 pass AA',
-        body: 'All 174 colour pairs pass WCAG AA, and 158 pass AAA. `npm run check` fails the build on any regression.', // RV-07
+        body: 'All 174 color pairs pass WCAG AA, and 158 pass AAA. `npm run check` fails the build on any regression.', // RV-07
       },
       {
         lead: '2.96:1 to 8.1:1',

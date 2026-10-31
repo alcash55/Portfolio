@@ -22,7 +22,7 @@ describe('Home', () => {
       'CI that 11 of my repos share',
       'From a clip to a Short with one command',
       'Dig deep, get rich, wake the golems',
-      'A colour theme that passes contrast checks',
+      'A color theme that passes contrast checks',
     ]);
   });
 

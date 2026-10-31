@@ -271,15 +271,15 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     n: 7,
     id: 'vscode-royalty-theme',
     overline: 'VS Code Royalty Theme',
-    heading: 'A colour theme that passes contrast checks',
+    heading: 'A color theme that passes contrast checks',
     paragraphs: [
       {
         kind: 'body',
-        text: 'A VS Code theme in white, gold and purple. Version 3 rebuilds it so every colour passes WCAG AA.',
+        text: 'A VS Code theme in white, gold and purple. Version 3 rebuilds it so every color passes WCAG AA.',
       },
       {
         kind: 'proof',
-        text: 'Keyword contrast raised from 2.96:1 to 8.1:1. A build check blocks any colour below WCAG AA.',
+        text: 'Keyword contrast raised from 2.96:1 to 8.1:1. A build check blocks any color below WCAG AA.',
       },
     ],
     links: [

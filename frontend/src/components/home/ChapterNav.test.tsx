@@ -70,7 +70,7 @@ describe('ChapterNav counter', () => {
 });
 
 describe('ChapterNav index', () => {
-  it('lists all twelve chapters in four labelled groups, with the current one marked', () => {
+  it('lists all twelve chapters in four labeled groups, with the current one marked', () => {
     render(<Page />);
     const nav = screen.getByRole('navigation', { name: 'Chapters', hidden: true });
     const groups = within(nav).getAllByRole('heading', { level: 3, hidden: true });

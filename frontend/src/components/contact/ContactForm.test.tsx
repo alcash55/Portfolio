@@ -44,7 +44,7 @@ describe('ContactForm', () => {
     vi.useRealTimers();
   });
 
-  it('shows three labelled required fields, a hint, a counter and the fallback address', () => {
+  it('shows three labeled required fields, a hint, a counter and the fallback address', () => {
     setup(vi.fn<typeof fetch>());
 
     expect(screen.getByRole('form', { name: 'Message Alex' })).toBeInTheDocument();

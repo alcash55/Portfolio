@@ -73,7 +73,7 @@ describe('layoutDiagram', () => {
     expect(clipper.flows.filter((f) => f.planned)).toHaveLength(1);
   });
 
-  it('turns an exit edge into a stub that reaches past the last node, labelled for the build', () => {
+  it('turns an exit edge into a stub that reaches past the last node, labeled for the build', () => {
     const layout = layoutDiagram(DETAILS['vscode-royalty-theme'].diagram);
     const stub = layout.edges.find((e) => e.kind === 'exit');
     expect(stub).toMatchObject({

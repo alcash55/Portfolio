@@ -62,7 +62,7 @@ const PROJECTS = [
     h1: 'VS Code Royalty Theme',
     title: 'VS Code Royalty Theme, work by Alex Cash',
     description:
-      'A VS Code theme in white, gold and purple. Version 3 rebuilds it so every colour passes WCAG AA.',
+      'A VS Code theme in white, gold and purple. Version 3 rebuilds it so every color passes WCAG AA.',
   },
 ] as const satisfies readonly ContentPage[];
 

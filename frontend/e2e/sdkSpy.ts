@@ -12,7 +12,7 @@ export function watchForSdk(page: Page): string[] {
     try {
       if ((await response.text()).includes('__PosthogExtensions__')) hits.push(response.url());
     } catch {
-      // A script that was cancelled mid-flight has no body to read.
+      // A script that was canceled mid-flight has no body to read.
     }
   });
   return hits;
