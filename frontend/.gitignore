@@ -9,3 +9,4 @@ e2e/playwright-report/
 public/play/
 public/resume.pdf
 src/generated/
+.lighthouseci/

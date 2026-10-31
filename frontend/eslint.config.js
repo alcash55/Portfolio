@@ -12,6 +12,9 @@ export default tseslint.config(
       '.tanstack',
       'e2e/test-results',
       'e2e/playwright-report',
+      'e2e/test-results-analytics',
+      'e2e/playwright-report-analytics',
+      '.lighthouseci',
       'src/routeTree.gen.ts',
       'worker-configuration.d.ts',
     ],
@@ -19,6 +22,10 @@ export default tseslint.config(
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
+  {
+    files: ['**/*.{js,cjs,mjs}'],
+    languageOptions: { globals: globals.node },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
