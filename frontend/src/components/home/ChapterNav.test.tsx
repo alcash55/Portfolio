@@ -45,9 +45,11 @@ function Page() {
 describe('ChapterNav counter', () => {
   it('starts on chapter 1 with an accessible name that says where you are', () => {
     render(<Page />);
+    // The name is built from the visible text, so it always contains it (WCAG 2.5.3).
     const button = screen.getByRole('button', {
-      name: 'Chapter 1 of 12, About me. Open chapter index',
+      name: 'Chapter 01 / 12 · About me. Open chapter index',
     });
+    expect(button).not.toHaveAttribute('aria-label');
     expect(button).toHaveTextContent('01 / 12 · About me');
     expect(button).toHaveAttribute('popovertarget', 'cidx');
   });
@@ -56,14 +58,14 @@ describe('ChapterNav counter', () => {
     render(<Page />);
     act(() => fire([{ target: document.getElementById('golem-miners')!, isIntersecting: true }]));
     expect(
-      screen.getByRole('button', { name: 'Chapter 6 of 12, Golem Miners. Open chapter index' }),
+      screen.getByRole('button', { name: 'Chapter 06 / 12 · Golem Miners. Open chapter index' }),
     ).toHaveTextContent('06 / 12 · Golem Miners');
   });
 
   it('ignores a chapter that is leaving', () => {
     render(<Page />);
     act(() => fire([{ target: document.getElementById('golem-miners')!, isIntersecting: false }]));
-    expect(screen.getByRole('button', { name: /^Chapter 1 of 12/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Chapter 01 \/ 12/ })).toBeInTheDocument();
   });
 });
 

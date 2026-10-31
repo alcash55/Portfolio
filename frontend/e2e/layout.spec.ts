@@ -17,6 +17,8 @@ for (const path of ['/', '/projects/clipper', '/no-such-page']) {
       const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
       return Math.round(el.getBoundingClientRect().height / lineHeight);
     });
-    expect(lines, 'wordmark line count').toBe(1);
+    // The home route puts the chapter counter in the header and hides the wordmark text
+    // below 480px to make room. The mark keeps its "Alex Cash, home" name.
+    expect(lines, 'wordmark line count').toBe(path === '/' ? 0 : 1);
   });
 }

@@ -59,10 +59,6 @@ export function chapterNumber(n: number): string {
   return String(n).padStart(2, '0');
 }
 
-export function chapterAriaLabel(n: number, title: string): string {
-  return `Chapter ${n} of ${CHAPTER_COUNT}, ${title}. Open chapter index`;
-}
-
 export const ABOUT = {
   id: 'about',
   overline: 'About me',

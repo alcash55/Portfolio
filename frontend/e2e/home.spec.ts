@@ -35,7 +35,7 @@ test.describe('home, chapter index', () => {
   }) => {
     await page.goto('/');
     const counter = page.locator('#ctr');
-    await expect(counter).toHaveAccessibleName(/^Chapter 1 of 12, About me\./);
+    await expect(counter).toHaveAccessibleName(/^Chapter 01 \/ 12 · About me\s*\./);
     await counter.click();
     const index = page.locator('#cidx');
     await expect(index).toBeVisible();
@@ -72,7 +72,7 @@ test.describe('home, chapter index', () => {
     await page.goto('/');
     await page.locator('#clipper').scrollIntoViewIfNeeded();
     await page.evaluate(() => document.getElementById('clipper')?.scrollIntoView());
-    await expect(page.locator('#ctr')).toHaveAccessibleName(/^Chapter 5 of 12, Clipper\./);
+    await expect(page.locator('#ctr')).toHaveAccessibleName(/^Chapter 05 \/ 12 · Clipper\s*\./);
     await expect(page.locator('#ctr b')).toHaveText('05');
   });
 });
@@ -80,9 +80,7 @@ test.describe('home, chapter index', () => {
 test.describe('home, reveal', () => {
   test.use({ viewport: VIEWPORTS.desktop });
 
-  test('hides only below-the-fold chapters, then shows each once in view', async ({
-    page,
-  }) => {
+  test('hides only below-the-fold chapters, then shows each once in view', async ({ page }) => {
     await page.goto('/');
     const prose = page.locator('#clipper .prose');
     await expect(prose).toHaveAttribute('data-rv', 'wait');

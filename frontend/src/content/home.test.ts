@@ -5,7 +5,6 @@ import {
   CHAPTER_GROUPS,
   PROJECTS_INTRO,
   PROJECT_CHAPTERS,
-  chapterAriaLabel,
   chapterTitle,
   chapterNumber,
 } from './home';
@@ -38,14 +37,11 @@ describe('chapter index', () => {
     expect(CHAPTER_COUNT).toBe(12);
   });
 
-  it('formats the header counter number and its accessible name', () => {
+  it('formats the header counter number and title', () => {
     expect(chapterNumber(1)).toBe('01');
     expect(chapterNumber(12)).toBe('12');
     expect(chapterTitle(6)).toBe('Golem Miners');
     expect(() => chapterTitle(13)).toThrow('No chapter 13');
-    expect(chapterAriaLabel(6, 'Golem Miners')).toBe(
-      'Chapter 6 of 12, Golem Miners. Open chapter index',
-    );
   });
 });
 

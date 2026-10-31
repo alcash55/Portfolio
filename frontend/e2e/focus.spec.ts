@@ -10,7 +10,9 @@ test('focusing a header control does not move the scroll position', async ({ pag
   await page.goto('/');
   await page.addStyleTag({ content: 'main { min-height: 3000px; }' });
   await page.evaluate(() => window.scrollTo(0, 1200));
-  expect(await page.evaluate(() => window.scrollY)).toBe(1200);
+  // The home page snaps to a chapter edge, so the start is wherever the snap landed.
+  const start = await page.evaluate(() => window.scrollY);
+  expect(start).toBeGreaterThan(0);
 
   const controls = page
     .locator('header')
@@ -25,7 +27,7 @@ test('focusing a header control does not move the scroll position', async ({ pag
     expect(
       await page.evaluate(() => window.scrollY),
       `scrollY after focusing header control ${i}`,
-    ).toBe(1200);
+    ).toBe(start);
   }
 });
 

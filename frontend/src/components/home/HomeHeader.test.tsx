@@ -7,7 +7,7 @@ describe('header on the home route', () => {
     await renderShell('/');
     const header = screen.getByRole('banner');
     expect(
-      within(header).getByRole('button', { name: /^Chapter 1 of 12, About me/ }),
+      within(header).getByRole('button', { name: /^Chapter 01 \/ 12 · About me/ }),
     ).toBeInTheDocument();
     expect(
       within(header).getByRole('navigation', { name: 'Primary', hidden: true }),
@@ -17,7 +17,7 @@ describe('header on the home route', () => {
 
   it('leaves other routes without a counter', async () => {
     await renderShell('/projects/clipper');
-    expect(screen.queryByRole('button', { name: /^Chapter \d+ of 12/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Chapter \d+ \/ 12/ })).toBeNull();
     expect(screen.getByRole('banner').querySelector('.prog')).toBeNull();
   });
 });

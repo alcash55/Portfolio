@@ -3,7 +3,6 @@ import {
   CHAPTER_COUNT,
   CHAPTER_GROUPS,
   CHAPTER_INDEX_TITLE,
-  chapterAriaLabel,
   chapterNumber,
   chapterTitle,
 } from '~/content/home';
@@ -90,16 +89,12 @@ export function ChapterNav() {
 
   return (
     <>
-      <button
-        className="ctr"
-        id="ctr"
-        type="button"
-        popoverTarget={POPOVER_ID}
-        aria-label={chapterAriaLabel(current, title)}
-      >
+      <button className="ctr" id="ctr" type="button" popoverTarget={POPOVER_ID}>
+        {/* No aria-label: the name comes from the visible text, so it contains it. */}
         <span className="ctr-t">
-          <b>{chapterNumber(current)}</b> / {CHAPTER_COUNT}
-          <span> &middot; {title}</span>
+          <span className="sr">Chapter</span> <b>{chapterNumber(current)}</b> / {CHAPTER_COUNT}{' '}
+          &middot; {title}
+          <span className="sr">. Open chapter index</span>
         </span>
         <svg
           width="14"
