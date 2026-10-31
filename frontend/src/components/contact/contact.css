@@ -212,3 +212,21 @@
 .ct-btn-2:hover {
   background: var(--fill);
 }
+
+.ct-copy {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-left: 12px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: 500 0.9375rem/1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color var(--duration-press) linear;
+}
+.ct-copy:hover {
+  background: var(--fill);
+}

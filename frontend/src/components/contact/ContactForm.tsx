@@ -10,6 +10,7 @@ import {
   type MouseEvent,
 } from 'react';
 import './contact.css';
+import { CopyEmailButton } from './CopyEmailButton';
 import { defaultSendDeps } from './defaultDeps';
 import { sendContact, type ContactErrorKind, type SendDeps } from './sendContact';
 import {
@@ -334,6 +335,7 @@ function EmailLine() {
   return (
     <p className="ct-line">
       Or email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+      <CopyEmailButton address={CONTACT_EMAIL} />
     </p>
   );
 }
