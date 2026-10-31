@@ -18,7 +18,7 @@ export function MessageBand({ form }: MessageBandProps) {
         </h2>
         {form ?? (
           <div className="dband-links">
-            <Link className="btn btn-primary" to="/" hash="contact">
+            <Link className="btn btn-primary" to="/" hash="contact" data-msg>
               Message Alex
             </Link>
             <a className="dband-mail" href={`mailto:${ADDRESS}`}>

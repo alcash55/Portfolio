@@ -21,7 +21,7 @@ export function Footer() {
       </nav>
       <p>I'm a software engineer in Memphis, TN.</p>
       <div className="small">
-        <Link to="/" hash="contact" aria-label="Message Alex (goes to the contact form)">
+        <Link to="/" hash="contact" data-msg aria-label="Message Alex (goes to the contact form)">
           Message Alex
         </Link>
         <ExternalLink href="https://www.linkedin.com/in/alexander-cash/">LinkedIn</ExternalLink>
