@@ -6,6 +6,7 @@ import { FigureSlot } from './Fig';
 import { HomeEffects } from './HomeEffects';
 import { ProjectChapter } from './ProjectChapter';
 import { ProjectsIntro } from './ProjectsIntro';
+import './home.css';
 
 export interface HomeProps {
   /** The body of each project's Fig frame. A chapter with no entry shows an empty slot. */
