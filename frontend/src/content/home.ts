@@ -45,6 +45,15 @@ export const CHAPTER_COUNT = CHAPTER_GROUPS.reduce((sum, g) => sum + g.items.len
 
 export const CHAPTER_INDEX_TITLE = 'Chapters';
 
+/** The short name of chapter `n`, as the index and the header counter show it. */
+export function chapterTitle(n: number): string {
+  for (const group of CHAPTER_GROUPS) {
+    const item = group.items.find((i) => i.n === n);
+    if (item) return item.title;
+  }
+  throw new Error(`No chapter ${n} in the index`);
+}
+
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** Header counter text, for example "06 / 12". */
@@ -168,7 +177,11 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     ],
     links: [
       { kind: 'write-up', slug: 'game-competition-website', label: WRITE_UP },
-      { kind: 'external', label: 'Open the live site', href: 'https://diamond-dogs-bingo.onrender.com/' },
+      {
+        kind: 'external',
+        label: 'Open the live site',
+        href: 'https://diamond-dogs-bingo.onrender.com/',
+      },
       { kind: 'external', label: GITHUB, href: 'https://github.com/alcash55/Little-Town' },
     ],
     fig: {
@@ -220,7 +233,11 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     ],
     links: [
       { kind: 'write-up', slug: 'clipper', label: WRITE_UP },
-      { kind: 'external', label: 'Watch the channel', href: 'https://www.youtube.com/@TheCliper-er' },
+      {
+        kind: 'external',
+        label: 'Watch the channel',
+        href: 'https://www.youtube.com/@TheCliper-er',
+      },
     ],
     note: PRIVATE,
     fig: {
@@ -279,7 +296,11 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
         label: 'View the Marketplace listing',
         href: 'https://marketplace.visualstudio.com/items?itemName=Alcash55.royaltytheme',
       },
-      { kind: 'external', label: GITHUB, href: 'https://github.com/alcash55/Royalty-VS-Code-Theme' },
+      {
+        kind: 'external',
+        label: GITHUB,
+        href: 'https://github.com/alcash55/Royalty-VS-Code-Theme',
+      },
     ],
     fig: { n: 6, label: 'Recording', caption: 'VS Code, Node.js, JSON' },
     reverse: false,
