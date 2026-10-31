@@ -1,4 +1,6 @@
 import { Link } from '@tanstack/react-router';
+import { ResumeLink } from '~/components/people/ResumeLink';
+import { resumeInfo, type ResumeInfo } from '~/lib/resume';
 import { SectionLinks } from './SectionLinks';
 
 const EMAIL = 'alex.e.cash28@gmail.com';
@@ -11,7 +13,7 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
   );
 }
 
-export function Footer() {
+export function Footer({ resume = resumeInfo }: { resume?: ResumeInfo }) {
   return (
     <footer className="foot">
       <nav className="big" id="footer-nav" aria-label="Footer">
@@ -21,19 +23,12 @@ export function Footer() {
       </nav>
       <p>I'm a software engineer in Memphis, TN.</p>
       <div className="small">
-        <Link to="/" hash="contact" aria-label="Message Alex (goes to the contact form)">
+        <Link to="/" hash="contact" data-msg aria-label="Message Alex (goes to the contact form)">
           Message Alex
         </Link>
         <ExternalLink href="https://www.linkedin.com/in/alexander-cash/">LinkedIn</ExternalLink>
         <ExternalLink href="https://github.com/alcash55">GitHub</ExternalLink>
-        <a
-          href="/resume"
-          target="_blank"
-          rel="noopener"
-          aria-label="View resume (opens in a new tab)"
-        >
-          View resume
-        </a>
+        <ResumeLink info={resume} />
       </div>
       <p className="addr2">{EMAIL}</p>
       <div className="base">

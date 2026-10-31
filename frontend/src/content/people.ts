@@ -1,6 +1,6 @@
-// Strings for the Experience, Education and Contact sections. Each group names
-// the copy deck rows it comes from. Where the deck and the approved comp
-// disagree, the comp wins and the difference is listed in the port notes.
+// Strings for the Experience, Education and Contact sections. Ids like EX-24
+// and MA-01 tag where each string came from. Where the written copy and the
+// approved design disagreed, the design won.
 
 export const CONTACT_EMAIL = 'alex.e.cash28@gmail.com';
 
@@ -126,7 +126,7 @@ export interface Photo {
   readonly caption: string;
 }
 
-// EX-24, EX-25 and the comp's carousel.
+// EX-24 and EX-25, with the photo carousel.
 export const EDUCATION = {
   id: 'education',
   n: 11,
@@ -177,7 +177,8 @@ export const EDUCATION = {
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/alexander-cash/';
 export const GITHUB_URL = 'https://github.com/alcash55';
 
-// The comp's "Say hi." band. COPY.md MA-01 says "Get in touch." The comp wins.
+// The home page band says "Say hi." and the /contact h1 says "Get in touch."
+// The two differ on purpose.
 export const CONTACT_BAND = {
   id: 'contact',
   n: 12,

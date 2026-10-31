@@ -136,6 +136,12 @@ describe('project and experience data', () => {
     }
   });
 
+  it('states no check count for the NCR pull request step, since no source gives one', () => {
+    const labels = strings(DETAILS['ncr-voyix-docs'].diagram);
+    expect(labels.filter((s) => /\b(three|3)\s+checks?\b/i.test(s))).toEqual([]);
+    expect(labels).toContain('Spelling, Markdown, alt text');
+  });
+
   it('carries the measured facts as written, with the cut rows left out', () => {
     const leads = (slug: Detail['slug']) => DETAILS[slug].facts.map((f) => f.lead);
     expect(leads('portfolio-website')).toEqual([

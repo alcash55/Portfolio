@@ -12,12 +12,12 @@ function reply(status: number): Response {
   return new Response('{}', { status, headers: { 'Content-Type': 'application/json' } });
 }
 
-function setup(fetchStub: Stub) {
+function setup(fetchStub: Stub, emailLead?: string) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const user = userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) });
   render(
     <QueryClientProvider client={client}>
-      <ContactForm deps={{ fetch: fetchStub, apiUrl: 'https://api.test' }} />
+      <ContactForm deps={{ fetch: fetchStub, apiUrl: 'https://api.test' }} emailLead={emailLead} />
     </QueryClientProvider>,
   );
   return { user };
@@ -57,6 +57,32 @@ describe('ContactForm', () => {
     expect(screen.getByText('0 of 1500')).toBeInTheDocument();
     expect(field.send()).toHaveTextContent('Send message');
     expect(screen.getByRole('link', { name: EMAIL })).toHaveAttribute('href', `mailto:${EMAIL}`);
+  });
+
+  it('leads the fallback line with "Or email" unless the page asks for other words', () => {
+    const { unmount } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ContactForm />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByText('Or email')).toBeInTheDocument();
+    unmount();
+
+    setup(vi.fn<typeof fetch>(), 'Prefer email?');
+    expect(screen.getByText('Prefer email?')).toBeInTheDocument();
+    expect(screen.queryByText('Or email')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: EMAIL })).toHaveAttribute('href', `mailto:${EMAIL}`);
+  });
+
+  it('adds no inline error while the pointer is pressing Send', async () => {
+    // An error that appears at the press moves the button, and the release lands on
+    // empty space, so the click never happens. Send validates every field itself.
+    const { user } = setup(vi.fn<typeof fetch>());
+    await user.click(field.message());
+    await user.pointer({ keys: '[MouseLeft>]', target: field.send() });
+    expect(field.message()).not.toHaveAttribute('aria-invalid');
+    await user.pointer({ keys: '[/MouseLeft]', target: field.send() });
+    expect(field.message()).toHaveAttribute('aria-invalid', 'true');
   });
 
   it('counts the message as the visitor types', async () => {

@@ -90,57 +90,22 @@ describe('scroll reveal', () => {
 });
 
 describe('Message Alex', () => {
-  it('scrolls to the contact form and focuses its first field', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+  it('leaves focus to the shell, so the heading does not take it first', async () => {
+    const user = userEvent.setup();
     render(
       <>
         <HomeEffects />
-        <a href="#contact" data-msg>
+        <a href="#contact" data-msg onClick={(event) => event.preventDefault()}>
           Message Alex
         </a>
         <section id="contact">
-          <input aria-label="Name" />
+          <h2 tabIndex={-1}>Say hi.</h2>
         </section>
       </>,
     );
     await user.click(screen.getByRole('link', { name: 'Message Alex' }));
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' });
-    await act(async () => {
-      vi.advanceTimersByTime(600);
-    });
-    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus();
-    vi.useRealTimers();
-  });
-
-  it('jumps without smooth scrolling under reduced motion', async () => {
-    setMotion(false);
-    const user = userEvent.setup();
-    render(
-      <>
-        <HomeEffects />
-        <a href="#contact" data-msg>
-          Message Alex
-        </a>
-        <section id="contact" />
-      </>,
-    );
-    await user.click(screen.getByRole('link', { name: 'Message Alex' }));
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto' });
-  });
-
-  it('leaves the link alone while there is no contact section on the page', async () => {
-    const user = userEvent.setup();
-    render(
-      <>
-        <HomeEffects />
-        <a href="#contact" data-msg>
-          Message Alex
-        </a>
-      </>,
-    );
-    await user.click(screen.getByRole('link', { name: 'Message Alex' }));
-    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getByRole('heading', { name: 'Say hi.' })).not.toHaveFocus();
   });
 });
 

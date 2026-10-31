@@ -687,7 +687,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     diagram: {
       nodes: [
         node('repos', 'Product team repos', 'Markdown in GitHub', 0, 0),
-        node('pr', 'PR checks', 'Three checks per PR', 1, 0),
+        node('pr', 'PR checks', 'Spelling, Markdown, alt text', 1, 0),
         node('remark', 'remark', 'Content that passes', 2, 0),
         node('strapi', 'Strapi', 'Stored as HTML', 3, 0),
         node('site', 'Next.js docs site', '2,300+ pages', 4, 0),

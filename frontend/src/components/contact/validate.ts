@@ -3,6 +3,9 @@ export const MESSAGE_LIMIT = 1500;
 /** Field length caps. The inputs carry the same values as `maxlength`. */
 export const LIMITS = { name: 100, email: 254, message: MESSAGE_LIMIT } as const;
 
+/** One sentence for the client check and for the API's 413, so the two cannot drift apart. */
+export const MESSAGE_TOO_LONG = `That message is too long. The limit is ${MESSAGE_LIMIT} characters.`;
+
 export type ContactField = 'name' | 'email' | 'message';
 export type ContactValues = Record<ContactField, string>;
 export type ContactErrors = Partial<Record<ContactField, string>>;
@@ -26,7 +29,7 @@ export function validateContact(values: ContactValues): ContactErrors {
 
   if (message === '') errors.message = 'Enter a message.';
   else if (message.length > MESSAGE_LIMIT) {
-    errors.message = `That message is too long. The limit is ${MESSAGE_LIMIT} characters.`;
+    errors.message = MESSAGE_TOO_LONG;
   }
 
   return errors;

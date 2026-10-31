@@ -2,6 +2,7 @@ import { useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Footer } from './Footer';
 import { Header } from './Header';
+import { focusNameOnArrival, useMessageLinks } from './messageAlex';
 import { sectionForPath } from './nav';
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -10,6 +11,7 @@ export function Shell({ children }: { children: ReactNode }) {
   // The path of the page that has finished loading. `location` changes when a navigation
   // starts, while the old page is still on screen, so focus would land on the wrong heading.
   const resolvedPath = useRouterState({ select: (state) => state.resolvedLocation?.pathname });
+  useMessageLinks();
   const firstRender = useRef(true);
   useEffect(() => {
     // A client-side navigation keeps focus on the old link, so a screen reader hears
@@ -18,6 +20,8 @@ export function Shell({ children }: { children: ReactNode }) {
       firstRender.current = false;
       return;
     }
+    // A Message Alex link that crossed routes puts focus in the form instead.
+    if (focusNameOnArrival()) return;
     const main = document.getElementById('main');
     const target = main?.querySelector<HTMLElement>('h1') ?? main;
     // preventScroll so a link to /#projects still scrolls to its section.

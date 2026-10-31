@@ -50,6 +50,17 @@ describe('ContactPage', () => {
     expect(screen.getByRole('textbox', { name: /^Name/ })).toHaveFocus();
   });
 
+  it('ends the form with the prefer-email line, and no "Or email" line', async () => {
+    await setup();
+    const line = screen.getByText('Prefer email?').closest('p');
+    expect(line).toHaveTextContent('Prefer email? alex.e.cash28@gmail.com');
+    expect(within(line as HTMLElement).getByRole('link')).toHaveAttribute(
+      'href',
+      'mailto:alex.e.cash28@gmail.com',
+    );
+    expect(screen.queryByText('Or email')).not.toBeInTheDocument();
+  });
+
   it('lists LinkedIn, GitHub and the resume', async () => {
     await setup({ available: true, bytes: 23326 });
     const links = within(screen.getByRole('navigation', { name: 'Elsewhere' }));

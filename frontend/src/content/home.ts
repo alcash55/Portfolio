@@ -67,7 +67,6 @@ export const ABOUT = {
     "I'm a software engineer in Memphis, TN. I work the whole stack in Go, TypeScript and React. That means Go or Node.js services, React micro-frontends and everything in between. Outside work I walk two dogs, Troy and Leon, and I coached lacrosse.",
   availability: "Let's work together.",
   message: { label: 'Message Alex', ariaLabel: 'Message Alex (goes to the contact form)' },
-  resume: { label: 'View resume', href: '/resume' },
   social: [
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/alexander-cash/' },
     { label: 'GitHub', href: 'https://github.com/alcash55' },
