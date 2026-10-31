@@ -26,7 +26,7 @@ export function Gallery({ name, slides }: GalleryProps) {
   };
 
   return (
-    <figure className="mfig gal" role="group" aria-label={`${name} gameplay clips`}>
+    <figure className="mfig gal" aria-label={`${name} gameplay clips`}>
       <WindowFrame>
         <Clip
           src={current.src}

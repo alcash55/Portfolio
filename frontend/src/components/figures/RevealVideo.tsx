@@ -10,7 +10,7 @@ interface RevealVideoProps extends Pick<ClipProps, 'src' | 'poster' | 'posterSwa
 /** A looping recording in a window frame, with a caption underneath. */
 export function RevealVideo({ name, caption, ...clip }: RevealVideoProps) {
   return (
-    <figure className="mfig" role="group" aria-label={`${name} recording`}>
+    <figure className="mfig" aria-label={`${name} recording`}>
       <WindowFrame>
         <Clip {...clip} loop />
       </WindowFrame>

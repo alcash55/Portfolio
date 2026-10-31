@@ -44,7 +44,7 @@ test.describe('detail pages', () => {
       'href',
       '/play/golem-miners/',
     );
-    await expect(page.getByRole('group', { name: 'Golem Miners gameplay clips' })).toBeVisible();
+    await expect(page.getByRole('figure', { name: 'Golem Miners gameplay clips' })).toBeVisible();
     // One clip is not a gallery to pick from, so no thumbnail row appears.
     await expect(page.locator('.gthumbs')).toHaveCount(0);
   });

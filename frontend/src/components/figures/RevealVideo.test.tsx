@@ -40,7 +40,7 @@ describe('RevealVideo markup', () => {
   it('frames a muted, looping clip with its poster and a caption', () => {
     const { container } = render(<RevealVideo {...props} />);
     const v = video(container);
-    expect(screen.getByRole('group', { name: 'Clipper recording' })).toBeInTheDocument();
+    expect(screen.getByRole('figure', { name: 'Clipper recording' })).toBeInTheDocument();
     expect(v).toHaveAttribute('poster', props.poster);
     expect(v).toHaveAttribute('aria-label', props.label);
     expect(v.muted).toBe(true);

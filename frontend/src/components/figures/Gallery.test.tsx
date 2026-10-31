@@ -33,7 +33,7 @@ function video(container: HTMLElement): HTMLVideoElement {
 describe('Gallery', () => {
   it('opens on the first clip, with its caption in a polite live region', () => {
     const { container } = render(<Gallery name="Golem Miners" slides={three} />);
-    expect(screen.getByRole('group', { name: 'Golem Miners gameplay clips' })).toBeInTheDocument();
+    expect(screen.getByRole('figure', { name: 'Golem Miners gameplay clips' })).toBeInTheDocument();
     const v = video(container);
     expect(v).toHaveAttribute('aria-label', 'Recording of clip 1');
     expect(v).toHaveAttribute('poster', '/media/clip-1-poster.webp');
