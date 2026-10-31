@@ -74,7 +74,7 @@ describe('project chapters', () => {
     const proof = (id: string) =>
       PROJECT_CHAPTERS.find((c) => c.id === id)?.paragraphs.find((p) => p.kind === 'proof')?.text;
     expect(proof('portfolio-website')).toBe(
-      'Page weight cut tenfold, 4.03 MB to 397 KB. Lighthouse accessibility 86 to 100.',
+      'Lighthouse accessibility 100 on the home, project, experience and contact pages, mobile and desktop.',
     );
     expect(proof('clipper')).toBe(
       'One command turns a YouTube or Twitch clip into a captioned, upload-ready Short. 387 tests pass.',
