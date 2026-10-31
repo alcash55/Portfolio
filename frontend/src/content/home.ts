@@ -54,11 +54,9 @@ export function chapterTitle(n: number): string {
   throw new Error(`No chapter ${n} in the index`);
 }
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** Header counter text, for example "06 / 12". */
-export function chapterCounter(n: number): string {
-  return `${pad(n)} / ${CHAPTER_COUNT}`;
+/** Two-digit chapter number for the header counter, for example "06". */
+export function chapterNumber(n: number): string {
+  return String(n).padStart(2, '0');
 }
 
 export function chapterAriaLabel(n: number, title: string): string {
