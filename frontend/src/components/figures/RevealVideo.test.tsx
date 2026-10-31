@@ -40,7 +40,7 @@ describe('RevealVideo markup', () => {
   it('prints no caption row of its own when a Fig frame already carries the caption', () => {
     const { container } = render(<RevealVideo {...props} framed />);
     expect(container.querySelector('figcaption')).toBeNull();
-    expect(screen.getByRole('group', { name: 'Clipper recording' })).toBeInTheDocument();
+    expect(screen.getByRole('figure', { name: 'Clipper recording' })).toBeInTheDocument();
   });
 
   it('frames a muted, looping clip with its poster and a caption', () => {
