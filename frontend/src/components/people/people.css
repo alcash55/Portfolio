@@ -1,195 +1,32 @@
-/* Experience, Education and Contact sections. Ported from the approved comp.
-   Names carry a pp- prefix. The chapter, figure and link rules below match the
-   shared home chapter styles, so they go away when that shell replaces
-   PeopleChapter. The read-more panel, carousel and contact band stay. */
+/* Experience, Education and Contact sections. They use the home chapter and
+   figure shell (home.css). This file holds only what that shell does not: the
+   top-aligned wide layout, the read-more disclosure, the photo carousel, the buttons
+   and text links, and the contact band. Names carry a pp- prefix. This sheet is
+   unlayered and the home sheet is layered, so a rule here wins over a home rule. */
 
-.pp-chapter {
-  max-width: max(78rem, 70vw);
-  margin: 0 auto;
-  padding: 40px var(--gutter);
-  display: block;
-}
-.pp-pair {
-  position: relative;
-  display: grid;
-  gap: 28px;
-  align-items: start;
-}
-.pp-ov {
-  margin: 0 0 14px;
-  font: 500 0.8125rem/1.2 var(--font-sans);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-.pp-chapter h2 {
-  margin: 0 0 16px;
-  font: 400 clamp(2rem, 1.4rem + 2.2vw, 3.25rem) / 1.06 var(--font-display);
-  letter-spacing: -0.015em;
-  word-spacing: 0.06em;
-  text-wrap: balance;
-}
-.pp-prose p {
-  margin: 0 0 14px;
-  max-width: 52ch;
-  font-size: 1.0625rem;
-  color: var(--text-2);
-}
-.pp-prose p.pp-proof {
-  color: var(--text);
-  font-weight: 500;
-}
-.pp-stack {
-  color: var(--text-2);
-  font-size: 0.9375rem;
-}
-
-/* Figure frame */
-.pp-fig {
-  margin: 0;
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-}
-.pp-fig-h,
-.pp-fig-f {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-  font: 500 0.75rem/1.3 var(--font-sans);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-.pp-fig-f {
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 0.8125rem;
-}
-.pp-fig-b {
-  position: relative;
-  min-height: 0;
-}
-.pp-slot {
-  aspect-ratio: 2 / 1;
-  background: var(--band);
-}
-
-/* Write-up link. The ::after stretches the link over the whole pair. */
-.pp-links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 20px;
-  margin-top: 8px;
-}
-.pp-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 2.75rem;
-  font-weight: 600;
-  text-decoration: none;
-  color: var(--accent);
-}
-.pp-go::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.pp-go span {
-  transition: transform 300ms var(--ease-lift);
-}
-.pp-pair:hover .pp-go span {
-  transform: translateX(4px);
-}
-.pp-go:hover {
-  text-decoration: underline;
-  text-underline-offset: 5px;
-}
-.pp-go:focus-visible {
-  outline: none;
-}
-.pp-pair:has(.pp-go:focus-visible) {
-  outline: 3px solid var(--ring);
-  outline-offset: 8px;
-  border-radius: 24px;
-}
-.pp-note {
-  position: relative;
-  z-index: 2;
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25em 0.5em;
-  min-height: 2.75rem;
-  color: var(--text-2);
-  font-size: 0.9375rem;
-}
-
-/* Narrow: figure first, prose second. Contact keeps the prose first. */
-.pp-prose {
-  order: 1;
-}
-.pp-fig,
 .pp-cform {
   order: 2;
 }
 @media (max-width: 899px) {
-  .pp-chapter:not(.pp-contact) .pp-fig {
+  /* The contact band keeps the prose first. */
+  .chapter.pp-contact .prose {
     order: 1;
   }
-  .pp-chapter:not(.pp-contact) .pp-prose {
-    order: 2;
-  }
 }
-@media (min-width: 1024px) {
-  .pp-chapter {
-    padding-right: calc(var(--gutter) + 24px);
-  }
-}
+/* Chapters 8 to 12 start a fixed distance below the header instead of being
+   centered, so opening Read more grows the prose downward and nothing jumps. */
 @media (min-width: 900px) {
-  .pp-chapter {
-    min-height: calc(100svh - var(--hdr));
-    display: flex;
+  .chapter.chapter-top {
     align-items: flex-start;
     padding-top: clamp(1.5rem, 7svh, 4rem);
-    padding-bottom: 1.5rem;
   }
-  .pp-chapter > .pp-pair {
-    width: 100%;
+  .chapter.chapter-top .pair > .prose,
+  .chapter.chapter-top .pair > .fig {
+    align-self: start;
   }
-  .pp-pair {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 64px;
-  }
-  .pp-fig {
-    order: 2;
-  }
-  .pp-prose {
-    order: 1;
-  }
-  .pp-chapter.pp-rev .pp-fig {
-    order: 1;
-  }
-  .pp-chapter.pp-rev .pp-prose {
-    order: 2;
-  }
-  .pp-chapter.pp-big:not(.pp-rev) .pp-pair {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  }
-  .pp-chapter.pp-big.pp-rev .pp-pair {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
-  .pp-chapter:not(:has(details.pp-more)) .pp-pair > .pp-prose,
-  .pp-chapter:not(:has(details.pp-more)) .pp-pair > .pp-fig,
-  .pp-pair > .pp-cform {
+  .chapter.chapter-top:not(:has(details.pp-more)) .pair > .prose,
+  .chapter.chapter-top:not(:has(details.pp-more)) .pair > .fig,
+  .chapter.chapter-top .pair > .pp-cform {
     align-self: center;
   }
 }
@@ -234,56 +71,8 @@ details.pp-more ul {
 details.pp-more li {
   color: var(--text-2);
 }
-details.pp-more .pp-stack {
+details.pp-more .stack {
   margin: 14px 0 0;
-}
-.pp-more-x {
-  display: none;
-}
-
-/* On the wide layout an open panel covers the figure instead of growing the
-   chapter. A chapter taller than the viewport would turn into an oversized snap
-   area and stop scrolling one chapter per wheel tick. ReadMore sets the box. */
-@media (min-width: 900px) {
-  details.pp-more[open] .pp-more-b {
-    position: absolute;
-    z-index: 4;
-    box-sizing: border-box;
-    overflow: auto;
-    overscroll-behavior: contain;
-    padding: 1.75rem 1.75rem 1.5rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    box-shadow: var(--shadow-1);
-  }
-  details.pp-more[open] .pp-more-b > ul {
-    padding-right: 2.5rem;
-  }
-  details.pp-more .pp-more-x {
-    display: grid;
-    place-items: center;
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    border: 1.5px solid var(--line-strong);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    padding: 0;
-  }
-  details.pp-more .pp-more-x:focus-visible {
-    outline: 3px solid var(--ring);
-    outline-offset: 3px;
-  }
-  /* The panel's z-index only works if the prose column sits above the figure. */
-  .pp-chapter:has(details.pp-more[open]) .pp-pair > .pp-prose {
-    position: relative;
-    z-index: 5;
-  }
 }
 
 /* Buttons and text links used by Education and the contact band */
@@ -349,6 +138,8 @@ details.pp-more .pp-stack {
   padding: 0.5rem;
 }
 .pp-slide img {
+  aspect-ratio: auto;
+  transform: none;
   width: auto;
   max-width: 100%;
   height: auto;
@@ -395,7 +186,4 @@ details.pp-more .pp-stack {
 }
 .pp-contact h2 {
   scroll-margin-top: calc(var(--hdr) + 16px);
-}
-.pp-contact .pp-prose p {
-  color: var(--text-2);
 }

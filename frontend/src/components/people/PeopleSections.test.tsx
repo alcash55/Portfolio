@@ -34,4 +34,29 @@ describe('PeopleSections', () => {
     expect(screen.getByText('Voyix diagram')).toBeInTheDocument();
     expect(document.querySelectorAll('[data-slot="figure"]')).toHaveLength(2);
   });
+
+  it('builds every chapter from the home chapter and figure shell', async () => {
+    await renderInRouter(
+      <QueryClientProvider client={new QueryClient()}>
+        <PeopleSections resume={{ available: false }} />
+      </QueryClientProvider>,
+    );
+    const chapters = [...document.querySelectorAll<HTMLElement>('section[data-ch]')];
+    expect(chapters.map((el) => el.className.split(' ').includes('chapter'))).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
+    ]);
+    // Chapters 8 to 11 each hold one framed figure. The contact band holds the form.
+    expect(chapters.map((el) => el.querySelectorAll('.pair > .prose').length)).toEqual([
+      1, 1, 1, 1, 1,
+    ]);
+    expect(chapters.map((el) => el.querySelectorAll('figure.fig').length)).toEqual([1, 1, 1, 1, 0]);
+    const duplicates = document.querySelectorAll(
+      '.pp-chapter, .pp-pair, .pp-prose, .pp-ov, .pp-fig, .pp-fig-h, .pp-fig-b, .pp-fig-f, .pp-slot, .pp-links, .pp-go, .pp-note, .pp-proof',
+    );
+    expect([...duplicates].map((el) => el.className)).toEqual([]);
+  });
 });

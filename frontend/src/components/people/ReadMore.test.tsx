@@ -31,26 +31,21 @@ describe('ReadMore', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
-  it('closes on Escape and returns focus to the summary', async () => {
+  it('is a plain disclosure: no close button, and the summary toggles it', async () => {
     const { details, user } = setup();
+    expect(screen.queryByRole('button', { name: 'Close Read more' })).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
     await user.click(screen.getByText('Read more'));
-    await user.keyboard('{Escape}');
-    expect(details.open).toBe(false);
-    expect(screen.getByText('Read more').closest('summary')).toHaveFocus();
-  });
-
-  it('ignores Escape while closed', async () => {
-    const { details, user } = setup();
-    await user.tab();
-    await user.keyboard('{Escape}');
+    expect(details.open).toBe(true);
+    await user.click(screen.getByText('Read more'));
     expect(details.open).toBe(false);
   });
 
-  it('closes from the Close Read more button and returns focus to the summary', async () => {
-    const { details, user } = setup();
-    await user.click(screen.getByText('Read more'));
-    await user.click(screen.getByRole('button', { name: 'Close Read more' }));
-    expect(details.open).toBe(false);
-    expect(screen.getByText('Read more').closest('summary')).toHaveFocus();
+  it('keeps the points in the flow under the summary, in the same column', () => {
+    const { details } = setup();
+    const summary = details.querySelector('summary');
+    const list = details.querySelector('ul');
+    expect(summary?.nextElementSibling?.contains(list)).toBe(true);
+    expect(details.querySelector('[style]')).toBeNull();
   });
 });

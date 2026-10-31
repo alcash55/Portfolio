@@ -121,18 +121,63 @@ test.describe('contact form', () => {
 test.describe('experience and education', () => {
   test.use({ viewport: VIEWPORTS.desktop });
 
-  test('Read more opens over the figure and Escape returns focus to the summary', async ({
+  test('Read more drops the text down in the prose column and the figure stays put', async ({
     page,
   }) => {
     await page.goto('/');
     const details = page.locator('details.pp-more').first();
     const summary = details.locator('summary');
+    const chapter = details.locator('xpath=ancestor::section');
+    const figure = chapter.locator('figure').first();
+    const prose = chapter.locator('.prose');
     await summary.scrollIntoViewIfNeeded();
+    await page.evaluate(() => document.fonts.ready);
+    // The chapter slides in 30px as it fades in. Measure once it is revealed and has settled.
+    await expect(prose).toHaveAttribute('data-rv', 'in');
+    await expect(figure.locator('xpath=ancestor-or-self::*[@data-rv]').first()).toHaveAttribute(
+      'data-rv',
+      'in',
+    );
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll<HTMLElement>('[data-rv="in"]')].every(
+        (el) => getComputedStyle(el).opacity === '1' && getComputedStyle(el).transform === 'none',
+      ),
+    );
+    // Offsets from the chapter's own corner, so a scroll between the two readings changes nothing.
+    const offsets = async () => {
+      const [c, f, s] = await Promise.all([
+        chapter.boundingBox(),
+        figure.boundingBox(),
+        summary.boundingBox(),
+      ]);
+      return {
+        figure: { x: f!.x - c!.x, y: f!.y - c!.y, w: f!.width, h: f!.height },
+        summary: { x: s!.x - c!.x, y: s!.y - c!.y },
+      };
+    };
+    const before = await offsets();
     await summary.click();
     await expect(details).toHaveAttribute('open', '');
-    await expect(details.getByText(/Portfolio Credit Analysis/)).toBeVisible();
+    const list = details.getByText(/Portfolio Credit Analysis/);
+    await expect(list).toBeVisible();
 
-    await page.keyboard.press('Escape');
+    // The text sits inside the prose column, below the summary, and covers nothing.
+    const [proseBox, listBox, summaryBox] = await Promise.all([
+      prose.boundingBox(),
+      list.boundingBox(),
+      summary.boundingBox(),
+    ]);
+    expect(listBox!.y, 'text starts below the summary').toBeGreaterThanOrEqual(
+      summaryBox!.y + summaryBox!.height - 1,
+    );
+    expect(listBox!.x, 'text starts inside the prose column').toBeGreaterThanOrEqual(proseBox!.x);
+    expect(listBox!.x + listBox!.width, 'text ends inside the prose column').toBeLessThanOrEqual(
+      proseBox!.x + proseBox!.width + 1,
+    );
+    expect(await offsets(), 'the figure and the summary do not move').toEqual(before);
+    await expect(details.getByRole('button')).toHaveCount(0);
+
+    await summary.click();
     await expect(details).not.toHaveAttribute('open', '');
     await expect(summary).toBeFocused();
   });
@@ -199,6 +244,12 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
       test('the home page with Read more open has no violations', async ({ page }) => {
         await page.goto('/');
         await page.locator('details.pp-more > summary').first().click();
+        // Chapters fade in as they arrive. axe reads a half-faded color as low contrast.
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll<HTMLElement>('[data-rv="in"]')].every(
+            (el) => getComputedStyle(el).opacity === '1',
+          ),
+        );
         const results = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
           .analyze();

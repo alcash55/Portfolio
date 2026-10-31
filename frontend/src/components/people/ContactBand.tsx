@@ -1,8 +1,9 @@
+import { Chapter } from '~/components/home/Chapter';
 import { ContactForm } from '~/components/contact/ContactForm';
 import { CONTACT_BAND, GITHUB_URL, LINKEDIN_URL } from '~/content/people';
 import { resumeInfo, type ResumeInfo } from '~/lib/resume';
-import { PeopleChapter } from './PeopleChapter';
 import { ResumeLink } from './ResumeLink';
+import './people.css';
 
 function OutsideLink({ href, children }: { href: string; children: string }) {
   return (
@@ -15,13 +16,13 @@ function OutsideLink({ href, children }: { href: string; children: string }) {
 /** Chapter 12: the invitation, three outside links and the message form. */
 export function ContactBand({ resume = resumeInfo }: { resume?: ResumeInfo }) {
   return (
-    <PeopleChapter
+    <Chapter
       id={CONTACT_BAND.id}
       n={CONTACT_BAND.n}
       title={CONTACT_BAND.title}
       overline={CONTACT_BAND.overline}
       heading={CONTACT_BAND.heading}
-      className="pp-contact"
+      className="chapter-top pp-contact"
       figure={
         <div className="pp-cform">
           <ContactForm />
@@ -34,6 +35,6 @@ export function ContactBand({ resume = resumeInfo }: { resume?: ResumeInfo }) {
         <OutsideLink href={GITHUB_URL}>GitHub</OutsideLink>
         <ResumeLink info={resume} location="contact_band" className="pp-tl" />
       </div>
-    </PeopleChapter>
+    </Chapter>
   );
 }

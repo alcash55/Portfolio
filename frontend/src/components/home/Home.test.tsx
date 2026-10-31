@@ -12,11 +12,10 @@ describe('Home', () => {
     expect(h1s[0]).toHaveTextContent(HOME.h1);
   });
 
-  it('runs About, the Projects intro, then the six project chapters in order', async () => {
+  it('runs About, then the six project chapters in order', async () => {
     await renderInRouter(<Home />);
     const h2s = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
     expect(h2s).toEqual([
-      'Projects.',
       'A portfolio with a Go API behind it',
       'Scoring bingo from Discord screenshots',
       'CI that 11 of my repos share',
@@ -42,12 +41,26 @@ describe('Home', () => {
     expect(container.querySelectorAll('[data-slot="figure"]')).toHaveLength(6);
   });
 
+  it('has no section between About and the first project, and #projects is that first project', async () => {
+    const { container } = await renderInRouter(<Home />);
+    const sections = [...container.querySelectorAll('.home > section')];
+    expect(sections.map((s) => s.getAttribute('data-ch'))).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+    ]);
+    expect(container.querySelector('#projects')).toBe(sections[1]);
+  });
+
   it('puts every chapter anchor the index links to on the page, up to chapter 7', async () => {
     const { container } = await renderInRouter(<Home />);
     for (const id of [
       'about',
       'projects',
-      'portfolio-website',
       'game-competition-website',
       'ac-composite-actions',
       'clipper',

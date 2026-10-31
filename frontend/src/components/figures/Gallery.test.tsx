@@ -31,6 +31,17 @@ function video(container: HTMLElement): HTMLVideoElement {
 }
 
 describe('Gallery', () => {
+  it('keeps the clip caption as a hidden live region, not a boxed row, inside a Fig frame', () => {
+    const golem = DETAILS['golem-miners'].media;
+    if (golem.kind !== 'gallery') throw new Error('Golem Miners should have a gallery');
+    const { container } = render(<Gallery name="Golem Miners" slides={golem.slides} framed />);
+    const caption = container.querySelector('figcaption');
+    expect(caption).toHaveAttribute('aria-live', 'polite');
+    expect(caption).toHaveTextContent('Camp');
+    expect(caption).toHaveTextContent('Walk out of the forest');
+    expect(container.querySelector('.mcap')).toBeNull();
+  });
+
   it('opens on the first clip, with its caption in a polite live region', () => {
     const { container } = render(<Gallery name="Golem Miners" slides={three} />);
     expect(screen.getByRole('figure', { name: 'Golem Miners gameplay clips' })).toBeInTheDocument();

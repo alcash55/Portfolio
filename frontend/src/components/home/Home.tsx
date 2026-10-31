@@ -6,7 +6,6 @@ import { About } from './About';
 import { FigureSlot } from './Fig';
 import { HomeEffects } from './HomeEffects';
 import { ProjectChapter } from './ProjectChapter';
-import { ProjectsIntro } from './ProjectsIntro';
 import './home.css';
 
 export interface HomeProps {
@@ -18,13 +17,12 @@ export interface HomeProps {
   after?: ReactNode;
 }
 
-/** About, the Projects intro and the six project chapters, then whatever `after` holds. */
+/** About and the six project chapters, then whatever `after` holds. */
 export function Home({ figures = {}, resume, after = null }: HomeProps) {
   return (
     <div className="home">
       <HomeEffects />
       <About resume={resume} />
-      <ProjectsIntro />
       {PROJECT_CHAPTERS.map((spec) => (
         <ProjectChapter key={spec.id} spec={spec} figure={figures[spec.id] ?? <FigureSlot />} />
       ))}

@@ -861,50 +861,173 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
   },
 };
 
-/**
- * The Solea Energy diagram on the home page (EX-10a). Solea has no write-up page, so it
- * sits outside DETAILS. Column 0.5 puts a node in the gap between the two middle nodes.
- */
-export const SOLEA_DIAGRAM: Diagram = {
-  nodes: [
-    node('traders', 'Traders', '', 0.5, 0),
-    node('excel', 'v3 Excel tool', 'Built in React', 0, 110),
-    node('mfe', 'React micro-frontends', '', 1, 110),
-    node('api', 'Go API', '', 0.5, 230),
-    node('lib', 'Shared Go v3 library', '', 0, 340),
-    node('sf', 'Snowflake models', '', 1, 340),
-    node('iso', 'ISO submission APIs', 'Seven markets', 0, 450),
-  ],
-  edges: [
-    link(
-      'traders',
-      'b',
-      'excel',
-      't',
+// ---------- Home diagrams ----------
+//
+// The home page draws three tall diagrams at every width, readable at 390px. The
+// wide `Diagram` above cannot draw them: its nodes are all one size and its
+// text sits left, where these need centered text, boxes of three heights and a
+// box inside a box. Each node and edge below carries its own coordinates.
+
+/** An x, y pair in the diagram's own units. */
+export type HomePoint = readonly [x: number, y: number];
+
+export interface HomeNode {
+  readonly id: string;
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+  /** Medium weight lines, one per drawn row. */
+  readonly label: readonly string[];
+  /** Regular weight lines under the label. */
+  readonly sub: readonly string[];
+  /** Small boxes drawn inside the node, left to right, with an arrow between. */
+  readonly chips?: readonly string[];
+}
+
+export interface HomeEdge {
+  /** Start, any corners, end. Every segment runs along x or y. The arrowhead sits on the last point. */
+  readonly points: readonly HomePoint[];
+}
+
+export interface HomeDiagram {
+  /** Names the SVG's ids, so two diagrams on one page never share one. */
+  readonly key: 'solea' | 'ncr-voyix' | 'ncr-store-health';
+  /** The image's accessible name. */
+  readonly title: string;
+  readonly nodes: readonly HomeNode[];
+  readonly edges: readonly HomeEdge[];
+  /** The text version, one sentence per step. Read by screen readers, not printed. */
+  readonly steps: readonly string[];
+}
+
+function box(
+  id: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  label: readonly string[],
+  sub: readonly string[] = [],
+  chips?: readonly string[],
+): HomeNode {
+  return { id, x, y, w, h, label, sub, chips };
+}
+
+function path(...points: HomePoint[]): HomeEdge {
+  return { points };
+}
+
+export const HOME_DIAGRAMS = {
+  solea: {
+    key: 'solea',
+    title: 'Architecture of the seven-market submission platform',
+    nodes: [
+      box('traders', 120, 0, 200, 48, ['Traders']),
+      box('excel', 0, 96, 200, 76, ['v3 Excel', 'submission tool'], ['Built in React']),
+      box('mfe', 240, 96, 200, 76, ['React', 'micro-frontends']),
+      box('api', 0, 204, 440, 48, ['Go API']),
+      box('lib', 0, 300, 200, 60, ['Shared Go', 'v3 library']),
+      box('sf', 240, 300, 200, 60, ['Snowflake', 'models']),
+      box(
+        'iso',
+        0,
+        408,
+        440,
+        100,
+        ['Seven ISO submission APIs'],
+        ['CAISO, ERCOT, MISO, NEISO,', 'NYISO, PJM, SPP'],
+      ),
+    ],
+    edges: [
+      path([150, 48], [150, 72], [100, 72], [100, 96]),
+      path([290, 48], [290, 72], [340, 72], [340, 96]),
+      path([220, 48], [220, 204]),
+      path([100, 172], [100, 204]),
+      path([340, 172], [340, 204]),
+      path([100, 252], [100, 300]),
+      path([340, 252], [340, 300]),
+      path([100, 360], [100, 408]),
+    ],
+    steps: [
       'Traders use the v3 Excel-based submission tool, which was built in React.',
-    ),
-    link('traders', 'b', 'mfe', 't', 'Traders use the React micro-frontends.'),
-    link('traders', 'b', 'api', 't', 'Traders also call the Go API directly.'),
-    link('excel', 'b', 'api', 't', 'The Excel-based tool submits through the Go API.'),
-    link('mfe', 'b', 'api', 't', 'The React micro-frontends call the Go API behind them.'),
-    link(
-      'api',
-      'b',
-      'lib',
-      't',
+      'Traders use the React micro-frontends.',
+      'Traders also call the Go API directly.',
+      'The Excel-based tool submits through the Go API.',
+      'The React micro-frontends call the Go API behind them.',
       'The Go API runs on the shared Go v3 library, which replaced the legacy Python submit and withdraw endpoints.',
-    ),
-    link('api', 'b', 'sf', 't', 'The Go API reads from Snowflake models.'),
-    link(
-      'lib',
-      'b',
-      'iso',
-      't',
+      'The Go API reads from Snowflake models.',
       'The shared library submits to the APIs of seven ISO markets: CAISO, ERCOT, MISO, NEISO, NYISO, PJM and SPP.',
-    ),
-  ],
-  alt: 'Traders use the v3 Excel-based submission tool, which was built in React, and the React micro-frontends. They also call the Go API directly. The Excel-based tool and the micro-frontends submit through the Go API. The Go API runs on the shared Go v3 library, which replaced the legacy Python submit and withdraw endpoints, and reads from Snowflake models. The shared library submits to the APIs of seven ISO markets: CAISO, ERCOT, MISO, NEISO, NYISO, PJM and SPP.',
-};
+    ],
+  },
+  'ncr-voyix': {
+    key: 'ncr-voyix',
+    title: 'Pipeline from team repositories to the Voyix docs site',
+    nodes: [
+      box('repos', 0, 0, 250, 60, ['Product team repos'], ['Markdown stays with the team']),
+      box('checks', 0, 96, 250, 60, ['PR checks'], ['Spelling, Markdown, alt text']),
+      box('remark', 0, 192, 250, 60, ['remark'], ['Content that passes']),
+      box('strapi', 0, 288, 250, 60, ['Strapi'], ['Stored as HTML']),
+      box('site', 0, 384, 250, 60, ['Voyix docs site'], ['Next.js, 2,300+ pages']),
+      box('comment', 290, 88, 150, 76, ['PR comment'], ['Updates on new', 'commits']),
+      box('ds', 290, 376, 150, 76, ['Design-system', 'components']),
+    ],
+    edges: [
+      path([125, 60], [125, 96]),
+      path([125, 156], [125, 192]),
+      path([125, 252], [125, 288]),
+      path([125, 348], [125, 384]),
+      path([250, 126], [290, 126]),
+      path([290, 414], [250, 414]),
+    ],
+    steps: [
+      'Product teams keep their Markdown in their own GitHub repositories.',
+      'Pull requests run checks for spelling, Markdown validity and image alt text.',
+      'The checks post a review comment on the pull request, and the comment updates as new commits arrive.',
+      'Content that passes goes through remark.',
+      'remark loads it into Strapi as HTML.',
+      'The Next.js docs site reads from Strapi and serves 2,300+ pages across 23 products.',
+      'The site renders selected HTML as React design-system components.',
+    ],
+  },
+  'ncr-store-health': {
+    key: 'ncr-store-health',
+    title: 'Store Health workflow from user interviews to the React dashboard',
+    nodes: [
+      box('interviews', 0, 0, 250, 60, ['User interviews'], ['Starbucks UK']),
+      box('personas', 0, 96, 250, 60, ['Personas and journeys'], ['Mapped in FigJam']),
+      box('figma', 0, 192, 250, 60, ['Figma designs'], ['Iterated']),
+      box(
+        'dashboard',
+        0,
+        288,
+        250,
+        118,
+        ['React dashboard'],
+        ['Live API data'],
+        ['Store', 'Country'],
+      ),
+      box('present', 0, 442, 250, 60, ['Management presentations'], ['Country-level view']),
+      box('api', 274, 309, 166, 76, ['Digital Connected', 'Services API']),
+    ],
+    edges: [
+      path([125, 60], [125, 96]),
+      path([125, 156], [125, 192]),
+      path([125, 252], [125, 288]),
+      path([125, 406], [125, 442]),
+      path([274, 347], [250, 347]),
+    ],
+    steps: [
+      'Alex interviewed Starbucks UK users.',
+      'Personas and journeys were mapped in FigJam.',
+      'Designs were iterated in Figma.',
+      'The React dashboard was built from the designs.',
+      'The dashboard reads live data from the API of the Digital Connected Services team.',
+      'The dashboard rolls technology health up from the store level to the country level.',
+      'Management used the dashboard in presentations.',
+    ],
+  },
+} as const satisfies Readonly<Record<HomeDiagram['key'], HomeDiagram>>;
 
 /** Projects first, then experience, each in the order its list is shown. */
 export const DETAIL_SLUGS: readonly DetailSlug[] = [...PROJECT_SLUGS, ...EXPERIENCE_SLUGS];

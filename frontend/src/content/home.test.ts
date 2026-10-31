@@ -3,7 +3,6 @@ import {
   ABOUT,
   CHAPTER_COUNT,
   CHAPTER_GROUPS,
-  PROJECTS_INTRO,
   PROJECT_CHAPTERS,
   chapterTitle,
   chapterNumber,
@@ -22,7 +21,7 @@ describe('chapter index', () => {
     const flat = CHAPTER_GROUPS.flatMap((g) => g.items.map((i) => [g.label, i.n, i.id, i.title]));
     expect(flat).toEqual([
       ['About', 1, 'about', 'About me'],
-      ['Projects', 2, 'portfolio-website', 'Portfolio Website'],
+      ['Projects', 2, 'projects', 'Portfolio Website'],
       ['Projects', 3, 'game-competition-website', 'Game Competition'],
       ['Projects', 4, 'ac-composite-actions', 'AC Composite Actions'],
       ['Projects', 5, 'clipper', 'Clipper'],
@@ -95,19 +94,14 @@ describe('project chapters', () => {
 
 describe('copy hygiene', () => {
   it('has no dashes used as punctuation, no curly quotes, no html entities', () => {
-    const strings = allStrings([ABOUT, PROJECTS_INTRO, PROJECT_CHAPTERS, CHAPTER_GROUPS]);
+    const strings = allStrings([ABOUT, PROJECT_CHAPTERS, CHAPTER_GROUPS]);
     const bad = strings.filter((s) => /[–—‘’“”]|&[a-z]+;/.test(s));
     expect(bad).toEqual([]);
   });
 });
 
-describe('about and projects intro', () => {
-  it('use the lead-approved h1 and the projects intro line', () => {
+describe('about', () => {
+  it('uses the lead-approved h1', () => {
     expect(ABOUT.heading).toBe('Alex Cash builds the Go API and the page that reads it.');
-    expect(PROJECTS_INTRO).toEqual({
-      id: 'projects',
-      heading: 'Projects.',
-      line: 'Each project links to its source, or says the code is private.',
-    });
   });
 });

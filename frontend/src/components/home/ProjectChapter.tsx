@@ -8,7 +8,7 @@ import { Fig } from './Fig';
 export function ProjectChapter({ spec, figure }: { spec: ProjectChapterSpec; figure: ReactNode }) {
   return (
     <Chapter
-      id={spec.id}
+      id={spec.anchor ?? spec.id}
       n={spec.n}
       title={chapterTitle(spec.n)}
       overline={spec.overline}

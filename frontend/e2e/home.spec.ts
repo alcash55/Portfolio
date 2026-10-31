@@ -13,7 +13,6 @@ test.describe('home, server HTML', () => {
         await expect(page.getByText(paragraph.text, { exact: true })).toBeAttached();
       }
     }
-    await expect(page.getByRole('heading', { level: 2, name: 'Projects.' })).toBeAttached();
   });
 
   test('ships no hidden reveal state', async ({ page }) => {
