@@ -22,12 +22,23 @@ export function parseSiteStats(input: unknown): SiteStats {
 // scripts/generate-site-stats.mjs writes this file before dev, build and test. A glob
 // returns an empty object when it is missing, where a plain import would fail the build,
 // and CI type-checks before it generates anything.
-const generated = import.meta.glob('../generated/siteStats.ts', {
-  eager: true,
-  import: 'default',
-});
+//
+// Vite rewrites the glob call. Playwright loads some specs under plain Node, where
+// import.meta.glob does not exist and the call throws. Those specs read diagram data,
+// not the stats, so an empty result is right for them.
+function readGenerated(): unknown {
+  try {
+    const found = import.meta.glob('../generated/siteStats.ts', {
+      eager: true,
+      import: 'default',
+    });
+    return Object.values(found)[0];
+  } catch {
+    return undefined;
+  }
+}
 
-export const siteStats: SiteStats = parseSiteStats(Object.values(generated)[0]);
+export const siteStats: SiteStats = parseSiteStats(readGenerated());
 
 const count = new Intl.NumberFormat('en-US');
 
