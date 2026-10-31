@@ -1,0 +1,214 @@
+/* Contact form. Ported from the comp's .mform rules, with the error, sent and
+   banner states added. Class names carry a ct- prefix so they cannot collide
+   with the shared button and link styles the home sections define. */
+
+.ct-wrap {
+  display: grid;
+  gap: 16px;
+}
+
+.ct-card {
+  display: grid;
+  gap: 16px;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow-1);
+}
+@media (max-width: 767px) {
+  .ct-card {
+    gap: 12px;
+    padding: 1.25rem;
+  }
+}
+
+.ct-hint {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+}
+
+.ct-h {
+  margin: 0;
+  font: 400 1.75rem/1.15 var(--font-display);
+}
+
+.ct-fld {
+  display: grid;
+  gap: 6px;
+}
+.ct-fld label {
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+.ct-rq {
+  color: var(--text-2);
+  font-weight: 400;
+}
+.ct-fld input,
+.ct-fld textarea {
+  width: 100%;
+  min-height: 3rem;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--text);
+  font: 400 1rem/1.4 var(--font-sans);
+}
+.ct-fld textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+@media (max-width: 767px) {
+  .ct-fld textarea {
+    min-height: 104px;
+  }
+}
+.ct-fld input[readonly],
+.ct-fld textarea[readonly] {
+  color: var(--text-2);
+}
+
+/* An error never rides on color alone: a thicker border, an icon and the text. */
+.ct-bad input,
+.ct-bad textarea {
+  border-width: 2px;
+  border-color: var(--error);
+  padding: 11.5px 13.5px;
+}
+.ct-err {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--error);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.ct-icon {
+  flex: none;
+  margin-top: 0.15em;
+}
+
+.ct-cnt {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: 0.8125rem;
+}
+.ct-over {
+  color: var(--error);
+  font-weight: 500;
+}
+
+.ct-esum {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 2px solid var(--error);
+  border-radius: 14px;
+}
+.ct-esum ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.ct-esum a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--error);
+  font-weight: 500;
+}
+
+/* Off screen, not display:none, so a bot that reads the markup still sees a
+   fillable field. Absolute and far left cannot add a scrollbar. */
+.ct-trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.ct-banner {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 2px solid var(--error);
+  border-radius: 14px;
+}
+.ct-banner p {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.ct-banner p:first-child {
+  color: var(--error);
+  font-weight: 500;
+}
+.ct-slow p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+}
+
+.ct-line {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+.ct-line a,
+.ct-banner a,
+.ct-slow a {
+  color: var(--text);
+  text-underline-offset: 3px;
+}
+
+.ct-sent {
+  justify-items: start;
+}
+.ct-sent p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ct-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  font: 500 1rem/1 var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--duration-press) linear;
+}
+.ct-btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ct-btn-primary:hover {
+  background: var(--accent-hover);
+}
+.ct-btn-primary[aria-disabled='true'] {
+  cursor: progress;
+  opacity: 0.8;
+}
+.ct-btn-2 {
+  width: auto;
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--text);
+}
+.ct-btn-2:hover {
+  background: var(--fill);
+}
