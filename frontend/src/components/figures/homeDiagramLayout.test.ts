@@ -13,7 +13,7 @@ describe('layoutHomeDiagram', () => {
     expect(health.viewBox).toBe('-8 -8 456 518');
   });
 
-  it('centres each text line in its node and stacks them 22 units apart', () => {
+  it('centers each text line in its node and stacks them 22 units apart', () => {
     const iso = solea.nodes.find((n) => n.id === 'iso');
     expect(iso?.lines).toEqual([
       { text: 'Seven ISO submission APIs', role: 'label', x: 220, y: 441 },

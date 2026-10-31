@@ -97,7 +97,7 @@ function nodeProblems(name: string, shapes: readonly Shape[]): string[] {
       const edgeL = a.box.x + a.pad;
       const edgeR = a.box.x + a.box.w - a.pad;
       if (left < edgeL || right > edgeR) {
-        // Centred text has room on both sides of its anchor, left-anchored text only to the right.
+        // Centered text has room on both sides of its anchor, left-anchored text only to the right.
         const room =
           label.anchor === 'middle'
             ? 2 * Math.min(label.x - edgeL, edgeR - label.x)

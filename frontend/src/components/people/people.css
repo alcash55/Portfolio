@@ -14,7 +14,7 @@
   }
 }
 /* Chapters 8 to 12 start a fixed distance below the header instead of being
-   centred, so opening Read more grows the prose downward and nothing jumps. */
+   centered, so opening Read more grows the prose downward and nothing jumps. */
 @media (min-width: 900px) {
   .chapter.chapter-top {
     align-items: flex-start;

@@ -3,7 +3,7 @@ import type { HomeDiagram, HomeNode, HomePoint } from '~/content/projects';
 // All numbers are in the diagram's own units, which the SVG viewBox scales.
 const MARGIN = 8;
 const LINE_STEP = 22;
-/** Distance from a line's centre to its baseline, for the 15 and 16 unit type used here. */
+/** Distance from a line's center to its baseline, for the 15 and 16 unit type used here. */
 const BASELINE_DROP = 5;
 const CORNER = 8;
 const HEAD_LEN = 10;
@@ -30,7 +30,7 @@ export interface HomeChip {
   readonly w: number;
   readonly h: number;
   readonly text: string;
-  /** Text anchor, centred in the chip. */
+  /** Text anchor, centered in the chip. */
   readonly tx: number;
   readonly ty: number;
 }

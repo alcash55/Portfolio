@@ -251,6 +251,12 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
       test('the home page with Read more open has no violations', async ({ page }) => {
         await page.goto('/');
         await page.locator('details.pp-more > summary').first().click();
+        // Chapters fade in as they arrive. axe reads a half-faded color as low contrast.
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll<HTMLElement>('[data-rv="in"]')].every(
+            (el) => getComputedStyle(el).opacity === '1',
+          ),
+        );
         const results = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
           .analyze();

@@ -26,7 +26,7 @@ test.describe('home, assembled', () => {
     expect(empty, 'chapters still showing an empty figure slot').toEqual([]);
   });
 
-  test('chapters 8 to 10 draw their diagram, labelled as in the comp, with no printed text version', async ({
+  test('chapters 8 to 10 draw their diagram, labeled as in the comp, with no printed text version', async ({
     page,
   }) => {
     await page.goto('/');
@@ -140,8 +140,9 @@ test.describe('home paging, desktop', () => {
     const snapport = VIEWPORTS.desktop.height - header;
     const first = await scrollY();
     for (let i = 0; i < 5; i += 1) {
+      // No pause between notches: a gap near the browser's gesture timeout splits the burst
+      // into single notches, and a single notch snaps back to the chapter it started on.
       await page.mouse.wheel(0, 100);
-      await page.waitForTimeout(30);
     }
     await expect.poll(scrollY, { message: 'one notch burst from the top' }).toBe(first + snapport);
   });

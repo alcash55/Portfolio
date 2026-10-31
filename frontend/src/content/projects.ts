@@ -857,7 +857,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
 //
 // The home page draws three tall diagrams at every width, readable at 390px. The
 // wide `Diagram` above cannot draw them: its nodes are all one size and its
-// text sits left, where these need centred text, boxes of three heights and a
+// text sits left, where these need centered text, boxes of three heights and a
 // box inside a box. Each node and edge below carries its own coordinates.
 
 /** An x, y pair in the diagram's own units. */
