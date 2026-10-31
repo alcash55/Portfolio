@@ -104,6 +104,49 @@ test.describe('home chapter heights, desktop', () => {
   });
 });
 
+test.describe('home paging, desktop', () => {
+  test.use({ viewport: VIEWPORTS.desktop, reducedMotion: 'reduce' });
+
+  // Scroll snap stays on mandatory because no key or wheel gesture skips a chapter.
+  for (const key of ['PageDown', 'Space'] as const) {
+    test(`${key} moves exactly one chapter at a time`, async ({ page }) => {
+      await page.goto('/');
+      await page.locator('body').click({ position: { x: 5, y: 300 } });
+      const chapterAtTop = () =>
+        page.evaluate(() => {
+          const top = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+          const hit = [...document.querySelectorAll<HTMLElement>('section[data-ch]')].find(
+            (el) => Math.abs(el.getBoundingClientRect().top - top) < 2,
+          );
+          return hit ? Number(hit.dataset.ch) : 0;
+        });
+      for (let want = 2; want <= 12; want += 1) {
+        await page.keyboard.press(key);
+        await expect
+          .poll(chapterAtTop, { message: `after ${want - 1} presses of ${key}` })
+          .toBe(want);
+      }
+    });
+  }
+
+  test('a wheel gesture moves one chapter and never skips one', async ({ page }) => {
+    await page.goto('/');
+    await page.mouse.move(683, 400);
+    const scrollY = () => page.evaluate(() => Math.round(window.scrollY));
+    const header = await page
+      .locator('header')
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().height);
+    const snapport = VIEWPORTS.desktop.height - header;
+    const first = await scrollY();
+    for (let i = 0; i < 5; i += 1) {
+      await page.mouse.wheel(0, 100);
+      await page.waitForTimeout(30);
+    }
+    await expect.poll(scrollY, { message: 'one notch burst from the top' }).toBe(first + snapport);
+  });
+});
+
 test.describe('home diagrams on a phone', () => {
   test.use({ viewport: VIEWPORTS.phone });
 
