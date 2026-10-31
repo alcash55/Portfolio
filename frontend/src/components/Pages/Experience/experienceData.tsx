@@ -73,7 +73,10 @@ export const experienceData = [
     description: (
       <List sx={{ listStyleType: 'disc', pl: 3.5, py: 0 }}>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
-          <ListItemText primary="Redesigned the Voyix Doc Site around navigation and search, and restructured the Commerce Design Docs that product teams build against" />
+          <ListItemText primary="Rebuilt the Voyix Doc Site in Next.js and built the CI/CD that published 2,300+ pages of docs for 23 products straight from the owning teams' GitHub repositories through Strapi.js" />
+        </ListItem>
+        <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
+          <ListItemText primary="Restructured and expanded the Commerce Design Docs that product teams build against" />
         </ListItem>
         <ListItem sx={{ display: 'list-item', py: 0, px: { xs: 0, sm: 2 } }}>
           <ListItemText primary="Extended the static analysis composite GitHub Actions the doc site runs on, tightening the checks that gate every merge" />
