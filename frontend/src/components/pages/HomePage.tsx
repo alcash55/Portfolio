@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ChecksFigure, Diagram, Gallery, RevealVideo } from '~/components/figures';
 import { Home } from '~/components/home/Home';
 import { PeopleSections } from '~/components/people/PeopleSections';
-import { DETAILS, type DetailSlug } from '~/content/projects';
+import { DETAILS, SOLEA_DIAGRAM, type DetailSlug } from '~/content/projects';
 import type { ProjectSlug } from '~/content/pages';
 import { resumeInfo, resumeSizeLabel } from '~/lib/resume';
 
@@ -54,6 +54,7 @@ export function HomePage() {
       after={
         <PeopleSections
           figures={{
+            experience: <Diagram name="Solea Energy" diagram={SOLEA_DIAGRAM} />,
             'ncr-voyix': diagramFigure('ncr-voyix-docs'),
             'ncr-store-health': diagramFigure('starbucks-store-health'),
           }}

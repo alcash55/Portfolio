@@ -199,7 +199,9 @@ test.describe('experience and education', () => {
   test('with reduced motion the carousel still moves', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
-    await page.getByRole('region', { name: 'Education and coaching photos' }).scrollIntoViewIfNeeded();
+    await page
+      .getByRole('region', { name: 'Education and coaching photos' })
+      .scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: 'Next photo' }).click();
     await expect(page.locator('.pp-car-st')).toHaveText('2 of 3');
   });

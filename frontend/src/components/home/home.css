@@ -19,6 +19,7 @@
     scroll-snap-type: y mandatory;
   }
   .home .chapter,
+  .home .pp-chapter,
   .home .projects-intro {
     scroll-snap-align: start;
     scroll-margin-top: var(--hdr);
