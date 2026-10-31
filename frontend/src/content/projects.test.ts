@@ -148,7 +148,7 @@ describe('project and experience data', () => {
     // The last row comes from the generated test counts and is absent when they are unknown.
     const countFact = testCountFact(siteStats);
     expect(leads('portfolio-website')).toEqual([
-      '10 times lighter',
+      '10 times lighter, first version',
       '50 requests, 2 calls',
       '502 to 200',
       '35 of 40 blocked',
