@@ -149,6 +149,11 @@
     order: 2;
   }
 }
+@media (min-width: 1024px) {
+  .pp-chapter {
+    padding-right: calc(var(--gutter) + 24px);
+  }
+}
 @media (min-width: 900px) {
   .pp-chapter {
     min-height: calc(100svh - var(--hdr));
@@ -300,6 +305,9 @@ details.pp-more .pp-stack {
   background: var(--fill);
 }
 .pp-tl {
+  /* The base reset removes underlines. These links sit apart from body text and
+     keep the line so color is not the only cue. */
+  text-decoration-line: underline;
   display: inline-flex;
   align-items: center;
   min-height: 44px;
