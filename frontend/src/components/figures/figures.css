@@ -242,16 +242,11 @@
 }
 
 /* ---------- Checks figure ---------- */
+/* The Fig frame around it is the only card, so this has no border or shadow of its own. */
 .checks {
-  max-width: 34rem;
-  margin: 0 auto;
-  padding: 18px;
+  padding: 18px 18px 8px;
   display: grid;
   gap: 12px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: var(--shadow-1);
 }
 .ck-h {
   display: flex;
@@ -277,7 +272,7 @@
   grid-template-columns: 20px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-top: 1px solid var(--line);
 }
 .ck-row:first-child {
@@ -324,6 +319,17 @@
   margin: 0;
   color: var(--text-3);
   font-size: 0.8125rem;
+  padding-bottom: 6px;
+}
+/* A desktop chapter fits one snapport, so the card tightens to leave room. */
+@media (min-width: 900px) {
+  .checks {
+    padding: 12px 18px 4px;
+    gap: 8px;
+  }
+  .ck-row {
+    padding: 8px 14px;
+  }
 }
 .ck-f code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -535,4 +541,13 @@
 .mcap span {
   color: var(--text-2);
   font-size: 0.9375rem;
+}
+/* The clip caption inside a Fig frame: read aloud as the clip changes, never printed. */
+.mcap-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

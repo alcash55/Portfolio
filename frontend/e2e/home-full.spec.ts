@@ -45,6 +45,51 @@ test.describe('home, assembled', () => {
   });
 });
 
+test.describe('home chapter heights, desktop', () => {
+  test.use({ viewport: VIEWPORTS.desktop });
+
+  // The comp sizes each desktop chapter to one snapport (viewport minus the header), so a
+  // wheel tick or Page Down moves exactly one chapter. A taller chapter gets skipped past.
+  // The comp's own AC checks chapter runs 23px over at this height, so 24px is the allowance.
+  test("every chapter is one snapport tall, give or take the comp's own 24px", async ({ page }) => {
+    await page.goto('/');
+    const header = await page
+      .locator('header')
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().height);
+    const heights = await page
+      .locator('section[data-ch]')
+      .evaluateAll((els) => els.map((el) => [el.id, el.getBoundingClientRect().height] as const));
+    const snapport = VIEWPORTS.desktop.height - header;
+    for (const [id, height] of heights) {
+      const note = `#${id} is ${height}px, snapport ${snapport}px`;
+      expect(height - snapport, note).toBeLessThanOrEqual(24);
+      expect(snapport - height, note).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('the recordings and the checks card sit in the Fig frame without a second frame', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const nested = await page.locator('.fig .mcap, .fig .checks').evaluateAll((els) =>
+      els.map((el) => {
+        const style = getComputedStyle(el);
+        return {
+          cls: el.className,
+          border: style.borderTopWidth,
+          shadow: style.boxShadow,
+          visible: el.getBoundingClientRect().height > 1,
+        };
+      }),
+    );
+    for (const item of nested) {
+      expect(item.border, `${item.cls} border`).toBe('0px');
+      expect(item.shadow, `${item.cls} shadow`).toBe('none');
+    }
+  });
+});
+
 test.describe('home diagrams on a phone', () => {
   test.use({ viewport: VIEWPORTS.phone });
 

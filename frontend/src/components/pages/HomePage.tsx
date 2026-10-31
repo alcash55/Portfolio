@@ -19,10 +19,11 @@ function mediaFigure(slug: DetailSlug): ReactNode {
           posterSwap={media.posterSwap}
           label={media.label}
           caption={media.caption}
+          framed
         />
       );
     case 'gallery':
-      return <Gallery name={name} slides={media.slides} />;
+      return <Gallery name={name} slides={media.slides} framed />;
     default: {
       const unhandled: never = media;
       return unhandled;

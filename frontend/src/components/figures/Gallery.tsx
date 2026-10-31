@@ -8,6 +8,8 @@ interface GalleryProps {
   /** The page name, used in the group's accessible name. */
   name: string;
   slides: readonly [GallerySlide, ...GallerySlide[]];
+  /** True inside a Fig frame. The clip caption then stays for screen readers and prints no row. */
+  framed?: boolean;
 }
 
 /**
@@ -15,7 +17,7 @@ interface GalleryProps {
  * last wraps to the first. With two or more clips a row of thumbnails picks one.
  * The caption is a live region so a screen reader hears each change.
  */
-export function Gallery({ name, slides }: GalleryProps) {
+export function Gallery({ name, slides, framed = false }: GalleryProps) {
   const [index, setIndex] = useState(0);
   const [playRequest, setPlayRequest] = useState(0);
   const current = slides[index] ?? slides[0];
@@ -36,7 +38,7 @@ export function Gallery({ name, slides }: GalleryProps) {
           onEnded={() => show((index + 1) % slides.length)}
         />
       </WindowFrame>
-      <figcaption className="mcap" aria-live="polite">
+      <figcaption className={framed ? 'mcap-sr' : 'mcap'} aria-live="polite">
         <strong>{current.caption}</strong>
         <span>{current.description}</span>
       </figcaption>
