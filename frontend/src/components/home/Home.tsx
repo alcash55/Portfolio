@@ -13,10 +13,12 @@ export interface HomeProps {
   figures?: Partial<Record<ProjectSlug, ReactNode>>;
   /** Resume file size for the View resume label, for example "23 KB". Null leaves it out. */
   resumeSize?: string | null;
+  /** Chapters 8 to 12, rendered inside the page wrapper so the counter and index see them. */
+  after?: ReactNode;
 }
 
-/** About, the Projects intro and the six project chapters. Experience, Education and Contact follow. */
-export function Home({ figures = {}, resumeSize = null }: HomeProps) {
+/** About, the Projects intro and the six project chapters, then whatever `after` holds. */
+export function Home({ figures = {}, resumeSize = null, after = null }: HomeProps) {
   return (
     <div className="home">
       <HomeEffects />
@@ -25,6 +27,7 @@ export function Home({ figures = {}, resumeSize = null }: HomeProps) {
       {PROJECT_CHAPTERS.map((spec) => (
         <ProjectChapter key={spec.id} spec={spec} figure={figures[spec.id] ?? <FigureSlot />} />
       ))}
+      {after}
     </div>
   );
 }

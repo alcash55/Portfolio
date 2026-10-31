@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/fetch-resume.mjs",
     "dev": "vite dev",
+    "prebuild": "node scripts/fetch-resume.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
