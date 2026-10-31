@@ -3,6 +3,8 @@
 .tanstack/
 dist/
 e2e/test-results/
+e2e/test-results-analytics/
+e2e/playwright-report-analytics/
 e2e/playwright-report/
 public/play/
 public/resume.pdf

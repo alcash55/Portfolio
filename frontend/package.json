@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test && playwright test -c playwright.analytics.config.ts",
     "format": "prettier --write .",
     "cf-typegen": "wrangler types"
   },

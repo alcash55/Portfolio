@@ -213,7 +213,11 @@ export const analytics: Analytics = createAnalytics({
   host: config.host,
   // Dynamic on purpose: the SDK is its own chunk, fetched after hydration and only
   // when a token was built in. The server render never reaches this line.
-  loadSdk: () => import('posthog-js').then((module) => module.default),
+  loadSdk: () =>
+    // The server bundle drops this branch, so the Worker does not carry the SDK.
+    import.meta.env.SSR
+      ? Promise.reject(new Error('The SDK loads in the browser only.'))
+      : import('posthog-js').then((module) => module.default),
   whenIdle: whenBrowserIdle,
   optedOut: browserOptedOut,
 });

@@ -1,11 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4173;
+const PORT = Number(process.env.E2E_PORT ?? 4173);
 
 // The suite runs against the production build served through the Workers runtime,
 // the same bundle that deploys. A dev server would pass things the build breaks.
 export default defineConfig({
   testDir: './e2e',
+  // These need a build with a PostHog token. playwright.analytics.config.ts runs them.
+  testIgnore: '**/analytics/**',
   outputDir: './e2e/test-results',
   reporter: process.env.CI
     ? [['github'], ['html', { open: 'never', outputFolder: './e2e/playwright-report' }]]
