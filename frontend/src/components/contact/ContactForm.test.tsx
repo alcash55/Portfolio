@@ -48,6 +48,8 @@ describe('ContactForm', () => {
     setup(vi.fn<typeof fetch>());
 
     expect(screen.getByRole('form', { name: 'Message Alex' })).toBeInTheDocument();
+    // Before hydration a submit must not fall back to GET and put the message in the URL.
+    expect(screen.getByRole('form', { name: 'Message Alex' })).toHaveAttribute('method', 'post');
     expect(screen.getByText('All fields are required.')).toBeInTheDocument();
     expect(field.name()).toBeRequired();
     expect(field.email()).toBeRequired();

@@ -148,7 +148,7 @@ export function Clip({
           type="button"
           className="vctl"
           data-state={playing ? 'playing' : 'paused'}
-          aria-label={playing ? 'Pause clip' : 'Play clip'}
+          aria-label={playing ? 'Pause video' : 'Play video'}
           onClick={toggle}
         >
           <PlayIcon />

@@ -4,7 +4,6 @@ import { Home } from '~/components/home/Home';
 import { PeopleSections } from '~/components/people/PeopleSections';
 import { DETAILS, SOLEA_DIAGRAM, type DetailSlug } from '~/content/projects';
 import type { ProjectSlug } from '~/content/pages';
-import { resumeInfo, resumeSizeLabel } from '~/lib/resume';
 
 function mediaFigure(slug: DetailSlug): ReactNode {
   const { name, media } = DETAILS[slug];
@@ -50,7 +49,6 @@ export function HomePage() {
   return (
     <Home
       figures={PROJECT_FIGURES}
-      resumeSize={resumeInfo.available ? resumeSizeLabel(resumeInfo.bytes) : null}
       after={
         <PeopleSections
           figures={{

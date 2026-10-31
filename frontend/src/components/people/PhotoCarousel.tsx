@@ -165,8 +165,8 @@ function CarButton({
       className="pp-car-btn"
       type="button"
       aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
+      aria-disabled={disabled || undefined}
+      onClick={disabled ? undefined : onClick}
     >
       <svg
         width="18"

@@ -196,7 +196,13 @@ export function ContactForm({ deps }: { deps?: SendDeps }) {
 
   return (
     <div className="ct-wrap">
-      <form className="ct-card" aria-label="Message Alex" noValidate onSubmit={onSubmit}>
+      <form
+        className="ct-card"
+        method="post"
+        aria-label="Message Alex"
+        noValidate
+        onSubmit={onSubmit}
+      >
         {showSummary ? (
           <div className="ct-esum" key={summaryTries}>
             <h3 className="ct-h" tabIndex={-1} ref={focusOnMount}>

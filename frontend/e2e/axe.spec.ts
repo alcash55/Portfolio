@@ -1,13 +1,15 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, VIEWPORTS } from './fixtures';
 
-// A first pass over the stub pages. Later phases add each section's states to it.
+// Every built route. /contact and /resume have their own cases in people.spec.ts.
 const routes = [
   '/',
   '/projects/clipper',
   '/projects/golem-miners',
   '/projects/ac-composite-actions',
   '/projects/portfolio-website',
+  '/projects/game-competition-website',
+  '/projects/vscode-royalty-theme',
   '/experience/ncr-voyix-docs',
   '/experience/starbucks-store-health',
   '/no-such-page',

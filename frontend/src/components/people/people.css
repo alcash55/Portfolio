@@ -378,10 +378,10 @@ details.pp-more .pp-stack {
   cursor: pointer;
   padding: 0;
 }
-.pp-car-btn:hover:not([disabled]) {
+.pp-car-btn:hover:not([aria-disabled='true']) {
   background: var(--fill);
 }
-.pp-car-btn[disabled] {
+.pp-car-btn[aria-disabled='true'] {
   opacity: 0.4;
   cursor: default;
 }

@@ -60,9 +60,12 @@ export async function fetchResume({
   let reason;
   let isNetworkFailure = false;
   try {
-    const response = await doFetch(url, { redirect: 'follow' });
+    const response = await doFetch(url, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(15_000),
+    });
     if (!response.ok) {
-      reason = `HTTP ${response.status} from ${url}`;
+      reason = `HTTP ${response.status} from ${new URL(url).origin}`;
     } else {
       const buffer = Buffer.from(await response.arrayBuffer());
       if (isPdf(buffer)) {
@@ -71,7 +74,7 @@ export async function fetchResume({
         await writeInfo(paths.info, { available: true, bytes: buffer.length });
         return { status: 'fetched', bytes: buffer.length };
       }
-      reason = `the response from ${url} is not a PDF`;
+      reason = `the response from ${new URL(url).origin} is not a PDF`;
     }
   } catch (error) {
     isNetworkFailure = true;

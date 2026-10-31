@@ -54,7 +54,7 @@ describe('PhotoCarousel', () => {
     const { status, prev, next } = setup();
     expect(status()).toHaveTextContent('1 of 3');
     expect(status()).toHaveAttribute('aria-live', 'polite');
-    expect(prev()).toBeDisabled();
+    expect(prev()).toHaveAttribute('aria-disabled', 'true');
     expect(next()).toBeEnabled();
   });
 
@@ -71,7 +71,7 @@ describe('PhotoCarousel', () => {
     await user.click(next());
     await user.click(next());
     expect(status()).toHaveTextContent('3 of 3');
-    expect(next()).toBeDisabled();
+    expect(next()).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('follows the arrow, Home and End keys while the region has focus', async () => {

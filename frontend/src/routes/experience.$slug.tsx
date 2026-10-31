@@ -1,4 +1,5 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
+import { ContactForm } from '~/components/contact/ContactForm';
 import { ProjectDetail } from '~/components/detail/ProjectDetail';
 import { NotFoundSlug } from '~/components/pages/NotFound';
 import { findExperience } from '~/content/pages';
@@ -22,5 +23,5 @@ export const Route = createFileRoute('/experience/$slug')({
 
 function ExperiencePage() {
   const page = Route.useLoaderData();
-  return <ProjectDetail slug={page.detailSlug} />;
+  return <ProjectDetail slug={page.detailSlug} form={<ContactForm />} />;
 }

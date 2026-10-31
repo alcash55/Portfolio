@@ -1,6 +1,8 @@
 /*
  * Detail pages. Plain CSS, unlayered, so it sits above the Tailwind base layer
- * without a specificity contest. Ported from the comp's page rules.
+ * without a specificity contest. The generic names (.stack, .acts, .btn) are scoped
+ * under .pg and .dband: unlayered rules beat the home page's layered ones, and this
+ * file stays loaded after a client-side navigation back to the home page.
  */
 :root {
   --crumb: 3.25rem;
@@ -89,7 +91,7 @@
   color: var(--text-2);
   max-width: 46ch;
 }
-.stack {
+.pg .stack {
   margin: 14px 0 0;
   color: var(--text-3);
   font-size: 0.9375rem;
@@ -107,13 +109,13 @@
 .status b {
   font-weight: 600;
 }
-.acts {
+.pg .acts {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
 }
-.acts .note {
+.pg .acts .note {
   color: var(--text-2);
   display: inline-flex;
   align-items: center;
@@ -122,7 +124,7 @@
   min-height: 2.75rem;
   font-size: 1rem;
 }
-.acts .itch-n {
+.pg .acts .itch-n {
   margin: 0;
   flex-basis: 100%;
   color: var(--text-2);
@@ -134,20 +136,20 @@
     gap: 48px;
     align-items: start;
   }
-  .acts {
+  .pg .acts {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
   }
-  .btn {
+  :is(.pg, .dband) .btn {
     white-space: nowrap;
     padding: 0 24px;
   }
 }
 
 /* ---------- Buttons ---------- */
-.btn {
+:is(.pg, .dband) .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -164,25 +166,25 @@
     background-color 100ms linear,
     transform 300ms var(--ease-lift);
 }
-.btn svg {
+:is(.pg, .dband) .btn svg {
   flex: none;
 }
-.btn-primary {
+:is(.pg, .dband) .btn-primary {
   background: var(--accent);
   color: var(--on-accent);
 }
-.btn-primary:hover {
+:is(.pg, .dband) .btn-primary:hover {
   background: var(--accent-hover);
 }
-.btn-2 {
+:is(.pg, .dband) .btn-2 {
   border-color: var(--line-strong);
   color: var(--text);
   background: transparent;
 }
-.btn-2:hover {
+:is(.pg, .dband) .btn-2:hover {
   background: var(--fill);
 }
-.btn:active {
+:is(.pg, .dband) .btn:active {
   transform: translateY(1px);
 }
 

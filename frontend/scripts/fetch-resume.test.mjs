@@ -62,7 +62,7 @@ describe('fetchResume', () => {
 
     expect(result).toEqual({
       status: 'unavailable',
-      reason: 'HTTP 404 from ' + DEFAULT_RESUME_URL,
+      reason: 'HTTP 404 from ' + new URL(DEFAULT_RESUME_URL).origin,
     });
     expect(await exists(paths.pdf)).toBe(false);
     expect(JSON.parse(await readFile(paths.info, 'utf8'))).toEqual({ available: false });
@@ -87,7 +87,7 @@ describe('fetchResume', () => {
   it('rejects with the URL and status when strict', async () => {
     const fetchStub = vi.fn().mockResolvedValue(reply('Not Found', 404));
     await expect(fetchResume({ fetch: fetchStub, paths, log, strict: true })).rejects.toThrow(
-      `Resume fetch failed: HTTP 404 from ${DEFAULT_RESUME_URL}`,
+      `Resume fetch failed: HTTP 404 from ${new URL(DEFAULT_RESUME_URL).origin}`,
     );
   });
 

@@ -376,6 +376,8 @@
 }
 .gth {
   all: unset;
+  position: relative;
+  z-index: 2; /* above the home chapters' stretched .go link overlay */
   box-sizing: border-box;
   display: grid;
   gap: 8px;

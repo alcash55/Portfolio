@@ -65,18 +65,18 @@ describe('RevealVideo markup', () => {
 });
 
 describe('RevealVideo playback', () => {
-  it('offers a Play clip button once the page is live', () => {
+  it('offers a Play video button once the page is live', () => {
     render(<RevealVideo {...props} />);
-    expect(screen.getByRole('button', { name: 'Play clip' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
   });
 
-  it('starts playing when 40% is in view, and the button turns into Pause clip', () => {
+  it('starts playing when 40% is in view, and the button turns into Pause video', () => {
     const { container } = render(<RevealVideo {...props} />);
     const v = video(container);
     expect(io.thresholds(v)).toEqual([0.4]);
     act(() => io.show(v, true));
     expect(media.calls).toEqual(['play']);
-    expect(screen.getByRole('button', { name: 'Pause clip' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pause video' })).toBeInTheDocument();
   });
 
   it('pauses when it scrolls out of view and plays again on return', () => {
@@ -84,7 +84,7 @@ describe('RevealVideo playback', () => {
     const v = video(container);
     act(() => io.show(v, true));
     act(() => io.show(v, false));
-    expect(screen.getByRole('button', { name: 'Play clip' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
     act(() => io.show(v, true));
     expect(media.calls).toEqual(['play', 'pause', 'play']);
   });
@@ -93,8 +93,8 @@ describe('RevealVideo playback', () => {
     const { container } = render(<RevealVideo {...props} />);
     const v = video(container);
     act(() => io.show(v, true));
-    fireEvent.click(screen.getByRole('button', { name: 'Pause clip' }));
-    expect(screen.getByRole('button', { name: 'Play clip' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Pause video' }));
+    expect(screen.getByRole('button', { name: 'Play video' })).toBeInTheDocument();
     act(() => io.show(v, false));
     act(() => io.show(v, true));
     expect(media.calls.filter((c) => c === 'play')).toHaveLength(1);
@@ -106,7 +106,7 @@ describe('RevealVideo playback', () => {
     const v = video(container);
     act(() => io.show(v, true));
     expect(media.calls).toEqual([]);
-    fireEvent.click(screen.getByRole('button', { name: 'Play clip' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Play video' }));
     expect(media.calls).toEqual(['play']);
     act(() => io.show(v, false));
     act(() => io.show(v, true));

@@ -1,9 +1,10 @@
+import { ResumeLink } from '~/components/people/ResumeLink';
 import { ABOUT } from '~/content/home';
+import { resumeInfo, type ResumeInfo } from '~/lib/resume';
 import { Fig } from './Fig';
 
-/** The first screen. `resumeSize` comes from the build-time resume fetch, so it is never hard-coded here. */
-export function About({ resumeSize }: { resumeSize: string | null }) {
-  const resumeLabel = `View resume (PDF, ${resumeSize ? `${resumeSize}, ` : ''}opens in a new tab)`;
+/** The first screen. `resume` comes from the build-time resume fetch, so no size is hard-coded here. */
+export function About({ resume = resumeInfo }: { resume?: ResumeInfo }) {
   const { fig } = ABOUT;
   return (
     <section
@@ -30,15 +31,7 @@ export function About({ resumeSize }: { resumeSize: string | null }) {
             >
               {ABOUT.message.label}
             </a>
-            <a
-              className="btn btn-2"
-              href={ABOUT.resume.href}
-              target="_blank"
-              rel="noopener"
-              aria-label={resumeLabel}
-            >
-              {ABOUT.resume.label}
-            </a>
+            <ResumeLink info={resume} className="btn btn-2" />
           </div>
           <div className="soc">
             {ABOUT.social.map((s) => (

@@ -51,7 +51,7 @@ test.describe('detail pages', () => {
 
   test('the play button appears after hydration and toggles the label', async ({ page }) => {
     await page.goto('/projects/clipper');
-    const control = page.getByRole('button', { name: /Play clip|Pause clip/ });
+    const control = page.getByRole('button', { name: /Play video|Pause video/ });
     await expect(control).toBeVisible();
   });
 
