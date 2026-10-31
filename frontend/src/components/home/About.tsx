@@ -31,7 +31,7 @@ export function About({ resume = resumeInfo }: { resume?: ResumeInfo }) {
             >
               {ABOUT.message.label}
             </a>
-            <ResumeLink info={resume} className="btn btn-2" />
+            <ResumeLink info={resume} location="about" className="btn btn-2" />
           </div>
           <div className="soc">
             {ABOUT.social.map((s) => (

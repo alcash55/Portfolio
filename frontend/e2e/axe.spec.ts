@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, VIEWPORTS } from './fixtures';
 
-// Every built route. /contact and /resume have their own cases in people.spec.ts.
+// Every built route. people.spec.ts adds the states with a form error or an open disclosure.
 const routes = [
   '/',
   '/projects/clipper',
@@ -12,6 +12,8 @@ const routes = [
   '/projects/vscode-royalty-theme',
   '/experience/ncr-voyix-docs',
   '/experience/starbucks-store-health',
+  '/contact',
+  '/resume',
   '/no-such-page',
 ];
 

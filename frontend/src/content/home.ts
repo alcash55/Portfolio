@@ -138,7 +138,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
       },
       {
         kind: 'proof',
-        text: 'Page weight cut tenfold, 4.03 MB to 397 KB. Lighthouse accessibility 86 to 100.',
+        text: 'Lighthouse accessibility 100 on the home, project, experience and contact pages, mobile and desktop.',
       },
     ],
     links: [

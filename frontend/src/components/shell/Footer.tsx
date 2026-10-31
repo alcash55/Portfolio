@@ -28,7 +28,7 @@ export function Footer({ resume = resumeInfo }: { resume?: ResumeInfo }) {
         </Link>
         <ExternalLink href="https://www.linkedin.com/in/alexander-cash/">LinkedIn</ExternalLink>
         <ExternalLink href="https://github.com/alcash55">GitHub</ExternalLink>
-        <ResumeLink info={resume} />
+        <ResumeLink info={resume} location="footer" />
       </div>
       <p className="addr2">{EMAIL}</p>
       <div className="base">

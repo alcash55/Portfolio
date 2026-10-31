@@ -88,14 +88,14 @@ describe('ProjectDetail body', () => {
   it('shows a recording in a Media region on a reveal page', async () => {
     await renderDetail('clipper');
     const media = await screen.findByRole('region', { name: 'Media' });
-    expect(within(media).getByRole('group', { name: 'Clipper recording' })).toBeInTheDocument();
+    expect(within(media).getByRole('figure', { name: 'Clipper recording' })).toBeInTheDocument();
   });
 
   it('shows a clip gallery in the Media region on Golem Miners', async () => {
     await renderDetail('golem-miners');
     const media = await screen.findByRole('region', { name: 'Media' });
     expect(
-      within(media).getByRole('group', { name: 'Golem Miners gameplay clips' }),
+      within(media).getByRole('figure', { name: 'Golem Miners gameplay clips' }),
     ).toBeInTheDocument();
   });
 

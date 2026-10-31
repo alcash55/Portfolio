@@ -184,18 +184,6 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
     test.describe(`axe, ${viewportName}, ${theme}`, () => {
       test.use({ viewport, colorScheme: theme });
 
-      for (const route of ['/contact', '/resume']) {
-        test(`${route} has no violations`, async ({ page }) => {
-          await page.goto(route);
-          const results = await new AxeBuilder({ page })
-            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-            .analyze();
-          expect(
-            results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`),
-          ).toEqual([]);
-        });
-      }
-
       test('the contact form with errors showing has no violations', async ({ page }) => {
         await page.goto('/contact');
         await send(page).click();

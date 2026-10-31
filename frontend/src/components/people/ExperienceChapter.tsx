@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import type { ExperienceSpec } from '~/content/people';
+import { analytics } from '~/lib/analytics';
 import { PeopleChapter, PeopleFig, PeopleFigureSlot } from './PeopleChapter';
 import { ReadMore } from './ReadMore';
 
@@ -11,6 +12,7 @@ export interface ExperienceChapterProps {
 }
 
 export function ExperienceChapter({ spec, figure }: ExperienceChapterProps) {
+  const writeUp = spec.writeUp;
   return (
     <PeopleChapter
       id={spec.id}
@@ -33,10 +35,15 @@ export function ExperienceChapter({ spec, figure }: ExperienceChapterProps) {
     >
       <p className="pp-proof">{spec.role}</p>
       <p>{spec.lead}</p>
-      {spec.writeUp ? (
+      {writeUp ? (
         <div className="pp-links">
-          <Link className="pp-go" to="/experience/$slug" params={{ slug: spec.writeUp.slug }}>
-            {spec.writeUp.label} <span aria-hidden="true">&rarr;</span>
+          <Link
+            className="pp-go"
+            to="/experience/$slug"
+            params={{ slug: writeUp.slug }}
+            onClick={() => analytics.capture('project_opened', { project: writeUp.slug })}
+          >
+            {writeUp.label} <span aria-hidden="true">&rarr;</span>
           </Link>
           {spec.note ? <span className="pp-note">{spec.note}</span> : null}
         </div>

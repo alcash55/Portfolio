@@ -1,3 +1,4 @@
+import { analytics, type ResumeLocation } from '~/lib/analytics';
 import { RESUME_LABEL, resumeLinkName, type ResumeInfo } from '~/lib/resume';
 
 /**
@@ -5,7 +6,15 @@ import { RESUME_LABEL, resumeLinkName, type ResumeInfo } from '~/lib/resume';
  * size and the new tab, and begins with the visible text. With no PDF the link
  * opens the explanation page in the same tab, so it makes no new-tab claim.
  */
-export function ResumeLink({ info, className }: { info: ResumeInfo; className?: string }) {
+export function ResumeLink({
+  info,
+  location,
+  className,
+}: {
+  info: ResumeInfo;
+  location: ResumeLocation;
+  className?: string;
+}) {
   const opensTab = info.available;
   return (
     // A full page request on purpose: /resume answers with a redirect to the PDF.
@@ -13,6 +22,7 @@ export function ResumeLink({ info, className }: { info: ResumeInfo; className?: 
       className={className}
       href="/resume"
       aria-label={resumeLinkName(info)}
+      onClick={() => analytics.capture('resume_clicked', { location })}
       {...(opensTab ? { target: '_blank', rel: 'noopener' } : {})}
     >
       {RESUME_LABEL}

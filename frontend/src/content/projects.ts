@@ -2,8 +2,10 @@
 // is a row of the copy deck. Two kinds of row are left out on purpose:
 //   - Comp-only placeholders: the pending-domain note, the Lighthouse re-run row
 //     and the publish-pending marker. Each has a production fallback, applied here.
-//   - The test-count row. Its numbers must come from the test runners, and the
-//     generator that writes them is not part of this module.
+//   - The test-count row (PD-16) is not typed here. Its numbers come from the test
+//     runners through scripts/generate-site-stats.mjs, and the row is dropped when the
+//     build could not read them.
+import { siteStats, testCountFact } from '~/lib/siteStats';
 import type { ExperienceSlug, ProjectSlug } from './pages';
 import { EXPERIENCE_SLUGS, PROJECT_SLUGS } from './pages';
 
@@ -106,6 +108,10 @@ export interface Detail {
 }
 
 const GH = 'https://github.com/alcash55/';
+
+function optionalFact(fact: Fact | undefined): Fact[] {
+  return fact ? [fact] : [];
+}
 
 function node(
   id: string,
@@ -231,6 +237,8 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
         lead: '35 of 40 blocked',
         body: 'I attacked my own contact-form rate limiter. Rotating a forged header got all 40 requests through. After the fix, 35 of 40 were blocked, and the first 5 are the intended burst.', // PD-15a
       },
+      // PD-16, from the generated test counts
+      ...optionalFact(testCountFact(siteStats)),
     ],
   },
 

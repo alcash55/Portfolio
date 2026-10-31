@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EXPERIENCE_SLUGS, PROJECT_SLUGS, findExperience, findProject } from './pages';
+import { siteStats, testCountFact } from '~/lib/siteStats';
 import { DETAILS, DETAIL_SLUGS, countFlows, getDetail, nextAfter, type Detail } from './projects';
 
 const all: readonly Detail[] = DETAIL_SLUGS.map((slug) => DETAILS[slug]);
@@ -144,11 +145,14 @@ describe('project and experience data', () => {
 
   it('carries the measured facts as written, with the cut rows left out', () => {
     const leads = (slug: Detail['slug']) => DETAILS[slug].facts.map((f) => f.lead);
+    // The last row comes from the generated test counts and is absent when they are unknown.
+    const countFact = testCountFact(siteStats);
     expect(leads('portfolio-website')).toEqual([
       '10 times lighter',
       '50 requests, 2 calls',
       '502 to 200',
       '35 of 40 blocked',
+      ...(countFact ? [countFact.lead] : []),
     ]);
     expect(leads('vscode-royalty-theme').at(-1)).toBe('187 installs');
     expect(DETAILS['vscode-royalty-theme'].facts.at(-1)?.body).toBe(
@@ -168,9 +172,18 @@ describe('project and experience data', () => {
     ]);
   });
 
+  it.skipIf(siteStats.unitTests === null)(
+    'ends the Portfolio Website facts with the unit test count from the build',
+    () => {
+      const last = DETAILS['portfolio-website'].facts.at(-1);
+      expect(last?.body).toContain(`${siteStats.unitTests?.toLocaleString('en-US')} unit test`);
+      expect(last?.body).toMatch(/gate every deploy\.$/);
+    },
+  );
+
   it('counts paragraphs and facts per page', () => {
     expect(Object.fromEntries(all.map((d) => [d.slug, [d.built.length, d.facts.length]]))).toEqual({
-      'portfolio-website': [2, 4],
+      'portfolio-website': [2, testCountFact(siteStats) ? 5 : 4],
       'game-competition-website': [3, 3],
       'ac-composite-actions': [4, 4],
       clipper: [3, 4],
