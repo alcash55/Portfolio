@@ -3,9 +3,9 @@ import { expect, test, VIEWPORTS } from './fixtures';
 
 const ADDRESS = 'alex.e.cash28@gmail.com';
 
-// These strings come from the copy deck. The checks run in a real browser because
-// the sources build them from parts (a template, JSX text next to a variable), so
-// a text search of the source cannot confirm what a visitor reads.
+// These run in a real browser because the sources build the strings from parts
+// (a template, JSX text next to a variable), so a text search of the source
+// cannot confirm what a visitor reads.
 test.describe('contact copy, exact', () => {
   test.use({ viewport: VIEWPORTS.phone });
 
