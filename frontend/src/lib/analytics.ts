@@ -220,3 +220,10 @@ export const analytics: Analytics = createAnalytics({
 
 /** The ingest origin, or undefined when analytics is off. For the preconnect hint. */
 export const analyticsHost: string | undefined = config.token ? config.host : undefined;
+
+/** Head links for the ingest origin. Empty when analytics is off, so no stray connection opens. */
+export function ingestPreconnect(
+  host: string | undefined,
+): Array<{ rel: 'preconnect'; href: string; crossOrigin: 'anonymous' }> {
+  return host ? [{ rel: 'preconnect', href: host, crossOrigin: 'anonymous' }] : [];
+}

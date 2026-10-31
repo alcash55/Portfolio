@@ -10,6 +10,7 @@ import {
   type MouseEvent,
 } from 'react';
 import { CONTACT_EMAIL } from '~/content/people';
+import { analytics } from '~/lib/analytics';
 import './contact.css';
 import { CopyEmailButton } from './CopyEmailButton';
 import { defaultSendDeps } from './defaultDeps';
@@ -99,6 +100,9 @@ export function ContactForm({ deps }: { deps?: SendDeps }) {
   const mutation = useMutation({
     mutationFn: (submission: ContactValues & { website: string }) =>
       sendContact(submission, deps ?? defaultSendDeps()),
+    onSuccess: (outcome) => {
+      if (outcome.ok) analytics.capture('contact_submitted');
+    },
   });
   const sending = mutation.isPending;
   const result = mutation.data;

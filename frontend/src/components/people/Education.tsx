@@ -24,7 +24,7 @@ export function Education({ resume = resumeInfo }: { resume?: ResumeInfo }) {
         <p key={line}>{line}</p>
       ))}
       <div className="pp-links">
-        <ResumeLink info={resume} className="pp-btn" />
+        <ResumeLink info={resume} location="education" className="pp-btn" />
         {resume.available ? (
           <small className="pp-note">{resumeSizeLabel(resume.bytes)}</small>
         ) : null}

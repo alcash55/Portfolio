@@ -32,7 +32,7 @@ export function ContactBand({ resume = resumeInfo }: { resume?: ResumeInfo }) {
       <div className="pp-tlinks">
         <OutsideLink href={LINKEDIN_URL}>LinkedIn</OutsideLink>
         <OutsideLink href={GITHUB_URL}>GitHub</OutsideLink>
-        <ResumeLink info={resume} className="pp-tl" />
+        <ResumeLink info={resume} location="contact_band" className="pp-tl" />
       </div>
     </PeopleChapter>
   );

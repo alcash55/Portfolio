@@ -41,7 +41,7 @@ export function ContactPage({ resume = resumeInfo }: { resume?: ResumeInfo }) {
         <a className={linkClass} href={GITHUB_URL} target="_blank" rel="noopener">
           GitHub <span className="sr">(opens in a new tab)</span>
         </a>
-        <ResumeLink info={resume} className={linkClass} />
+        <ResumeLink info={resume} location="contact_page" className={linkClass} />
       </nav>
 
       <h2

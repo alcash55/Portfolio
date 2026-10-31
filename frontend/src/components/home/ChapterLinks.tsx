@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { ChapterLinkSpec } from '~/content/home';
+import { analytics } from '~/lib/analytics';
 
 function assertNever(value: never): never {
   throw new Error(`Unhandled chapter link: ${JSON.stringify(value)}`);
@@ -9,7 +10,12 @@ function LinkItem({ link }: { link: ChapterLinkSpec }) {
   switch (link.kind) {
     case 'write-up':
       return (
-        <Link className="go" to="/projects/$slug" params={{ slug: link.slug }}>
+        <Link
+          className="go"
+          to="/projects/$slug"
+          params={{ slug: link.slug }}
+          onClick={() => analytics.capture('project_opened', { project: link.slug })}
+        >
           {link.label} <span aria-hidden="true">&rarr;</span>
         </Link>
       );

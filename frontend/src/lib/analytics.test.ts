@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   ANALYTICS_EVENTS,
   createAnalytics,
+  ingestPreconnect,
   privacyOptOut,
   readAnalyticsConfig,
   type AnalyticsDeps,
@@ -238,6 +239,18 @@ describe('readAnalyticsConfig', () => {
         VITE_POSTHOG_HOST: 'https://eu.i.posthog.com/',
       }).host,
     ).toBe('https://eu.i.posthog.com');
+  });
+});
+
+describe('ingestPreconnect', () => {
+  it('warms the connection to the ingest host when one is configured', () => {
+    expect(ingestPreconnect('https://us.i.posthog.com')).toEqual([
+      { rel: 'preconnect', href: 'https://us.i.posthog.com', crossOrigin: 'anonymous' },
+    ]);
+  });
+
+  it('adds nothing when analytics is off', () => {
+    expect(ingestPreconnect(undefined)).toEqual([]);
   });
 });
 
