@@ -245,7 +245,8 @@ export function layoutDiagram(diagram: Diagram): DiagramLayout {
       if (d < BADGE_R + 4) return d;
     }
     for (const o of drawn) {
-      if (o.edge.kind === 'link' && Math.hypot(c.x - o.curve.b.x, c.y - o.curve.b.y) < BADGE_R + 16) return 0;
+      if (o.edge.kind === 'link' && Math.hypot(c.x - o.curve.b.x, c.y - o.curve.b.y) < BADGE_R + 16)
+        return 0;
     }
     if (g.edge.kind === 'exit' && c.x > g.curve.b.x - BADGE_R) return 0;
     return null;
@@ -302,5 +303,12 @@ export function layoutDiagram(diagram: Diagram): DiagramLayout {
 
   const width = maxX + MARGIN;
   const height = maxY + MARGIN;
-  return { width, height, viewBox: `${-MARGIN / 2} ${-MARGIN / 2} ${width} ${height}`, nodes, edges, flows };
+  return {
+    width,
+    height,
+    viewBox: `${-MARGIN / 2} ${-MARGIN / 2} ${width} ${height}`,
+    nodes,
+    edges,
+    flows,
+  };
 }

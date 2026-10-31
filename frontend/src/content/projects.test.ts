@@ -54,9 +54,7 @@ describe('project and experience data', () => {
   });
 
   it('numbers the flows the way the diagram write-ups count them', () => {
-    expect(
-      Object.fromEntries(all.map((d) => [d.slug, countFlows(d.diagram)])),
-    ).toEqual({
+    expect(Object.fromEntries(all.map((d) => [d.slug, countFlows(d.diagram)]))).toEqual({
       'portfolio-website': 8,
       'game-competition-website': 7,
       'ac-composite-actions': 7,

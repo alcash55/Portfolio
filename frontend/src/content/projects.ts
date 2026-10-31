@@ -179,13 +179,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
         link('browser', 'r', 'host', 'l', 'Browser to Web host: loads the page.'),
         link('react', 'r', 'api', 'l', 'React app to Go API: asks for projects.'),
         link('api', 'r', 'cache', 'l', 'Go API to Cache, 1 hour: checks it first.'),
-        link(
-          'cache',
-          'r',
-          'gh',
-          'l',
-          'Cache to GitHub API: one refresh, however many callers.',
-        ),
+        link('cache', 'r', 'gh', 'l', 'Cache to GitHub API: one refresh, however many callers.'),
         link(
           'api',
           'b',
@@ -373,14 +367,10 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'Consumer repo workflow to markdown-checks spellcheck: checks the changed markdown.',
           { fromAt: 0.2, toAt: 0.5 },
         ),
-        link(
-          'wf',
-          'r',
-          'ats',
-          'l',
-          'Consumer repo workflow to ats-check: scores the resume PDF.',
-          { fromAt: 0.5, toAt: 0.5 },
-        ),
+        link('wf', 'r', 'ats', 'l', 'Consumer repo workflow to ats-check: scores the resume PDF.', {
+          fromAt: 0.5,
+          toAt: 0.5,
+        }),
         link(
           'wf',
           'r',
@@ -715,7 +705,13 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'l',
           'Product team repos to PR checks: every pull request runs checks for spelling, Markdown validity and image alt text.',
         ),
-        link('pr', 'r', 'remark', 'l', 'PR checks to remark: content that passes goes through remark.'),
+        link(
+          'pr',
+          'r',
+          'remark',
+          'l',
+          'PR checks to remark: content that passes goes through remark.',
+        ),
         link('remark', 'r', 'strapi', 'l', 'remark to Strapi: loads the content as HTML.'),
         link(
           'strapi',
@@ -794,7 +790,13 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'l',
           'User interviews to Personas and journeys: what users said shaped the personas and journeys mapped in FigJam.',
         ),
-        link('fig', 'r', 'figma', 'l', 'Personas and journeys to Figma designs: designs iterated in Figma.'),
+        link(
+          'fig',
+          'r',
+          'figma',
+          'l',
+          'Personas and journeys to Figma designs: designs iterated in Figma.',
+        ),
         link(
           'figma',
           'r',

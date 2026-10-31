@@ -32,7 +32,9 @@ describe('Diagram', () => {
     render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
     const items = screen.getAllByRole('listitem');
     expect(items).toHaveLength(8);
-    expect(items[0]).toHaveTextContent('YouTube channel and Twitch channel to Fetch: top videos and top clips.');
+    expect(items[0]).toHaveTextContent(
+      'YouTube channel and Twitch channel to Fetch: top videos and top clips.',
+    );
     expect(items[7]).toHaveTextContent('Daily run script to Fetch: starts the run.');
     expect(items[7]).toHaveClass('plan');
   });
@@ -64,8 +66,13 @@ describe('Diagram', () => {
   it('renders a heading only when given a title', () => {
     const { rerender } = render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
     expect(screen.queryByRole('heading')).toBeNull();
-    rerender(<Diagram name={clipper.name} diagram={clipper.diagram} title="Architecture" titleId="h-ad" />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Architecture' })).toHaveAttribute('id', 'h-ad');
+    rerender(
+      <Diagram name={clipper.name} diagram={clipper.diagram} title="Architecture" titleId="h-ad" />,
+    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Architecture' })).toHaveAttribute(
+      'id',
+      'h-ad',
+    );
   });
 
   it('ships the final state in the server HTML: no hidden, dimmed or running state', () => {

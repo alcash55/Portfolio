@@ -37,8 +37,8 @@ export function ChecksFigure() {
         ))}
       </ul>
       <p className="ck-f">
-        Each one is called as <code>alcash55/ac-composite-actions/&lt;action&gt;</code>, at <code>@main</code> or a
-        pinned commit.
+        Each one is called as <code>alcash55/ac-composite-actions/&lt;action&gt;</code>, at{' '}
+        <code>@main</code> or a pinned commit.
       </p>
     </div>
   );

@@ -2,7 +2,10 @@ import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 
 
 /** Reads the preference at call time, so a change in system settings applies on the next check. */
 export function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 }
 
 /**
@@ -11,7 +14,9 @@ export function prefersReducedMotion(): boolean {
  * only thing it unlocks is an entrance animation. The server and the first client
  * render both return false, so the HTML always carries the finished figure.
  */
-export function useSeenInView<T extends Element>(threshold: number): [RefObject<T | null>, boolean] {
+export function useSeenInView<T extends Element>(
+  threshold: number,
+): [RefObject<T | null>, boolean] {
   const ref = useRef<T | null>(null);
   const [seen, setSeen] = useState(false);
   useEffect(() => {

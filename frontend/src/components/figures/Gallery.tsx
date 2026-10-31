@@ -44,7 +44,12 @@ export function Gallery({ name, slides }: GalleryProps) {
         <ul className="gthumbs">
           {slides.map((slide, i) => (
             <li key={slide.src}>
-              <button type="button" className="gth" aria-pressed={i === index} onClick={() => show(i)}>
+              <button
+                type="button"
+                className="gth"
+                aria-pressed={i === index}
+                onClick={() => show(i)}
+              >
                 <img src={slide.poster} alt="" loading="lazy" />
                 <span>{slide.caption}</span>
               </button>

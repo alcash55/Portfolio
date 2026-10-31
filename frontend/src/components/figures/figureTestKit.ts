@@ -24,7 +24,9 @@ export function stubIntersectionObserver(): ObserverKit {
   class FakeObserver {
     private readonly watcher: Watcher;
     constructor(callback: Callback, options?: IntersectionObserverInit) {
-      const threshold = Array.isArray(options?.threshold) ? (options.threshold[0] ?? 0) : (options?.threshold ?? 0);
+      const threshold = Array.isArray(options?.threshold)
+        ? (options.threshold[0] ?? 0)
+        : (options?.threshold ?? 0);
       this.watcher = { callback, targets: new Set(), threshold, disconnected: false };
       watchers.push(this.watcher);
     }

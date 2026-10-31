@@ -47,7 +47,8 @@ describe('Gallery', () => {
     render(<Gallery name="Golem Miners" slides={three} />);
     const thumbs = screen.getAllByRole('button', { name: /^Clip \d$/ });
     expect(thumbs.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
-    for (const thumb of thumbs) expect(within(thumb).getByRole('presentation')).toHaveAttribute('alt', '');
+    for (const thumb of thumbs)
+      expect(within(thumb).getByRole('presentation')).toHaveAttribute('alt', '');
   });
 
   it('shows no thumbnails for a single clip', () => {

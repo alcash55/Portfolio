@@ -11,7 +11,9 @@ const pair: Diagram = {
     { id: 'a', label: 'Browser', sub: 'Loads the page', col: 0, y: 0, planned: false },
     { id: 'b', label: 'Web host', sub: '', col: 1, y: 0, planned: false },
   ],
-  edges: [{ kind: 'link', from: 'a', fromSide: 'r', to: 'b', toSide: 'l', text: 'Browser to Web host.' }],
+  edges: [
+    { kind: 'link', from: 'a', fromSide: 'r', to: 'b', toSide: 'l', text: 'Browser to Web host.' },
+  ],
   alt: 'x',
 };
 
@@ -21,7 +23,10 @@ describe('wrapLabel', () => {
   });
 
   it('breaks a long label at the last space before 21 characters', () => {
-    expect(wrapLabel('Digital Connected Services API')).toEqual(['Digital Connected', 'Services API']);
+    expect(wrapLabel('Digital Connected Services API')).toEqual([
+      'Digital Connected',
+      'Services API',
+    ]);
   });
 
   it('leaves a long label with no space whole', () => {
@@ -71,14 +76,22 @@ describe('layoutDiagram', () => {
   it('turns an exit edge into a stub that reaches past the last node, labelled for the build', () => {
     const layout = layoutDiagram(DETAILS['vscode-royalty-theme'].diagram);
     const stub = layout.edges.find((e) => e.kind === 'exit');
-    expect(stub).toMatchObject({ kind: 'exit', path: 'M482 216L552 216', head: 'M542 210L552 216L542 222' });
+    expect(stub).toMatchObject({
+      kind: 'exit',
+      path: 'M482 216L552 216',
+      head: 'M542 210L552 216L542 222',
+    });
     expect(stub?.label).toEqual({ x: 562, y: 221, text: 'The build' });
   });
 
   it('wraps a long label onto two lines and puts a subtitle under a short one', () => {
-    const dcs = layoutDiagram(DETAILS['starbucks-store-health'].diagram).nodes.find((n) => n.id === 'api');
+    const dcs = layoutDiagram(DETAILS['starbucks-store-health'].diagram).nodes.find(
+      (n) => n.id === 'api',
+    );
     expect(dcs?.lines.map((l) => l.text)).toEqual(['Digital Connected', 'Services API']);
-    const host = layoutDiagram(DETAILS['portfolio-website'].diagram).nodes.find((n) => n.id === 'browser');
+    const host = layoutDiagram(DETAILS['portfolio-website'].diagram).nodes.find(
+      (n) => n.id === 'browser',
+    );
     expect(host?.lines).toEqual([
       { text: 'Browser', role: 'label', x: 16, y: 32 },
       { text: 'Loads the page', role: 'sub', x: 16, y: 53 },
@@ -89,7 +102,11 @@ describe('layoutDiagram', () => {
 
   it('carries the planned flag on nodes and edges, and the drawn x from the column', () => {
     const golem = layoutDiagram(DETAILS['golem-miners'].diagram);
-    expect(golem.nodes.find((n) => n.id === 'fish')).toMatchObject({ planned: true, x: 2 * 266, y: 150 });
+    expect(golem.nodes.find((n) => n.id === 'fish')).toMatchObject({
+      planned: true,
+      x: 2 * 266,
+      y: 150,
+    });
     expect(golem.edges.filter((e) => e.planned)).toHaveLength(1);
   });
 
@@ -99,12 +116,16 @@ describe('layoutDiagram', () => {
     expect(badges).toHaveLength(layout.flows.length);
     badges.forEach((a, i) => {
       badges.slice(i + 1).forEach((b) => {
-        expect(Math.hypot(a.x - b.x, a.y - b.y), `${slug}: badges ${i}`).toBeGreaterThanOrEqual(2 * BADGE_R);
+        expect(Math.hypot(a.x - b.x, a.y - b.y), `${slug}: badges ${i}`).toBeGreaterThanOrEqual(
+          2 * BADGE_R,
+        );
       });
       layout.nodes.forEach((n) => {
         const dx = Math.max(n.x - a.x, 0, a.x - (n.x + NODE_W));
         const dy = Math.max(n.y - a.y, 0, a.y - (n.y + NODE_H));
-        expect(Math.hypot(dx, dy), `${slug}: badge ${i} vs ${n.id}`).toBeGreaterThanOrEqual(BADGE_R);
+        expect(Math.hypot(dx, dy), `${slug}: badge ${i} vs ${n.id}`).toBeGreaterThanOrEqual(
+          BADGE_R,
+        );
       });
     });
   });

@@ -197,7 +197,12 @@
   min-width: 0;
 }
 .nm code {
-  font: 500 0.9375rem/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font:
+    500 0.9375rem/1.25 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
   overflow-wrap: break-word;
 }
 .ds {

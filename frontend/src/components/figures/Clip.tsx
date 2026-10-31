@@ -29,7 +29,15 @@ function start(video: HTMLVideoElement): void {
  * waits for them to press play. A clip that fails to load keeps its poster and
  * drops the button.
  */
-export function Clip({ src, poster, posterSwap, label, loop = false, onEnded, playRequest = 0 }: ClipProps) {
+export function Clip({
+  src,
+  poster,
+  posterSwap,
+  label,
+  loop = false,
+  onEnded,
+  playRequest = 0,
+}: ClipProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hydrated = useHydrated();
   const [playing, setPlaying] = useState(false);
@@ -124,7 +132,15 @@ export function Clip({ src, poster, posterSwap, label, loop = false, onEnded, pl
 
   return (
     <div className="mbox">
-      <video ref={videoRef} muted playsInline loop={loop} preload="metadata" poster={shownPoster} aria-label={label}>
+      <video
+        ref={videoRef}
+        muted
+        playsInline
+        loop={loop}
+        preload="metadata"
+        poster={shownPoster}
+        aria-label={label}
+      >
         <source src={src} type="video/mp4" />
       </video>
       {hydrated && !failed ? (

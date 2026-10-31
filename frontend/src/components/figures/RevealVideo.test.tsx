@@ -1,7 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setReducedMotion, stubIntersectionObserver, stubMedia, type MediaKit, type ObserverKit } from './figureTestKit';
+import {
+  setReducedMotion,
+  stubIntersectionObserver,
+  stubMedia,
+  type MediaKit,
+  type ObserverKit,
+} from './figureTestKit';
 import { RevealVideo } from './RevealVideo';
 
 const props = {
@@ -138,7 +144,9 @@ describe('RevealVideo poster swap', () => {
         src = '';
       },
     );
-    const { container } = render(<RevealVideo {...props} posterSwap="/media/clipper-run-hd.webp" />);
+    const { container } = render(
+      <RevealVideo {...props} posterSwap="/media/clipper-run-hd.webp" />,
+    );
     const v = video(container);
     expect(v).toHaveAttribute('poster', props.poster);
     expect(loaders[0]?.src).toBe('/media/clipper-run-hd.webp');
