@@ -17,6 +17,7 @@ import { sendContact, type ContactErrorKind, type SendDeps } from './sendContact
 import {
   LIMITS,
   MESSAGE_LIMIT,
+  MESSAGE_TOO_LONG,
   validateContact,
   type ContactErrors,
   type ContactField,
@@ -35,7 +36,7 @@ function failureCopy(kind: ContactErrorKind): string {
     case 'validation':
       return 'Please check your details and try again.';
     case 'too_large':
-      return `That message is too long. The limit is ${MESSAGE_LIMIT} characters.`;
+      return MESSAGE_TOO_LONG;
     case 'rate_limited':
       return 'Too many messages. Wait a moment and try again.';
     case 'server_error':
@@ -77,7 +78,14 @@ function ErrorIcon() {
   );
 }
 
-export function ContactForm({ deps }: { deps?: SendDeps }) {
+export function ContactForm({
+  deps,
+  emailLead = 'Or email',
+}: {
+  deps?: SendDeps;
+  /** The words before the address under the form. The contact page ends with "Prefer email?". */
+  emailLead?: string;
+}) {
   const uid = useId();
   const ids = {
     name: `${uid}-name`,
@@ -94,6 +102,7 @@ export function ContactForm({ deps }: { deps?: SendDeps }) {
   const [sentTo, setSentTo] = useState('');
   const [returns, setReturns] = useState(0);
   const nameRef = useRef<HTMLInputElement>(null);
+  const pressingSend = useRef(false);
   const focusOnMount = useFocusOnMount();
 
   const mutation = useMutation({
@@ -136,6 +145,9 @@ export function ContactForm({ deps }: { deps?: SendDeps }) {
 
   function onBlur(field: ContactField) {
     return () => {
+      // An error that appears while the pointer is down on Send moves the button, and
+      // the release lands on empty space, so the click is lost. Send validates it all.
+      if (pressingSend.current) return;
       const message = validateContact(values)[field];
       setErrors(withField(errors, field, message));
       setBlurNote(message === undefined ? '' : `${LABELS[field]}: ${message}`);
@@ -183,7 +195,7 @@ export function ContactForm({ deps }: { deps?: SendDeps }) {
         <button type="button" className="ct-btn ct-btn-2" onClick={sendAnother}>
           Send another message
         </button>
-        <EmailLine />
+        <EmailLine lead={emailLead} />
       </div>
     );
   }
@@ -327,19 +339,28 @@ export function ContactForm({ deps }: { deps?: SendDeps }) {
           type="submit"
           className="ct-btn ct-btn-primary"
           aria-disabled={sending ? 'true' : undefined}
+          onPointerDown={() => {
+            pressingSend.current = true;
+          }}
+          onPointerUp={() => {
+            pressingSend.current = false;
+          }}
+          onPointerLeave={() => {
+            pressingSend.current = false;
+          }}
         >
           {submitLabel}
         </button>
       </form>
-      <EmailLine />
+      <EmailLine lead={emailLead} />
     </div>
   );
 }
 
-function EmailLine() {
+function EmailLine({ lead }: { lead: string }) {
   return (
     <p className="ct-line">
-      Or email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+      {lead} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
       <CopyEmailButton address={CONTACT_EMAIL} />
     </p>
   );

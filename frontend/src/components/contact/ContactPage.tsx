@@ -53,7 +53,7 @@ export function ContactPage({ resume = resumeInfo }: { resume?: ResumeInfo }) {
       </h2>
       <p className="text-ink-2 mt-3 mb-6 max-w-[52ch]">{CONTACT_PAGE.formIntro}</p>
       <div className="max-w-xl">
-        <ContactForm />
+        <ContactForm emailLead={CONTACT_PAGE.preferEmail} />
       </div>
     </PageFrame>
   );
