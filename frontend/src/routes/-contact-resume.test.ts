@@ -55,7 +55,8 @@ describe('/resume route', () => {
     } catch (error) {
       thrown = error;
     }
-    expect(isRedirect(thrown) && thrown.options.statusCode).toBe(302);
+    expect(isRedirect(thrown)).toBe(true);
+    expect(thrown instanceof Response && thrown.status).toBe(302);
   });
 
   it('stays on /resume and explains when there is no PDF', async () => {

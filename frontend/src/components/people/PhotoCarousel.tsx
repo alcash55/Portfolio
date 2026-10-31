@@ -1,6 +1,15 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import type { Photo } from '~/content/people';
 import { PeopleFig } from './PeopleChapter';
+
+const subscribeNever = () => () => undefined;
 
 /** The strip settles after a swipe. The count updates once the scroll stops. */
 const SETTLE_MS = 60;
@@ -15,17 +24,19 @@ export interface PhotoCarouselProps {
 
 /** A numbered figure holding the strip. The count and buttons sit in its caption. */
 export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
-  const trackRef = useRef<HTMLUListElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [current, setCurrent] = useState(0);
-  // Buttons need script to work, so they render only once it has run.
-  const [interactive, setInteractive] = useState(false);
+  // Buttons need script to work, so the server HTML and the first client render
+  // leave them out and hydration adds them.
+  const interactive = useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
   const last = photos.length - 1;
 
-  useEffect(() => {
-    setInteractive(true);
-    return () => clearTimeout(settleTimer.current);
-  }, []);
+  useEffect(() => () => clearTimeout(settleTimer.current), []);
 
   function syncFromScroll() {
     const track = trackRef.current;
@@ -101,36 +112,38 @@ export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
         ) : null
       }
     >
+      {/* The region is the scroller and the tab stop, so keyboard users can reach
+          the strip and axe accepts it as a scrollable region with focus. */}
       <div
         className="pp-car"
         role="region"
         aria-roledescription="carousel"
         aria-label={label}
         tabIndex={0}
+        ref={trackRef}
         onKeyDown={onKeyDown}
+        onScroll={onScroll}
       >
-        <ul className="pp-car-track" ref={trackRef} onScroll={onScroll}>
-          {photos.map((photo, i) => (
-            <li
-              className="pp-slide"
-              key={photo.src}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`${i + 1} of ${photos.length}`}
-            >
-              <div className="pp-box">
-                <img
-                  src={photo.src}
-                  width={photo.width}
-                  height={photo.height}
-                  loading="lazy"
-                  alt={photo.alt}
-                />
-              </div>
-              <p>{photo.caption}</p>
-            </li>
-          ))}
-        </ul>
+        {photos.map((photo, i) => (
+          <div
+            className="pp-slide"
+            key={photo.src}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${i + 1} of ${photos.length}`}
+          >
+            <div className="pp-box">
+              <img
+                src={photo.src}
+                width={photo.width}
+                height={photo.height}
+                loading="lazy"
+                alt={photo.alt}
+              />
+            </div>
+            <p>{photo.caption}</p>
+          </div>
+        ))}
       </div>
     </PeopleFig>
   );

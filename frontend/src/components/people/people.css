@@ -323,22 +323,19 @@ details.pp-more .pp-stack {
 }
 
 /* Photo carousel. No autoplay: buttons, arrow keys and swipe move one strip. */
-.pp-car:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: -3px;
-}
-.pp-car-track {
+.pp-car {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  margin: 0;
-  padding: 0;
-  list-style: none;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
 }
-.pp-car-track::-webkit-scrollbar {
+.pp-car::-webkit-scrollbar {
   display: none;
+}
+.pp-car:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
 }
 .pp-slide {
   flex: 0 0 100%;

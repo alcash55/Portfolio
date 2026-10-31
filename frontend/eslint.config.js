@@ -30,6 +30,11 @@ export default tseslint.config(
     },
   },
   {
+    // Build-time Node scripts run outside the browser bundle.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  {
     files: ['src/routes/**', 'src/test/**', '**/*.test.{ts,tsx}'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },

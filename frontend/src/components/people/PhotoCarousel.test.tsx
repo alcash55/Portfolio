@@ -37,6 +37,8 @@ describe('PhotoCarousel', () => {
     const { region } = setup();
     expect(region).toHaveAttribute('aria-roledescription', 'carousel');
     expect(region).toHaveAttribute('tabindex', '0');
+    // Slides carry role group, so a list wrapper would hold no list items.
+    expect(within(region).queryByRole('list')).not.toBeInTheDocument();
     const slides = within(region).getAllByRole('group');
     expect(slides).toHaveLength(3);
     expect(slides[0]).toHaveAccessibleName('1 of 3');
@@ -89,7 +91,8 @@ describe('PhotoCarousel', () => {
     vi.useFakeTimers();
     try {
       const { region, status } = setup();
-      const track = region.querySelector('ul') as HTMLElement;
+      // The focusable region is the scroller, so a keyboard user can scroll it too.
+      const track = region;
       track.scrollLeft = WIDTH * 2;
       act(() => {
         track.dispatchEvent(new Event('scroll'));
