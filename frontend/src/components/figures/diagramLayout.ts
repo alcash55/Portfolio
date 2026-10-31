@@ -1,8 +1,8 @@
 import type { Diagram, DiagramEdge, DiagramNode, Side } from '~/content/projects';
 
 // All numbers are in the diagram's own units, which the SVG viewBox scales.
-const NODE_W = 216;
-const NODE_H = 72;
+export const NODE_W = 216;
+export const NODE_H = 72;
 const PITCH = 266;
 const MARGIN = 24;
 const BADGE_R = 11;
