@@ -1,13 +1,15 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
-import { ContentPage } from '~/components/pages/ContentPage';
+import { ProjectDetail } from '~/components/detail/ProjectDetail';
 import { NotFoundSlug } from '~/components/pages/NotFound';
 import { findExperience } from '~/content/pages';
+import { getDetail } from '~/content/projects';
 
 export const Route = createFileRoute('/experience/$slug')({
   loader: ({ params }) => {
     const page = findExperience(params.slug);
-    if (!page) throw notFound();
-    return page;
+    const detail = getDetail(params.slug);
+    if (!page || !detail) throw notFound();
+    return { ...page, detailSlug: detail.slug };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -20,5 +22,5 @@ export const Route = createFileRoute('/experience/$slug')({
 
 function ExperiencePage() {
   const page = Route.useLoaderData();
-  return <ContentPage h1={page.h1} back={{ label: 'All experience', hash: 'experience' }} />;
+  return <ProjectDetail slug={page.detailSlug} />;
 }

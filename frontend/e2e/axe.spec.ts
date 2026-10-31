@@ -2,7 +2,16 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, VIEWPORTS } from './fixtures';
 
 // A first pass over the stub pages. Later phases add each section's states to it.
-const routes = ['/', '/projects/clipper', '/experience/ncr-voyix-docs', '/no-such-page'];
+const routes = [
+  '/',
+  '/projects/clipper',
+  '/projects/golem-miners',
+  '/projects/ac-composite-actions',
+  '/projects/portfolio-website',
+  '/experience/ncr-voyix-docs',
+  '/experience/starbucks-store-health',
+  '/no-such-page',
+];
 
 for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
   for (const theme of ['light', 'dark'] as const) {
