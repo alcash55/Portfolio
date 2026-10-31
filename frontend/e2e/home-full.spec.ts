@@ -146,6 +146,50 @@ test.describe('home paging, desktop', () => {
     }
     await expect.poll(scrollY, { message: 'one notch burst from the top' }).toBe(first + snapport);
   });
+
+  // Read more drops its text down in the prose column, so an open chapter is taller than
+  // the snapport. Its snap area grows with it. The next chapter must still come next.
+  test('with Read more open, paging still reaches the next chapter and skips none', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.evaluate(() => document.querySelector('#experience')?.scrollIntoView());
+    await page.locator('#experience summary').click();
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.mouse.click(5, 300);
+    const header = await page
+      .locator('header')
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().height);
+    // The chapter that holds the line under the header, and whether its top is on that line.
+    const reading = () =>
+      page.evaluate((top) => {
+        const hit = [...document.querySelectorAll<HTMLElement>('section[data-ch]')].find((el) => {
+          const box = el.getBoundingClientRect();
+          return box.top <= top + 2 && box.bottom > top + 2;
+        });
+        return hit ? Number(hit.dataset.ch) : 0;
+      }, header);
+    await expect.poll(reading, { message: 'starts in chapter 8' }).toBe(8);
+    const open = await page
+      .locator('#experience')
+      .evaluate((el) => el.getBoundingClientRect().height);
+    const snapport = VIEWPORTS.desktop.height - header;
+    expect(open, 'the open chapter is taller than one snapport').toBeGreaterThan(snapport);
+
+    await page.keyboard.press('PageDown');
+    await expect.poll(reading, { message: 'PageDown from the open chapter' }).toBe(9);
+
+    await page.keyboard.press('PageUp');
+    await expect.poll(reading, { message: 'PageUp back' }).toBe(8);
+    await page.mouse.move(683, 400);
+    for (let burst = 0; burst < 2; burst += 1) {
+      for (let i = 0; i < 5; i += 1) await page.mouse.wheel(0, 100);
+      await page.waitForTimeout(600);
+      expect(await reading(), `after wheel burst ${burst + 1}`).toBeLessThanOrEqual(9);
+    }
+    await expect.poll(reading, { message: 'two bursts reach chapter 9' }).toBe(9);
+  });
 });
 
 test.describe('home diagrams on a phone', () => {

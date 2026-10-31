@@ -1,6 +1,6 @@
 /* Experience, Education and Contact sections. They use the home chapter and
    figure shell (home.css). This file holds only what that shell does not: the
-   top-aligned wide layout, the read-more panel, the photo carousel, the buttons
+   top-aligned wide layout, the read-more disclosure, the photo carousel, the buttons
    and text links, and the contact band. Names carry a pp- prefix. This sheet is
    unlayered and the home sheet is layered, so a rule here wins over a home rule. */
 
@@ -73,54 +73,6 @@ details.pp-more li {
 }
 details.pp-more .stack {
   margin: 14px 0 0;
-}
-.pp-more-x {
-  display: none;
-}
-
-/* On the wide layout an open panel covers the figure instead of growing the
-   chapter. A chapter taller than the viewport would turn into an oversized snap
-   area and stop scrolling one chapter per wheel tick. ReadMore sets the box. */
-@media (min-width: 900px) {
-  details.pp-more[open] .pp-more-b {
-    position: absolute;
-    z-index: 4;
-    box-sizing: border-box;
-    overflow: auto;
-    overscroll-behavior: contain;
-    padding: 1.75rem 1.75rem 1.5rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    box-shadow: var(--shadow-1);
-  }
-  details.pp-more[open] .pp-more-b > ul {
-    padding-right: 2.5rem;
-  }
-  details.pp-more .pp-more-x {
-    display: grid;
-    place-items: center;
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    border: 1.5px solid var(--line-strong);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    padding: 0;
-  }
-  details.pp-more .pp-more-x:focus-visible {
-    outline: 3px solid var(--ring);
-    outline-offset: 3px;
-  }
-  /* The panel's z-index only works if the prose column sits above the figure. */
-  .chapter:has(details.pp-more[open]) .pair > .prose {
-    position: relative;
-    z-index: 5;
-  }
 }
 
 /* Buttons and text links used by Education and the contact band */
