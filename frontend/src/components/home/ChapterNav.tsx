@@ -93,7 +93,7 @@ export function ChapterNav() {
         {/* No aria-label: the name comes from the visible text, so it contains it. */}
         <span className="ctr-t">
           <span className="sr">Chapter</span> <b>{chapterNumber(current)}</b> / {CHAPTER_COUNT}{' '}
-          &middot; {title}
+          <span className="ctr-title">&middot; {title}</span>
           <span className="sr">. Open chapter index</span>
         </span>
         <svg
