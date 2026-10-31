@@ -177,7 +177,8 @@ export function readAnalyticsConfig(env: Record<string, unknown>): {
   host: string;
 } {
   const rawToken = env.VITE_POSTHOG_PROJECT_TOKEN;
-  const token = typeof rawToken === 'string' && rawToken.trim() !== '' ? rawToken.trim() : undefined;
+  const token =
+    typeof rawToken === 'string' && rawToken.trim() !== '' ? rawToken.trim() : undefined;
   const rawHost = env.VITE_POSTHOG_HOST;
   const host =
     typeof rawHost === 'string' && rawHost.trim() !== ''
