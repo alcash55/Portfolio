@@ -22,11 +22,14 @@ export function resumeSizeLabel(bytes: number): string {
   return `PDF, ${Math.max(1, Math.round(bytes / 1000))} KB`;
 }
 
+/** The visible text of every resume link. */
+export const RESUME_LABEL = 'View resume';
+
 /** Accessible name for a "View resume" link. The visible text comes first. */
 export function resumeLinkName(info: ResumeInfo): string {
   return info.available
-    ? `View resume (${resumeSizeLabel(info.bytes)}, opens in a new tab)`
-    : 'View resume';
+    ? `${RESUME_LABEL} (${resumeSizeLabel(info.bytes)}, opens in a new tab)`
+    : RESUME_LABEL;
 }
 
 // The record exists after `scripts/fetch-resume.mjs` runs. A glob returns an
