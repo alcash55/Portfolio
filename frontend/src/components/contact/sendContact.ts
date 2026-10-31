@@ -37,7 +37,10 @@ function kindForStatus(status: number): ContactErrorKind {
   }
 }
 
-export async function sendContact(values: ContactValues, deps: SendDeps): Promise<SendResult> {
+/** The visitor's fields plus the honeypot value, which stays empty for a person. */
+export type ContactSubmission = ContactValues & { website?: string };
+
+export async function sendContact(values: ContactSubmission, deps: SendDeps): Promise<SendResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), CONTACT_TIMEOUT_MS);
   const url = `${deps.apiUrl.replace(/\/+$/, '')}/api/v1/contact`;
@@ -46,13 +49,13 @@ export async function sendContact(values: ContactValues, deps: SendDeps): Promis
     const response = await deps.fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // `website` is the honeypot the API checks. People never see it, so it
-      // always goes out empty.
+      // `website` is the honeypot the API checks. A person never sees the field,
+      // so it is empty unless a bot filled it in.
       body: JSON.stringify({
         name: values.name.trim(),
         email: values.email.trim(),
         message: values.message.trim(),
-        website: '',
+        website: values.website ?? '',
       }),
       signal: controller.signal,
     });

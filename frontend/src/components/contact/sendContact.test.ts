@@ -34,6 +34,13 @@ describe('sendContact', () => {
     expect(JSON.parse(String(init.body))).toEqual({ ...values, website: '' });
   });
 
+  it('forwards the honeypot field so the server can drop bots that filled it', async () => {
+    const fetchStub = vi.fn().mockResolvedValue(reply(200));
+    await sendContact({ ...values, website: 'https://spam.example' }, { fetch: fetchStub, apiUrl });
+    const [, init] = fetchStub.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({ website: 'https://spam.example' });
+  });
+
   it('does not double the slash when the base URL ends with one', async () => {
     const fetchStub = vi.fn().mockResolvedValue(reply(200));
     await sendContact(values, { fetch: fetchStub, apiUrl: 'https://api.test/' });
