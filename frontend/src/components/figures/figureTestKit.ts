@@ -73,3 +73,59 @@ export function setReducedMotion(reduce: boolean): void {
     };
   };
 }
+
+export interface MediaKit {
+  /** Plays, pauses and loads, in the order the component asked. */
+  readonly calls: string[];
+  /** Fires the media event a browser would, on the element. */
+  fail(video: HTMLVideoElement): void;
+  end(video: HTMLVideoElement): void;
+}
+
+/**
+ * jsdom has a `paused` flag but no playback: play, pause and load throw "not
+ * implemented". This keeps a paused flag per element and fires the play and
+ * pause events a browser fires, so the component sees what it would in Chrome.
+ */
+export function stubMedia(): MediaKit {
+  const calls: string[] = [];
+  const paused = new WeakMap<HTMLMediaElement, boolean>();
+  const proto = HTMLMediaElement.prototype;
+  Object.defineProperty(proto, 'paused', {
+    configurable: true,
+    get(this: HTMLMediaElement) {
+      return paused.get(this) ?? true;
+    },
+  });
+  proto.play = vi.fn(function play(this: HTMLMediaElement) {
+    calls.push('play');
+    if (paused.get(this) !== false) {
+      paused.set(this, false);
+      this.dispatchEvent(new Event('play'));
+    }
+    return Promise.resolve();
+  });
+  proto.pause = vi.fn(function pause(this: HTMLMediaElement) {
+    calls.push('pause');
+    if (paused.get(this) === false) {
+      paused.set(this, true);
+      this.dispatchEvent(new Event('pause'));
+    }
+  });
+  proto.load = vi.fn(function load(this: HTMLMediaElement) {
+    calls.push('load');
+    paused.set(this, true);
+  });
+  return {
+    calls,
+    fail(video) {
+      // A failed <source> fires `error` on the source and does not bubble.
+      const source = video.querySelector('source');
+      (source ?? video).dispatchEvent(new Event('error'));
+    },
+    end(video) {
+      paused.set(video, true);
+      video.dispatchEvent(new Event('ended'));
+    },
+  };
+}

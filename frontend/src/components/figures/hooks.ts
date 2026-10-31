@@ -36,3 +36,28 @@ export function useSeenInView<T extends Element>(threshold: number): [RefObject<
 export function cssVars(vars: Readonly<Record<`--${string}`, string | number>>): CSSProperties {
   return vars as CSSProperties;
 }
+
+/**
+ * True while the element is at least `threshold` visible. Like `useSeenInView`
+ * it stays false on the server, on first render, under reduced motion and
+ * without IntersectionObserver. Unlike it, it goes false again on leaving, so
+ * the animation it drives replays on the next visit.
+ */
+export function useInView<T extends Element>(threshold: number): [RefObject<T | null>, boolean] {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const last = entries.at(-1);
+        if (last) setInView(last.isIntersecting);
+      },
+      { threshold },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+  return [ref, inView];
+}

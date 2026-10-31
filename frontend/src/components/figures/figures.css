@@ -134,3 +134,133 @@
     animation: dg-edge-in 500ms var(--ease-color) calc(var(--i) * 380ms) backwards;
   }
 }
+
+/* ---------- Checks figure ---------- */
+.checks {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow-1);
+}
+.ck-h {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.ck-h span:last-child {
+  color: var(--accent);
+}
+.ck-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.ck-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+}
+.ck-row:first-child {
+  border-top: 0;
+}
+.ico {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+}
+.ico svg {
+  position: absolute;
+  inset: 0;
+}
+.spin {
+  opacity: 0;
+  color: var(--text-3);
+}
+.nm {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.nm code {
+  font: 500 0.9375rem/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: break-word;
+}
+.ds {
+  color: var(--text-2);
+  font-size: 0.8125rem;
+}
+.st {
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.ck-f {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 0.8125rem;
+}
+.ck-f code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+@keyframes ck-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ck-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ck-st {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ck-vis {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+/* Every row is passed in the HTML. The spinner shows only while the row waits its turn. */
+@media (prefers-reduced-motion: no-preference) {
+  .checks.run .ck-row {
+    --t: calc(var(--i) * 520ms + 600ms);
+  }
+  .checks.run .tick {
+    animation: ck-in 320ms var(--ease-lift) var(--t) backwards;
+  }
+  .checks.run .st {
+    animation: ck-st 240ms linear var(--t) backwards;
+  }
+  .checks.run .spin {
+    animation:
+      ck-spin 700ms linear infinite,
+      ck-vis var(--t) linear;
+  }
+}
