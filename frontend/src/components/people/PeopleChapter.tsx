@@ -11,6 +11,8 @@ export interface PeopleChapterProps {
   heading: string;
   reverse?: boolean;
   big?: boolean;
+  /** Extra class names for the section, for example the contact band's. */
+  className?: string;
   /** The prose after the heading. */
   children: ReactNode;
   /** A complete <PeopleFig>. */
@@ -29,11 +31,14 @@ export function PeopleChapter({
   heading,
   reverse = false,
   big = false,
+  className: extra,
   children,
   figure,
 }: PeopleChapterProps) {
   const headingId = `c${n}-h`;
-  const className = ['pp-chapter', reverse && 'pp-rev', big && 'pp-big'].filter(Boolean).join(' ');
+  const className = ['pp-chapter', reverse && 'pp-rev', big && 'pp-big', extra]
+    .filter(Boolean)
+    .join(' ');
   return (
     <section
       className={className}

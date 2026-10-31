@@ -83,7 +83,12 @@ export const EXPERIENCE: readonly ExperienceSpec[] = [
       'Built four analytics pipelines for accessibility, GTM, Qualtrics and FullStory, feeding BigQuery and Looker.',
     ],
     stack: 'Next.js, Strapi, remark, GitHub Actions, BigQuery, Looker',
-    fig: { n: 8, label: 'Pipeline', caption: 'Docs pipeline, simplified', meta: '4/2023 to 6/2024' },
+    fig: {
+      n: 8,
+      label: 'Pipeline',
+      caption: 'Docs pipeline, simplified',
+      meta: '4/2023 to 6/2024',
+    },
   },
   {
     id: 'ncr-store-health',

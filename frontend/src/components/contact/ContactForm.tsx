@@ -23,7 +23,6 @@ import {
   type ContactValues,
 } from './validate';
 
-
 // Shown after this long without a reply, so a cold API host reads as slow, not broken.
 const SLOW_HINT_MS = 4000;
 
