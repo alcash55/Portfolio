@@ -440,6 +440,12 @@
   overflow: hidden;
   position: relative;
 }
+/* Inside a Fig frame the figure is the card, so the window adds no second edge. */
+.frame.clipf {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
 .frame .bar {
   height: 2.5rem;
   display: flex;

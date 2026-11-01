@@ -43,6 +43,14 @@ describe('RevealVideo markup', () => {
     expect(screen.getByRole('figure', { name: 'Clipper recording' })).toBeInTheDocument();
   });
 
+  it('drops the window card styling inside a Fig frame, which is already the card', () => {
+    const inFig = render(<RevealVideo {...props} framed />);
+    expect(inFig.container.querySelector('.frame')).toHaveClass('clipf');
+    inFig.unmount();
+    const alone = render(<RevealVideo {...props} />);
+    expect(alone.container.querySelector('.frame')).not.toHaveClass('clipf');
+  });
+
   it('frames a muted, looping clip with its poster and a caption', () => {
     const { container } = render(<RevealVideo {...props} />);
     const v = video(container);

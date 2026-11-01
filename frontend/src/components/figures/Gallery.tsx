@@ -29,7 +29,7 @@ export function Gallery({ name, slides, framed = false }: GalleryProps) {
 
   return (
     <figure className="mfig gal" aria-label={`${name} gameplay clips`}>
-      <WindowFrame>
+      <WindowFrame bare={framed}>
         <Clip
           src={current.src}
           poster={current.poster}
