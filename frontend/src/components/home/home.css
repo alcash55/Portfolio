@@ -71,8 +71,8 @@
   .ctr svg {
     flex: none;
   }
-  /* Below 400px the title would cut the total ("01 / 1..."), so it leaves the layout and stays in the name. */
-  @media (max-width: 399px) {
+  /* Below 360px the title would cut the total ("01 / 1..."), so it leaves the layout and stays in the name. */
+  @media (max-width: 359px) {
     .ctr {
       padding: 0 0.25rem;
       gap: 0.25rem;
