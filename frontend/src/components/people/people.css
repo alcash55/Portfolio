@@ -19,9 +19,11 @@
    pair, because centering on the live height would lift the figure on open. */
 @media (min-width: 900px) {
   .chapter[data-pinned] {
-    align-items: flex-start;
     padding-top: var(--cpad);
-    padding-bottom: 1.5rem;
+  }
+  .chapter[data-pinned]::before,
+  .chapter[data-pinned]::after {
+    display: none;
   }
   .chapter:has(details.pp-more) .pair > .prose,
   .chapter:has(details.pp-more) .pair > .fig {

@@ -403,11 +403,20 @@
     .chapter {
       min-height: calc(100svh - var(--hdr));
       display: flex;
-      align-items: center;
-      /* Top 1.5rem, bottom 3rem: the pair centers 0.75rem above the middle of the
-         snap height, and a pair taller than the screen still keeps 1.5rem above it. */
-      padding-top: 1.5rem;
-      padding-bottom: 3rem;
+      flex-direction: column;
+      padding-top: 0;
+      padding-bottom: 1.5rem;
+    }
+    /* Two spacers center the pair in the snap height less the bottom padding. The top
+       one never gets smaller than 1.5rem, so a pair that nearly fills the screen keeps
+       its gap above and a taller one adds no height beyond that gap and the padding. */
+    .chapter::before,
+    .chapter::after {
+      content: '';
+      flex: 1 1 0px;
+    }
+    .chapter::before {
+      min-height: 1.5rem;
     }
     .chapter > .pair {
       width: 100%;
