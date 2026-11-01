@@ -62,6 +62,7 @@ test.describe('server-rendered pages', () => {
         'There is no project at that address.',
       );
       await expect(page.getByRole('main').getByRole('link')).toHaveText([
+        'All projects',
         'See all projects',
         'Go to the home page',
       ]);

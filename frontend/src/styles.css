@@ -628,4 +628,26 @@
     text-decoration-thickness: 1.5px;
     text-underline-offset: 4px;
   }
+
+  /* The home page footer is tighter than the one on inner pages: a 28px rhythm, one row of
+     links at phone width, medium-weight external links, and tap targets pinned to 44px
+     instead of growing with the root font size on very wide screens. */
+  html:has(.home) .foot {
+    gap: 28px;
+  }
+  html:has(.home) .foot .small {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 20px;
+  }
+  html:has(.home) .foot .small a {
+    margin-right: 0;
+  }
+  html:has(.home) .foot .small .ext {
+    font-weight: 500;
+    min-height: 44px;
+  }
+  html:has(.home) .foot .tl {
+    min-height: 44px;
+  }
 }
