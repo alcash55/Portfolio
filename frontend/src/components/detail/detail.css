@@ -144,8 +144,13 @@
   }
   :is(.pg, .dband) .btn {
     white-space: nowrap;
-    padding: 0 24px;
   }
+}
+
+/* Inline code keeps the generic monospace family. The Tailwind base sets a
+   ui-monospace stack that picks a different face on some systems. */
+.pg code {
+  font-family: monospace;
 }
 
 /* ---------- Buttons ---------- */
@@ -186,6 +191,12 @@
 }
 :is(.pg, .dband) .btn:active {
   transform: translateY(1px);
+}
+/* Below the base rule on purpose: at equal specificity the later padding wins. */
+@media (min-width: 768px) {
+  :is(.pg, .dband) .btn {
+    padding: 0 24px;
+  }
 }
 
 /* ---------- Sections ---------- */
@@ -344,6 +355,7 @@
 }
 .dband .ct-btn {
   gap: 8px;
+  min-height: 3rem;
   padding: 12px 24px;
   line-height: 1.2;
 }
