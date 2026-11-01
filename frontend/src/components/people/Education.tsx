@@ -13,7 +13,6 @@ export function Education({ resume = resumeInfo }: { resume?: ResumeInfo }) {
       title={EDUCATION.title}
       overline={EDUCATION.overline}
       heading={EDUCATION.heading}
-      className="chapter-top"
       figure={
         <PhotoCarousel
           fig={EDUCATION.fig}
