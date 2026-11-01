@@ -407,8 +407,8 @@
   z-index: 6;
   right: 12px;
   bottom: 12px;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--line-strong);
   background: var(--surface);
@@ -439,6 +439,12 @@
   box-shadow: var(--shadow-1);
   overflow: hidden;
   position: relative;
+}
+/* Inside a Fig frame the figure is the card, so the window adds no second edge. */
+.frame.clipf {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .frame .bar {
   height: 2.5rem;

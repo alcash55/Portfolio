@@ -24,7 +24,6 @@ export function ExperienceChapter({ spec, figure }: ExperienceChapterProps) {
       heading={spec.heading}
       reverse={spec.reverse}
       big
-      className="chapter-top"
       figure={
         <Fig n={spec.fig.n} label={spec.fig.label} caption={spec.fig.caption} meta={spec.fig.meta}>
           {figure ?? <FigureSlot />}

@@ -40,6 +40,7 @@ describe('Gallery', () => {
     expect(caption).toHaveTextContent('Camp');
     expect(caption).toHaveTextContent('Walk out of the forest');
     expect(container.querySelector('.mcap')).toBeNull();
+    expect(container.querySelector('.frame')).toHaveClass('clipf');
   });
 
   it('opens on the first clip, with its caption in a polite live region', () => {

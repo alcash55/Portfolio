@@ -13,7 +13,7 @@ interface RevealVideoProps extends Pick<ClipProps, 'src' | 'poster' | 'posterSwa
 export function RevealVideo({ name, caption, framed = false, ...clip }: RevealVideoProps) {
   return (
     <figure className="mfig" aria-label={`${name} recording`}>
-      <WindowFrame>
+      <WindowFrame bare={framed}>
         <Clip {...clip} loop />
       </WindowFrame>
       {framed ? null : (

@@ -1,6 +1,6 @@
 /* Experience, Education and Contact sections. They use the home chapter and
    figure shell (home.css). This file holds only what that shell does not: the
-   top-aligned wide layout, the read-more disclosure, the photo carousel, the buttons
+   read-more disclosure, the photo carousel, the buttons
    and text links, and the contact band. Names carry a pp- prefix. This sheet is
    unlayered and the home sheet is layered, so a rule here wins over a home rule. */
 
@@ -13,20 +13,23 @@
     order: 1;
   }
 }
-/* Chapters 8 to 12 start a fixed distance below the header instead of being
-   centered, so opening Read more grows the prose downward and nothing jumps. */
+/* Chapters with a Read more panel keep both columns at the top of the pair, so
+   the figure stays put while the prose grows. The others center the columns.
+   With script the chapter also gets a fixed top padding measured on the closed
+   pair, because centering on the live height would lift the figure on open. */
 @media (min-width: 900px) {
-  .chapter.chapter-top {
-    align-items: flex-start;
-    padding-top: clamp(1.5rem, 7svh, 4rem);
+  .chapter[data-pinned] {
+    padding-top: var(--cpad);
   }
-  .chapter.chapter-top .pair > .prose,
-  .chapter.chapter-top .pair > .fig {
+  .chapter[data-pinned]::before,
+  .chapter[data-pinned]::after {
+    display: none;
+  }
+  .chapter:has(details.pp-more) .pair > .prose,
+  .chapter:has(details.pp-more) .pair > .fig {
     align-self: start;
   }
-  .chapter.chapter-top:not(:has(details.pp-more)) .pair > .prose,
-  .chapter.chapter-top:not(:has(details.pp-more)) .pair > .fig,
-  .chapter.chapter-top .pair > .pp-cform {
+  .chapter .pair > .pp-cform {
     align-self: center;
   }
 }
@@ -73,6 +76,7 @@ details.pp-more li {
 }
 details.pp-more .stack {
   margin: 14px 0 0;
+  font-size: 0.9375rem;
 }
 
 /* Buttons and text links used by Education and the contact band */

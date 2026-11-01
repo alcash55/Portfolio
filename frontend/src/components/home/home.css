@@ -71,8 +71,8 @@
   .ctr svg {
     flex: none;
   }
-  /* Below 400px the title would cut the total ("01 / 1..."), so it leaves the layout and stays in the name. */
-  @media (max-width: 399px) {
+  /* Below 360px the title would cut the total ("01 / 1..."), so it leaves the layout and stays in the name. */
+  @media (max-width: 359px) {
     .ctr {
       padding: 0 0.25rem;
       gap: 0.25rem;
@@ -252,10 +252,11 @@
     color: var(--text);
     font-weight: 500;
   }
+  /* No font-size here: the stack line under the links reads at the prose size. The
+     smaller size belongs to the one inside Read more (people.css). */
   .prose .stack,
   .stack {
     color: var(--text-2);
-    font-size: 0.9375rem;
   }
 
   /* Figure frame */
@@ -322,10 +323,11 @@
     gap: 4px 20px;
     margin-top: 8px;
   }
+  /* Pixels, not rem: the 44px tap minimum should not grow with the root size on wide screens. */
   .tl {
     display: inline-flex;
     align-items: center;
-    min-height: 2.75rem;
+    min-height: 44px;
     font-weight: 500;
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
@@ -401,9 +403,20 @@
     .chapter {
       min-height: calc(100svh - var(--hdr));
       display: flex;
-      align-items: center;
-      padding-top: 1.5rem;
+      flex-direction: column;
+      padding-top: 0;
       padding-bottom: 1.5rem;
+    }
+    /* Two spacers center the pair in the snap height less the bottom padding. The top
+       one never gets smaller than 1.5rem, so a pair that nearly fills the screen keeps
+       its gap above and a taller one adds no height beyond that gap and the padding. */
+    .chapter::before,
+    .chapter::after {
+      content: '';
+      flex: 1 1 0px;
+    }
+    .chapter::before {
+      min-height: 1.5rem;
     }
     .chapter > .pair {
       width: 100%;

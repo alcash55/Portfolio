@@ -1,11 +1,17 @@
+import { useRef } from 'react';
+import { usePinnedTop } from './pinnedTop';
+
 /**
  * A native disclosure. The text drops down under the summary inside the prose
- * column and the figure beside it stays where it is. There is no script: it
- * opens and closes with JavaScript off, and the browser handles the keyboard.
+ * column and the figure beside it stays where it is. It opens and closes with
+ * JavaScript off, and the browser handles the keyboard. Script only pins the
+ * chapter's centering to the closed height (see usePinnedTop).
  */
 export function ReadMore({ points, stack }: { points: readonly string[]; stack: string }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+  usePinnedTop(ref);
   return (
-    <details className="pp-more">
+    <details className="pp-more" ref={ref}>
       <summary>
         Read more
         <svg

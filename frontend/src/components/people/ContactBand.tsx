@@ -22,7 +22,7 @@ export function ContactBand({ resume = resumeInfo }: { resume?: ResumeInfo }) {
       title={CONTACT_BAND.title}
       overline={CONTACT_BAND.overline}
       heading={CONTACT_BAND.heading}
-      className="chapter-top pp-contact"
+      className="pp-contact"
       figure={
         <div className="pp-cform">
           <ContactForm />
