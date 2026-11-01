@@ -144,8 +144,13 @@
   }
   :is(.pg, .dband) .btn {
     white-space: nowrap;
-    padding: 0 24px;
   }
+}
+
+/* Inline code keeps the generic monospace family. The Tailwind base sets a
+   ui-monospace stack that picks a different face on some systems. */
+.pg code {
+  font-family: monospace;
 }
 
 /* ---------- Buttons ---------- */
@@ -186,6 +191,12 @@
 }
 :is(.pg, .dband) .btn:active {
   transform: translateY(1px);
+}
+/* Below the base rule on purpose: at equal specificity the later padding wins. */
+@media (min-width: 768px) {
+  :is(.pg, .dband) .btn {
+    padding: 0 24px;
+  }
 }
 
 /* ---------- Sections ---------- */
@@ -326,5 +337,45 @@
     gap: 64px;
     align-items: start;
     padding: 40px 48px 48px;
+  }
+}
+
+/* The form in this band is shorter than the home chapter's: tighter card padding,
+   a 112px message box, Name and Email on one row once the column can hold two
+   fields, and a button whose text line is 1.2 tall. Each field also keeps a 6px
+   slot below it, the room an inline error takes, so the rows do not jump. */
+.dband form.ct-card {
+  padding: 20px;
+}
+.dband .ct-fld textarea {
+  min-height: 112px;
+}
+.dband .ct-fld:not(.ct-bad)::after {
+  content: '';
+}
+.dband .ct-btn {
+  gap: 8px;
+  min-height: 3rem;
+  padding: 12px 24px;
+  line-height: 1.2;
+}
+@media (min-width: 768px) {
+  .dband form.ct-card {
+    padding: 24px;
+  }
+  .dband .ct-btn {
+    padding: 0 24px;
+  }
+}
+@media (min-width: 1100px) {
+  .dband form.ct-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .dband form.ct-card > * {
+    grid-column: 1 / -1;
+  }
+  /* Name and Email are the only fields that hold an input, the message holds a textarea. */
+  .dband form.ct-card > .ct-fld:has(> input) {
+    grid-column: auto;
   }
 }
