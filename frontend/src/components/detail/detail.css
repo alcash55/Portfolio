@@ -331,20 +331,28 @@
 
 /* The form in this band is shorter than the home chapter's: tighter card padding,
    a 112px message box, Name and Email on one row once the column can hold two
-   fields, and a button whose text line is 1.2 tall. */
+   fields, and a button whose text line is 1.2 tall. Each field also keeps a 6px
+   slot below it, the room an inline error takes, so the rows do not jump. */
 .dband form.ct-card {
   padding: 20px;
 }
 .dband .ct-fld textarea {
   min-height: 112px;
 }
+.dband .ct-fld:not(.ct-bad)::after {
+  content: '';
+}
 .dband .ct-btn {
+  gap: 8px;
   padding: 12px 24px;
   line-height: 1.2;
 }
 @media (min-width: 768px) {
   .dband form.ct-card {
     padding: 24px;
+  }
+  .dband .ct-btn {
+    padding: 0 24px;
   }
 }
 @media (min-width: 1100px) {
