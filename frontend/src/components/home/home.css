@@ -252,10 +252,11 @@
     color: var(--text);
     font-weight: 500;
   }
+  /* No font-size here: the stack line under the links reads at the prose size. The
+     smaller size belongs to the one inside Read more (people.css). */
   .prose .stack,
   .stack {
     color: var(--text-2);
-    font-size: 0.9375rem;
   }
 
   /* Figure frame */

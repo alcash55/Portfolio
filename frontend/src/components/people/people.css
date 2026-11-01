@@ -74,6 +74,7 @@ details.pp-more li {
 }
 details.pp-more .stack {
   margin: 14px 0 0;
+  font-size: 0.9375rem;
 }
 
 /* Buttons and text links used by Education and the contact band */
