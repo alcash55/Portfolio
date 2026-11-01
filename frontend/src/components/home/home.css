@@ -402,8 +402,10 @@
       min-height: calc(100svh - var(--hdr));
       display: flex;
       align-items: center;
+      /* Top 1.5rem, bottom 3rem: the pair centers 0.75rem above the middle of the
+         snap height, and a pair taller than the screen still keeps 1.5rem above it. */
       padding-top: 1.5rem;
-      padding-bottom: 1.5rem;
+      padding-bottom: 3rem;
     }
     .chapter > .pair {
       width: 100%;
