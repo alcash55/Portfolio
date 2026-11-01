@@ -328,3 +328,34 @@
     padding: 40px 48px 48px;
   }
 }
+
+/* The form in this band is shorter than the home chapter's: tighter card padding,
+   a 112px message box, Name and Email on one row once the column can hold two
+   fields, and a button whose text line is 1.2 tall. */
+.dband form.ct-card {
+  padding: 20px;
+}
+.dband .ct-fld textarea {
+  min-height: 112px;
+}
+.dband .ct-btn {
+  padding: 12px 24px;
+  line-height: 1.2;
+}
+@media (min-width: 768px) {
+  .dband form.ct-card {
+    padding: 24px;
+  }
+}
+@media (min-width: 1100px) {
+  .dband form.ct-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .dband form.ct-card > * {
+    grid-column: 1 / -1;
+  }
+  /* Name and Email are the only fields that hold an input, the message holds a textarea. */
+  .dband form.ct-card > .ct-fld:has(> input) {
+    grid-column: auto;
+  }
+}

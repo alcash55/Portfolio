@@ -93,13 +93,14 @@
 
 .ct-cnt {
   justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   color: var(--text-3);
   font-size: 0.8125rem;
 }
+/* Only the over-limit count carries an icon, so only it needs a row. */
 .ct-over {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: var(--error);
   font-weight: 500;
 }
