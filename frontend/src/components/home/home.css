@@ -323,10 +323,11 @@
     gap: 4px 20px;
     margin-top: 8px;
   }
+  /* Pixels, not rem: the 44px tap minimum should not grow with the root size on wide screens. */
   .tl {
     display: inline-flex;
     align-items: center;
-    min-height: 2.75rem;
+    min-height: 44px;
     font-weight: 500;
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
