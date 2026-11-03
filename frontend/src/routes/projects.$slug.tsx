@@ -4,6 +4,7 @@ import { ProjectDetail } from '~/components/detail/ProjectDetail';
 import { NotFoundSlug } from '~/components/pages/NotFound';
 import { findExperience, findProject } from '~/content/pages';
 import { getDetail } from '~/content/projects';
+import { pageHead } from '~/lib/seo';
 
 export const Route = createFileRoute('/projects/$slug')({
   beforeLoad: ({ params }) => {
@@ -19,11 +20,14 @@ export const Route = createFileRoute('/projects/$slug')({
     // Only the slug crosses to the client. The page body is looked up from the content module.
     return { ...page, detailSlug: detail.slug };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [{ title: loaderData.title }, { name: 'description', content: loaderData.description }]
-      : [], // the not-found page sets its own title
-  }),
+  head: ({ loaderData }) =>
+    loaderData
+      ? pageHead({
+          title: loaderData.title,
+          description: loaderData.description,
+          path: `/projects/${loaderData.slug}`,
+        })
+      : { meta: [] }, // the not-found page sets its own title
   component: ProjectPage,
   notFoundComponent: NotFoundSlug,
 });

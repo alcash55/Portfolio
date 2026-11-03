@@ -69,6 +69,28 @@ test.describe('/work/<slug>', () => {
   });
 });
 
+test.describe('share metadata in the server HTML', () => {
+  test('a project page carries its own og tags and a social image that exists', async ({
+    request,
+  }) => {
+    const html = await (await request.get('/projects/clipper')).text();
+    expect(html).toMatch(/<meta[^>]+property="og:title"[^>]+content="Clipper, work by Alex Cash"/);
+    expect(html).toMatch(/<meta[^>]+name="twitter:card"/);
+    // The default build sets no VITE_SITE_ORIGIN, so nothing absolute is invented.
+    expect(html).not.toMatch(/property="og:url"|rel="canonical"/);
+
+    const image = await request.get('/og-image.png');
+    expect(image.status()).toBe(200);
+    expect(image.headers()['content-type']).toContain('image/png');
+  });
+
+  test('the home page carries Person data as JSON-LD', async ({ request }) => {
+    const html = await (await request.get('/')).text();
+    const match = html.match(/<script[^>]+type="application\/ld\+json"[^>]*>([^<]+)<\/script>/);
+    expect(JSON.parse(match?.[1] ?? '{}')).toMatchObject({ '@type': 'Person', name: 'Alex Cash' });
+  });
+});
+
 test.describe('/projects/<experience slug>', () => {
   for (const slug of EXPERIENCE) {
     test(`/projects/${slug} stays a 301 to /experience/${slug}`, async ({ request }) => {
