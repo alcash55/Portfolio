@@ -39,6 +39,34 @@ describe('Shell landmarks', () => {
   });
 });
 
+describe('Focus after a client-side navigation', () => {
+  const home = (
+    <>
+      <h1 tabIndex={-1}>Home headline</h1>
+      <section id="projects">
+        <h2 tabIndex={-1}>Projects heading</h2>
+      </section>
+    </>
+  );
+
+  it('moves focus to the h1 of the new page', async () => {
+    const user = userEvent.setup();
+    await renderShell('/projects/clipper', { '/': home });
+    await user.click(
+      within(screen.getByRole('banner')).getByRole('link', { name: 'Alex Cash, home' }),
+    );
+    expect(await screen.findByRole('heading', { name: 'Home headline' })).toHaveFocus();
+  });
+
+  it('moves focus to the hash target when the link names one', async () => {
+    const user = userEvent.setup();
+    await renderShell('/projects/clipper', { '/': home });
+    const nav = within(screen.getByRole('banner')).getByRole('navigation', { name: 'Primary' });
+    await user.click(within(nav).getByRole('link', { name: 'Projects' }));
+    expect(await screen.findByRole('heading', { name: 'Projects heading' })).toHaveFocus();
+  });
+});
+
 describe('Header', () => {
   it('names the wordmark link "Alex Cash, home"', async () => {
     await renderShell();
