@@ -58,12 +58,12 @@ describe('PeopleSections', () => {
       true,
       true,
     ]);
-    // Chapters 8 to 12 each hold one framed figure. The contact band holds the form.
+    // Chapters 8 to 12 each hold one framed figure. The contact band holds the dogs photo and the form.
     expect(chapters.map((el) => el.querySelectorAll('.pair > .prose').length)).toEqual([
       1, 1, 1, 1, 1, 1,
     ]);
     expect(chapters.map((el) => el.querySelectorAll('figure.fig').length)).toEqual([
-      1, 1, 1, 1, 1, 0,
+      1, 1, 1, 1, 1, 1,
     ]);
     const duplicates = document.querySelectorAll(
       '.pp-chapter, .pp-pair, .pp-prose, .pp-ov, .pp-fig, .pp-fig-h, .pp-fig-b, .pp-fig-f, .pp-slot, .pp-links, .pp-go, .pp-note, .pp-proof',

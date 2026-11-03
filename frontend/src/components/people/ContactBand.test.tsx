@@ -25,6 +25,14 @@ describe('ContactBand', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows Koda and Troy as Fig 12 with alt text that names both', async () => {
+    const band = await setup();
+    expect(within(band).getByText('Fig 12')).toBeInTheDocument();
+    const photo = within(band).getByRole('img', { name: /^Koda, a black and white doodle/ });
+    expect(photo).toHaveAttribute('src', '/media/koda_and_troy.webp');
+    expect(within(band).getByText('Koda (left) and Troy (right).')).toBeInTheDocument();
+  });
+
   it('opens LinkedIn and GitHub in a new tab and says so in the name', async () => {
     const band = await setup();
     const linkedin = within(band).getByRole('link', { name: 'LinkedIn (opens in a new tab)' });

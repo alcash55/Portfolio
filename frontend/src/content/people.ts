@@ -141,11 +141,11 @@ export const EDUCATION = {
   carouselLabel: 'Education and coaching photos',
   photos: [
     {
-      src: '/media/west_ms_coaching.webp',
-      width: 515,
-      height: 424,
-      alt: 'Alex coaching middle school lacrosse at Lakota West.',
-      caption: 'Coaching middle school lacrosse at Lakota West.',
+      src: '/media/lakota_west_sideline.webp',
+      width: 1000,
+      height: 769,
+      alt: 'Alex coaching on the Lakota West sideline with the Firebirds lacrosse team.',
+      caption: 'Coaching lacrosse at Lakota West.',
     },
     {
       src: '/media/rmu_lacrosse.webp',
@@ -153,6 +153,13 @@ export const EDUCATION = {
       height: 424,
       alt: 'Alex playing lacrosse for Robert Morris.',
       caption: 'Playing lacrosse at Robert Morris.',
+    },
+    {
+      src: '/media/rmu_28.webp',
+      width: 719,
+      height: 820,
+      alt: 'Alex in his number 28 Robert Morris jersey, holding a lacrosse stick on the field.',
+      caption: 'Number 28 at Robert Morris.',
     },
     {
       src: '/media/rmuLogo.webp',
@@ -266,6 +273,15 @@ export const CONTACT_BAND = {
   overline: 'Contact',
   heading: 'Say hi.',
   line: "Let's work together. Send me a message here.",
+  fig: {
+    n: 12,
+    label: 'Dogs',
+    caption: 'Koda (left) and Troy (right).',
+    src: '/media/koda_and_troy.webp',
+    width: 800,
+    height: 600,
+    alt: 'Koda, a black and white doodle, and Troy, a red-brown doodle, sit side by side on the grass looking up with their tongues out.',
+  },
 } as const;
 
 // CT-01 to CT-16, the `/contact` page.

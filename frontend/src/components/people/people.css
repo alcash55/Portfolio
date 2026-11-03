@@ -138,6 +138,10 @@ details.pp-more .stack {
   aspect-ratio: 4 / 3;
   background: var(--band);
   display: grid;
+  /* Fixed single track, so a portrait photo scales down to the 4:3 box. With an auto track
+     its natural height stretches the box and every slide in the row with it. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  min-height: 0;
   place-items: center;
   padding: 0.5rem;
 }
@@ -215,6 +219,16 @@ details.pp-more .stack {
 /* Contact band */
 .pp-contact {
   padding-bottom: 96px;
+}
+.pp-dogs {
+  margin-top: 28px;
+  max-width: 22rem;
+}
+.pp-dogs .fig-b img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  width: 100%;
+  height: auto;
 }
 .pp-contact h2 {
   scroll-margin-top: calc(var(--hdr) + 16px);

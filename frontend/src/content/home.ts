@@ -72,7 +72,7 @@ export const ABOUT = {
   overline: 'About me',
   heading: 'Alex Cash builds the Go API and the page that reads it.',
   paragraph:
-    "I'm a software engineer in Memphis, TN. I work the whole stack in Go, TypeScript and React. That means Go or Node.js services, React micro-frontends and everything in between. Outside work I walk two dogs, Troy and Leon, and I coached lacrosse.",
+    "I'm a software engineer in Memphis, TN. I work the whole stack in Go, TypeScript and React. That means Go or Node.js services, React micro-frontends and everything in between. Outside work I walk two dogs, Koda and Troy, and I coached lacrosse.",
   availability: "Let's work together.",
   message: { label: 'Message Alex', ariaLabel: 'Message Alex (goes to the contact form)' },
   social: [

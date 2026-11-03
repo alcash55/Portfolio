@@ -32,6 +32,8 @@ function setup() {
   };
 }
 
+const TOTAL = EDUCATION.photos.length;
+
 describe('PhotoCarousel', () => {
   it('is a focusable carousel region with one captioned slide per photo', () => {
     const { region } = setup();
@@ -40,19 +42,19 @@ describe('PhotoCarousel', () => {
     // Slides carry role group, so a list wrapper would hold no list items.
     expect(within(region).queryByRole('list')).not.toBeInTheDocument();
     const slides = within(region).getAllByRole('group');
-    expect(slides).toHaveLength(3);
-    expect(slides[0]).toHaveAccessibleName('1 of 3');
+    expect(slides).toHaveLength(TOTAL);
+    expect(slides[0]).toHaveAccessibleName(`1 of ${TOTAL}`);
     expect(slides[0]).toHaveAttribute('aria-roledescription', 'slide');
     expect(within(region).getByRole('img', { name: EDUCATION.photos[0].alt })).toHaveAttribute(
       'width',
-      '515',
+      String(EDUCATION.photos[0].width),
     );
     expect(within(region).getByText(EDUCATION.photos[2].caption)).toBeInTheDocument();
   });
 
-  it('starts at 1 of 3 with Previous disabled', () => {
+  it('starts at the first photo with Previous disabled', () => {
     const { status, prev, next } = setup();
-    expect(status()).toHaveTextContent('1 of 3');
+    expect(status()).toHaveTextContent(`1 of ${TOTAL}`);
     expect(status()).toHaveAttribute('aria-live', 'polite');
     expect(prev()).toHaveAttribute('aria-disabled', 'true');
     expect(next()).toBeEnabled();
@@ -62,15 +64,14 @@ describe('PhotoCarousel', () => {
     const { user, status, prev, next } = setup();
     await user.click(next());
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ left: WIDTH }));
-    expect(status()).toHaveTextContent('2 of 3');
+    expect(status()).toHaveTextContent(`2 of ${TOTAL}`);
     expect(prev()).toBeEnabled();
   });
 
   it('disables Next on the last photo', async () => {
     const { user, status, next } = setup();
-    await user.click(next());
-    await user.click(next());
-    expect(status()).toHaveTextContent('3 of 3');
+    for (let i = 1; i < TOTAL; i++) await user.click(next());
+    expect(status()).toHaveTextContent(`${TOTAL} of ${TOTAL}`);
     expect(next()).toHaveAttribute('aria-disabled', 'true');
   });
 
@@ -78,13 +79,13 @@ describe('PhotoCarousel', () => {
     const { user, region, status } = setup();
     region.focus();
     await user.keyboard('{ArrowRight}');
-    expect(status()).toHaveTextContent('2 of 3');
+    expect(status()).toHaveTextContent(`2 of ${TOTAL}`);
     await user.keyboard('{End}');
-    expect(status()).toHaveTextContent('3 of 3');
+    expect(status()).toHaveTextContent(`${TOTAL} of ${TOTAL}`);
     await user.keyboard('{ArrowLeft}');
-    expect(status()).toHaveTextContent('2 of 3');
+    expect(status()).toHaveTextContent(`${TOTAL - 1} of ${TOTAL}`);
     await user.keyboard('{Home}');
-    expect(status()).toHaveTextContent('1 of 3');
+    expect(status()).toHaveTextContent(`1 of ${TOTAL}`);
   });
 
   it('keeps the count in step when the visitor swipes the strip', async () => {
@@ -93,12 +94,12 @@ describe('PhotoCarousel', () => {
       const { region, status } = setup();
       // The focusable region is the scroller, so a keyboard user can scroll it too.
       const track = region;
-      track.scrollLeft = WIDTH * 2;
+      track.scrollLeft = WIDTH * (TOTAL - 1);
       act(() => {
         track.dispatchEvent(new Event('scroll'));
         vi.advanceTimersByTime(100);
       });
-      expect(status()).toHaveTextContent('3 of 3');
+      expect(status()).toHaveTextContent(`${TOTAL} of ${TOTAL}`);
     } finally {
       vi.useRealTimers();
     }
