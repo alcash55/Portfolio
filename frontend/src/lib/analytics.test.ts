@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ANALYTICS_EVENTS,
   createAnalytics,
-  ingestPreconnect,
+  addIngestPreconnect,
   privacyOptOut,
   readAnalyticsConfig,
   type AnalyticsDeps,
@@ -242,15 +242,37 @@ describe('readAnalyticsConfig', () => {
   });
 });
 
-describe('ingestPreconnect', () => {
-  it('warms the connection to the ingest host when one is configured', () => {
-    expect(ingestPreconnect('https://us.i.posthog.com')).toEqual([
-      { rel: 'preconnect', href: 'https://us.i.posthog.com', crossOrigin: 'anonymous' },
-    ]);
+describe('ingest preconnect', () => {
+  const links = () => document.head.querySelectorAll('link[rel="preconnect"]');
+  afterEach(() => {
+    links().forEach((link) => link.remove());
   });
 
-  it('adds nothing when analytics is off', () => {
-    expect(ingestPreconnect(undefined)).toEqual([]);
+  it('adds one hint from start() once the visitor has not opted out', () => {
+    const { analytics } = setup({ preconnect: addIngestPreconnect });
+
+    analytics.start();
+    analytics.start();
+
+    expect(links()).toHaveLength(1);
+    expect(links()[0]).toHaveAttribute('href', 'https://us.i.posthog.com');
+    expect(links()[0]).toHaveAttribute('crossorigin', 'anonymous');
+  });
+
+  it('adds no hint when Do Not Track or Global Privacy Control is on', () => {
+    const { analytics } = setup({ preconnect: addIngestPreconnect, optedOut: () => true });
+
+    analytics.start();
+
+    expect(links()).toHaveLength(0);
+  });
+
+  it('adds no hint when analytics is off', () => {
+    const { analytics } = setup({ preconnect: addIngestPreconnect, token: undefined });
+
+    analytics.start();
+
+    expect(links()).toHaveLength(0);
   });
 });
 

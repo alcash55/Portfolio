@@ -6,7 +6,6 @@ import newsreaderFont from '@fontsource-variable/newsreader/files/newsreader-lat
 import { AnalyticsTracker } from '~/components/shell/AnalyticsTracker';
 import { Shell } from '~/components/shell/Shell';
 import { NotFoundRoute } from '~/components/pages/NotFound';
-import { analyticsHost, ingestPreconnect } from '~/lib/analytics';
 import { themeInitScript } from '~/lib/theme';
 import appCss from '~/styles.css?url';
 
@@ -29,8 +28,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         crossOrigin: 'anonymous',
       },
       { rel: 'stylesheet', href: appCss },
-      // Only present in a build that has a PostHog token.
-      ...ingestPreconnect(analyticsHost),
     ],
     // Inline and first in <head> so a saved dark choice is set before first paint.
     scripts: [{ children: themeInitScript }],

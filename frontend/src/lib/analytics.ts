@@ -49,6 +49,8 @@ export interface AnalyticsDeps {
   whenIdle: (run: () => void) => void;
   /** True when the visitor asked not to be tracked. Read on every capture. */
   optedOut: () => boolean;
+  /** Warms the connection to the ingest host. Only `start()` calls it, after the opt-out check. */
+  preconnect?: (host: string) => void;
 }
 
 export interface Analytics {
@@ -148,6 +150,7 @@ export function createAnalytics(deps: AnalyticsDeps): Analytics {
     },
     start() {
       if (!enabled || state !== 'idle' || deps.optedOut()) return;
+      if (deps.host) deps.preconnect?.(deps.host);
       state = 'scheduled';
       deps.whenIdle(load);
     },
@@ -220,14 +223,18 @@ export const analytics: Analytics = createAnalytics({
       : import('posthog-js').then((module) => module.default),
   whenIdle: whenBrowserIdle,
   optedOut: browserOptedOut,
+  preconnect: addIngestPreconnect,
 });
 
-/** The ingest origin, or undefined when analytics is off. For the preconnect hint. */
-export const analyticsHost: string | undefined = config.token ? config.host : undefined;
-
-/** Head links for the ingest origin. Empty when analytics is off, so no stray connection opens. */
-export function ingestPreconnect(
-  host: string | undefined,
-): Array<{ rel: 'preconnect'; href: string; crossOrigin: 'anonymous' }> {
-  return host ? [{ rel: 'preconnect', href: host, crossOrigin: 'anonymous' }] : [];
+/**
+ * Hints the browser to open the ingest connection early. This runs from JS, after the
+ * opt-out check, because a hint in the server HTML would reach visitors who asked not
+ * to be measured before any script could read their signal.
+ */
+export function addIngestPreconnect(host: string, doc: Document = document): void {
+  const link = doc.createElement('link');
+  link.rel = 'preconnect';
+  link.href = host;
+  link.crossOrigin = 'anonymous';
+  doc.head.append(link);
 }

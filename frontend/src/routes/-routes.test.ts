@@ -1,5 +1,5 @@
 import { createMemoryHistory } from '@tanstack/react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getRouter } from '~/router';
 
 // Loads the real route tree without rendering it. The root route renders <html>,
@@ -66,5 +66,26 @@ describe('routing', () => {
 
   it('does not treat a known page as not found', async () => {
     expect((await load('/projects/clipper')).notFound).toBe(false);
+  });
+});
+
+describe('server head and the ingest host', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('carries no preconnect even in a build that has a PostHog token', async () => {
+    // A hint in the server HTML would open a connection for visitors who send
+    // Do Not Track, before any script can read the signal.
+    vi.stubEnv('VITE_POSTHOG_PROJECT_TOKEN', 'phc_testtoken');
+    vi.resetModules();
+    const { getRouter: freshRouter } = await import('~/router');
+    const router = freshRouter();
+    router.update({ ...router.options, history: createMemoryHistory({ initialEntries: ['/'] }) });
+    await router.load();
+    const links = router.state.matches.flatMap((match) => match.links ?? []);
+    expect(links.length).toBeGreaterThan(0);
+    expect(links.filter((link) => link?.rel === 'preconnect')).toEqual([]);
   });
 });
