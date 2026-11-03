@@ -1,9 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { ResumeLink } from '~/components/people/ResumeLink';
+import { CONTACT_EMAIL } from '~/content/people';
 import { resumeInfo, type ResumeInfo } from '~/lib/resume';
 import { SectionLinks } from './SectionLinks';
-
-const EMAIL = 'alex.e.cash28@gmail.com';
 
 function ExternalLink({ href, children }: { href: string; children: string }) {
   return (
@@ -30,7 +29,7 @@ export function Footer({ resume = resumeInfo }: { resume?: ResumeInfo }) {
         <ExternalLink href="https://github.com/alcash55">GitHub</ExternalLink>
         <ResumeLink info={resume} location="footer" />
       </div>
-      <p className="addr2">{EMAIL}</p>
+      <p className="addr2">{CONTACT_EMAIL}</p>
       <div className="base">
         <p>Built with TanStack Start and Tailwind. Hosted on Cloudflare.</p>
         <p>&copy; 2026 Alex Cash</p>

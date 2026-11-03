@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-
-const ADDRESS = 'alex.e.cash28@gmail.com'; // PD-20
+import { CONTACT_EMAIL } from '~/content/people';
 
 interface MessageBandProps {
   /** The contact form. Without one, the band offers a link to the home page's form and the address. */
@@ -21,8 +20,8 @@ export function MessageBand({ form }: MessageBandProps) {
             <Link className="btn btn-primary" to="/" hash="contact" data-msg>
               Message Alex
             </Link>
-            <a className="dband-mail" href={`mailto:${ADDRESS}`}>
-              {ADDRESS}
+            <a className="dband-mail" href={`mailto:${CONTACT_EMAIL}`}>
+              {CONTACT_EMAIL}
             </a>
           </div>
         )}
