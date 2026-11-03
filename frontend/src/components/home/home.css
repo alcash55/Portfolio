@@ -286,9 +286,12 @@
     letter-spacing: 0;
     font-size: 0.8125rem;
   }
+  /* min-width 0: a grid item never narrows below its content, so a wide image in a
+     scroller would stretch the whole frame past the page on a phone. */
   .fig-b {
     position: relative;
     min-height: 0;
+    min-width: 0;
   }
   .fig-b img,
   .fig-b video {

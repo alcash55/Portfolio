@@ -52,10 +52,10 @@ describe('ChapterNav counter', () => {
     render(<Page />);
     // The name is built from the visible text, so it always contains it (WCAG 2.5.3).
     const button = screen.getByRole('button', {
-      name: 'Chapter 01 / 12 · About me. Open chapter index',
+      name: 'Chapter 01 / 13 · About me. Open chapter index',
     });
     expect(button).not.toHaveAttribute('aria-label');
-    expect(button).toHaveTextContent('01 / 12 · About me');
+    expect(button).toHaveTextContent('01 / 13 · About me');
     expect(button).toHaveAttribute('popovertarget', 'cidx');
   });
 
@@ -63,15 +63,15 @@ describe('ChapterNav counter', () => {
     render(<Page />);
     await scrollTo({ about: [-900, -100], 'golem-miners': [-100, 900] });
     expect(
-      screen.getByRole('button', { name: 'Chapter 06 / 12 · Golem Miners. Open chapter index' }),
-    ).toHaveTextContent('06 / 12 · Golem Miners');
+      screen.getByRole('button', { name: 'Chapter 06 / 13 · Golem Miners. Open chapter index' }),
+    ).toHaveTextContent('06 / 13 · Golem Miners');
   });
 
   it('keeps the last chapter while the line sits in a gap between two', async () => {
     render(<Page />);
     await scrollTo({ about: [-900, -100], 'golem-miners': [-100, 900] });
     await scrollTo({ about: [-2000, -1200], 'golem-miners': [-1200, 100] });
-    expect(screen.getByRole('button', { name: /^Chapter 06 \/ 12/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Chapter 06 \/ 13/ })).toBeInTheDocument();
   });
 
   it('finds chapters that were added after the header mounted', async () => {
@@ -80,7 +80,7 @@ describe('ChapterNav counter', () => {
     const { rerender } = render(<ChapterNav />);
     rerender(<Page />);
     await scrollTo({ about: [-900, -100], 'golem-miners': [-100, 900] });
-    expect(screen.getByRole('button', { name: /^Chapter 06 \/ 12/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Chapter 06 \/ 13/ })).toBeInTheDocument();
   });
 
   it('reads the position again when the hash changes', async () => {
@@ -90,12 +90,12 @@ describe('ChapterNav counter', () => {
       window.dispatchEvent(new Event('hashchange'));
       await new Promise((resolve) => requestAnimationFrame(resolve));
     });
-    expect(screen.getByRole('button', { name: /^Chapter 06 \/ 12/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Chapter 06 \/ 13/ })).toBeInTheDocument();
   });
 });
 
 describe('ChapterNav index', () => {
-  it('lists all twelve chapters in four labeled groups, with the current one marked', async () => {
+  it('lists all thirteen chapters in five labeled groups, with the current one marked', async () => {
     render(<Page />);
     const nav = screen.getByRole('navigation', { name: 'Chapters', hidden: true });
     const groups = within(nav).getAllByRole('heading', { level: 3, hidden: true });
@@ -103,10 +103,11 @@ describe('ChapterNav index', () => {
       'About',
       'Projects',
       'Experience',
+      'Certificates',
       'Contact',
     ]);
     const links = within(nav).getAllByRole('link', { hidden: true });
-    expect(links).toHaveLength(12);
+    expect(links).toHaveLength(13);
     expect(links[0]).toHaveAttribute('href', '#about');
     expect(links[0]).toHaveAttribute('aria-current', 'true');
     expect(links[5]).toHaveAttribute('href', '#golem-miners');
@@ -150,9 +151,9 @@ describe('ChapterNav index', () => {
     await user.keyboard('{ArrowDown}');
     expect(links[1]).toHaveFocus();
     await user.keyboard('{End}');
-    expect(links[11]).toHaveFocus();
+    expect(links[12]).toHaveFocus();
     await user.keyboard('{ArrowDown}');
-    expect(links[11]).toHaveFocus();
+    expect(links[12]).toHaveFocus();
     await user.keyboard('{Home}');
     expect(links[0]).toHaveFocus();
     await user.keyboard('{ArrowUp}');

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export interface ChapterProps {
   id: string;
-  /** Position in the chapters index, 1 to 12. */
+  /** Position in the chapters index, 1 to 13. */
   n: number;
   /** Short name shown in the header counter and the index. */
   title: string;

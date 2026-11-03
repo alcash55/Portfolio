@@ -20,10 +20,20 @@ export interface PhotoCarouselProps {
   /** Accessible name of the carousel region. */
   label: string;
   photos: readonly Photo[];
+  /** What the slides are, for the button names. */
+  noun?: string;
+  /** Extra class on the strip, for a slide shape other than the 4:3 photo box. */
+  className?: string;
 }
 
 /** A numbered figure holding the strip. The count and buttons sit in its caption. */
-export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
+export function PhotoCarousel({
+  fig,
+  label,
+  photos,
+  noun = 'photo',
+  className,
+}: PhotoCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [current, setCurrent] = useState(0);
@@ -95,14 +105,14 @@ export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
         interactive ? (
           <span className="pp-car-ctl">
             <CarButton
-              label="Previous photo"
+              label={`Previous ${noun}`}
               disabled={current === 0}
               onClick={() => goTo(current - 1)}
             >
               <path d="M11 3L5 9l6 6" />
             </CarButton>
             <CarButton
-              label="Next photo"
+              label={`Next ${noun}`}
               disabled={current === last}
               onClick={() => goTo(current + 1)}
             >
@@ -115,7 +125,7 @@ export function PhotoCarousel({ fig, label, photos }: PhotoCarouselProps) {
       {/* The region is the scroller and the tab stop, so keyboard users can reach
           the strip and axe accepts it as a scrollable region with focus. */}
       <div
-        className="pp-car"
+        className={className ? `pp-car ${className}` : 'pp-car'}
         role="region"
         aria-roledescription="carousel"
         aria-label={label}

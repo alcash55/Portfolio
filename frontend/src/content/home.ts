@@ -45,7 +45,8 @@ export const CHAPTER_GROUPS: readonly IndexGroup[] = [
       { n: 11, id: 'education', title: 'Education' },
     ],
   },
-  { label: 'Contact', items: [{ n: 12, id: 'contact', title: 'Say hi' }] },
+  { label: 'Certificates', items: [{ n: 12, id: 'certificates', title: 'Certificates' }] },
+  { label: 'Contact', items: [{ n: 13, id: 'contact', title: 'Say hi' }] },
 ];
 
 export const CHAPTER_COUNT = CHAPTER_GROUPS.reduce((sum, g) => sum + g.items.length, 0);

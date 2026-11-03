@@ -21,7 +21,11 @@ test.describe('server HTML without JavaScript', () => {
     await expect(page.locator('details.pp-more')).toHaveCount(3);
     // The carousel buttons need script, so none ship in the server HTML.
     await expect(page.getByRole('button', { name: 'Next photo' })).toHaveCount(0);
-    await expect(page.locator('.pp-slide')).toHaveCount(3);
+    await expect(page.locator('#education .pp-slide')).toHaveCount(3);
+    // The certificates are in the server HTML too: a row and a slide for each course.
+    await expect(page.locator('#certificates .pp-certs li')).toHaveCount(4);
+    await expect(page.locator('#certificates .pp-slide')).toHaveCount(4);
+    await expect(page.getByRole('button', { name: 'Next certificate' })).toHaveCount(0);
   });
 
   test('/contact renders its h1 and the form', async ({ page }) => {
@@ -187,7 +191,7 @@ test.describe('experience and education', () => {
     await page.goto('/');
     const region = page.getByRole('region', { name: 'Education and coaching photos' });
     await region.scrollIntoViewIfNeeded();
-    const status = page.locator('.pp-car-st');
+    const status = page.locator('#education .pp-car-st');
     await expect(status).toHaveText('1 of 3');
     await expect(page.getByRole('button', { name: 'Previous photo' })).toBeDisabled();
 
@@ -202,6 +206,29 @@ test.describe('experience and education', () => {
     await expect(status).toHaveText('1 of 3');
   });
 
+  test('the certificate strip moves with its buttons and each row opens its image', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const region = page.getByRole('region', { name: 'Master.dev certificates' });
+    await region.scrollIntoViewIfNeeded();
+    const status = page.locator('#certificates .pp-car-st');
+    await expect(status).toHaveText('1 of 4');
+    await page.getByRole('button', { name: 'Next certificate' }).click();
+    await expect(status).toHaveText('2 of 4');
+    await region.focus();
+    await page.keyboard.press('End');
+    await expect(status).toHaveText('4 of 4');
+    await expect(page.getByRole('button', { name: 'Next certificate' })).toBeDisabled();
+
+    const href = await page
+      .getByRole('link', { name: /^Vite \(certificate image/ })
+      .getAttribute('href');
+    const res = await page.request.get(href!);
+    expect(res.ok(), `${href} must be served`).toBe(true);
+    expect(res.headers()['content-type']).toContain('image/webp');
+  });
+
   test('with reduced motion the carousel still moves', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
@@ -209,7 +236,7 @@ test.describe('experience and education', () => {
       .getByRole('region', { name: 'Education and coaching photos' })
       .scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: 'Next photo' }).click();
-    await expect(page.locator('.pp-car-st')).toHaveText('2 of 3');
+    await expect(page.locator('#education .pp-car-st')).toHaveText('2 of 3');
   });
 });
 

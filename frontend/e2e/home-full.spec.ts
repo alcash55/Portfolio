@@ -120,7 +120,7 @@ test.describe('home paging, desktop', () => {
           );
           return hit ? Number(hit.dataset.ch) : 0;
         });
-      for (let want = 2; want <= 12; want += 1) {
+      for (let want = 2; want <= 13; want += 1) {
         await page.keyboard.press(key);
         await expect
           .poll(chapterAtTop, { message: `after ${want - 1} presses of ${key}` })

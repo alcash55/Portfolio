@@ -184,6 +184,34 @@ details.pp-more .stack {
   align-self: center;
 }
 
+/* Certificates: the image sets its own height, so no bands show around it and nothing crops. */
+.pp-car-cert .pp-slide .pp-box {
+  aspect-ratio: auto;
+  display: block;
+  padding: 0;
+}
+.pp-car-cert .pp-slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+}
+.pp-certs {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+}
+.pp-certs li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 14px;
+}
+.pp-certs .note {
+  color: var(--text-2);
+}
+
 /* Contact band */
 .pp-contact {
   padding-bottom: 96px;

@@ -17,7 +17,7 @@ const allStrings = (value: unknown): string[] => {
 };
 
 describe('chapter index', () => {
-  it('numbers twelve chapters in page order, grouped as the header menu reads', () => {
+  it('numbers thirteen chapters in page order, grouped as the header menu reads', () => {
     const flat = CHAPTER_GROUPS.flatMap((g) => g.items.map((i) => [g.label, i.n, i.id, i.title]));
     expect(flat).toEqual([
       ['About', 1, 'about', 'About me'],
@@ -31,16 +31,17 @@ describe('chapter index', () => {
       ['Experience', 9, 'ncr-voyix', 'NCR Voyix'],
       ['Experience', 10, 'ncr-store-health', 'NCR Store Health'],
       ['Experience', 11, 'education', 'Education'],
-      ['Contact', 12, 'contact', 'Say hi'],
+      ['Certificates', 12, 'certificates', 'Certificates'],
+      ['Contact', 13, 'contact', 'Say hi'],
     ]);
-    expect(CHAPTER_COUNT).toBe(12);
+    expect(CHAPTER_COUNT).toBe(13);
   });
 
   it('formats the header counter number and title', () => {
     expect(chapterNumber(1)).toBe('01');
-    expect(chapterNumber(12)).toBe('12');
+    expect(chapterNumber(13)).toBe('13');
     expect(chapterTitle(6)).toBe('Golem Miners');
-    expect(() => chapterTitle(13)).toThrow('No chapter 13');
+    expect(() => chapterTitle(14)).toThrow('No chapter 14');
   });
 });
 

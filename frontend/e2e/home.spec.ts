@@ -44,7 +44,7 @@ test.describe('home, chapter index', () => {
   }) => {
     await page.goto('/');
     const counter = page.locator('#ctr');
-    await expect(counter).toHaveAccessibleName(/^Chapter 01 \/ 12 · About me\s*\./);
+    await expect(counter).toHaveAccessibleName(/^Chapter 01 \/ 13 · About me\s*\./);
     await counter.click();
     const index = page.locator('#cidx');
     await expect(index).toBeVisible();
@@ -81,7 +81,7 @@ test.describe('home, chapter index', () => {
     await page.goto('/');
     await page.locator('#clipper').scrollIntoViewIfNeeded();
     await page.evaluate(() => document.getElementById('clipper')?.scrollIntoView());
-    await expect(page.locator('#ctr')).toHaveAccessibleName(/^Chapter 05 \/ 12 · Clipper\s*\./);
+    await expect(page.locator('#ctr')).toHaveAccessibleName(/^Chapter 05 \/ 13 · Clipper\s*\./);
     await expect(page.locator('#ctr b')).toHaveText('05');
   });
 
@@ -94,7 +94,7 @@ test.describe('home, chapter index', () => {
       .click();
     await expect(page).toHaveURL(/#experience$/);
     await expect(page.locator('#ctr')).toHaveAccessibleName(
-      /^Chapter 08 \/ 12 · Solea Energy\s*\./,
+      /^Chapter 08 \/ 13 · Solea Energy\s*\./,
     );
   });
 
@@ -104,9 +104,9 @@ test.describe('home, chapter index', () => {
       .getByRole('navigation', { name: 'Primary' })
       .getByRole('link', { name: 'Contact' })
       .click();
-    await expect(page.locator('#ctr b')).toHaveText('12');
+    await expect(page.locator('#ctr b')).toHaveText('13');
     await page.locator('#ctr').click();
-    await expect(page.locator('.cidx a[aria-current]')).toHaveAttribute('data-n', '12');
+    await expect(page.locator('.cidx a[aria-current]')).toHaveAttribute('data-n', '13');
   });
 });
 

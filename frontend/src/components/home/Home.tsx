@@ -13,7 +13,7 @@ export interface HomeProps {
   figures?: Partial<Record<ProjectSlug, ReactNode>>;
   /** The build-time resume record, for the View resume link. */
   resume?: ResumeInfo;
-  /** Chapters 8 to 12, rendered inside the page wrapper so the counter and index see them. */
+  /** Chapters 8 to 13, rendered inside the page wrapper so the counter and index see them. */
   after?: ReactNode;
 }
 

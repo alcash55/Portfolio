@@ -15,10 +15,10 @@ async function setup(resume: Parameters<typeof ContactBand>[0]['resume'] = { ava
 }
 
 describe('ContactBand', () => {
-  it('is chapter 12 with the Say hi heading and the one-line invitation', async () => {
+  it('is chapter 13 with the Say hi heading and the one-line invitation', async () => {
     const band = await setup();
     expect(band).toHaveAttribute('id', 'contact');
-    expect(band).toHaveAttribute('data-ch', '12');
+    expect(band).toHaveAttribute('data-ch', '13');
     expect(within(band).getByRole('heading', { level: 2, name: 'Say hi.' })).toBeInTheDocument();
     expect(
       within(band).getByText("Let's work together. Send me a message here."),

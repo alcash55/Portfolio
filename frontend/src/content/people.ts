@@ -174,6 +174,86 @@ export const EDUCATION = {
   photos: readonly Photo[];
 };
 
+export interface Certificate {
+  readonly slug: string;
+  readonly title: string;
+  readonly teacher: string;
+  /** Course length in minutes, so the total below cannot drift from the rows. */
+  readonly minutes: number;
+  /** ISO date, shown as written on the certificate. */
+  readonly completed: string;
+  readonly src: string;
+  readonly width: number;
+  readonly height: number;
+}
+
+const CERT_IMAGE = { width: 1400, height: 991 } as const;
+
+/** Master.dev certificates of completion, newest first. The images are the certificates as issued. */
+export const CERTIFICATES: readonly Certificate[] = [
+  {
+    slug: 'basics-of-go',
+    title: 'Basics of Go',
+    teacher: 'Maximiliano Firtman',
+    minutes: 7 * 60 + 57,
+    completed: '2026-11-03',
+    src: '/images/certificates/basics-of-go.webp',
+    ...CERT_IMAGE,
+  },
+  {
+    slug: 'full-stack-fundamentals-v3',
+    title: 'Full Stack Fundamentals, v3',
+    teacher: 'Jem Young',
+    minutes: 8 * 60 + 12,
+    completed: '2026-10-19',
+    src: '/images/certificates/full-stack-fundamentals-v3.webp',
+    ...CERT_IMAGE,
+  },
+  {
+    slug: 'claude-code',
+    title: 'Claude Code',
+    teacher: 'Lydia Hallie',
+    minutes: 60 + 56,
+    completed: '2026-10-06',
+    src: '/images/certificates/claude-code.webp',
+    ...CERT_IMAGE,
+  },
+  {
+    slug: 'vite',
+    title: 'Vite',
+    teacher: 'Steve Kinney',
+    minutes: 4 * 60 + 10,
+    completed: '2026-10-03',
+    src: '/images/certificates/vite.webp',
+    ...CERT_IMAGE,
+  },
+];
+
+export const CERTIFICATES_CHAPTER = {
+  id: 'certificates',
+  n: 12,
+  title: 'Certificates',
+  overline: 'Certificates',
+  heading: 'Four Master.dev courses finished since October',
+  fig: { n: 11, label: 'Certificates' },
+  carouselLabel: 'Master.dev certificates',
+} as const;
+
+/** "7 hr 57 min", "1 hr 56 min". */
+export function formatDuration(minutes: number): string {
+  return `${Math.floor(minutes / 60)} hr ${minutes % 60} min`;
+}
+
+/** "Nov 3, 2026", from an ISO date. Parsed as UTC so the day never shifts with the visitor's zone. */
+export function formatCompleted(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/alexander-cash/';
 export const GITHUB_URL = 'https://github.com/alcash55';
 
@@ -181,7 +261,7 @@ export const GITHUB_URL = 'https://github.com/alcash55';
 // The two differ on purpose.
 export const CONTACT_BAND = {
   id: 'contact',
-  n: 12,
+  n: 13,
   title: 'Say hi',
   overline: 'Contact',
   heading: 'Say hi.',

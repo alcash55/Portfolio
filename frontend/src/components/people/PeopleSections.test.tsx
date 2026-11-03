@@ -5,19 +5,27 @@ import { PeopleSections } from './PeopleSections';
 import { renderInRouter } from './renderInRouter';
 
 describe('PeopleSections', () => {
-  it('renders chapters 8 to 12 in order, each with a heading', async () => {
+  it('renders chapters 8 to 13 in order, each with a heading', async () => {
     await renderInRouter(
       <QueryClientProvider client={new QueryClient()}>
         <PeopleSections resume={{ available: false }} />
       </QueryClientProvider>,
     );
     const regions = screen.getAllByRole('region').filter((el) => el.hasAttribute('data-ch'));
-    expect(regions.map((el) => el.getAttribute('data-ch'))).toEqual(['8', '9', '10', '11', '12']);
+    expect(regions.map((el) => el.getAttribute('data-ch'))).toEqual([
+      '8',
+      '9',
+      '10',
+      '11',
+      '12',
+      '13',
+    ]);
     expect(regions.map((el) => el.id)).toEqual([
       'experience',
       'ncr-voyix',
       'ncr-store-health',
       'education',
+      'certificates',
       'contact',
     ]);
   });
@@ -48,12 +56,15 @@ describe('PeopleSections', () => {
       true,
       true,
       true,
+      true,
     ]);
-    // Chapters 8 to 11 each hold one framed figure. The contact band holds the form.
+    // Chapters 8 to 12 each hold one framed figure. The contact band holds the form.
     expect(chapters.map((el) => el.querySelectorAll('.pair > .prose').length)).toEqual([
-      1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1,
     ]);
-    expect(chapters.map((el) => el.querySelectorAll('figure.fig').length)).toEqual([1, 1, 1, 1, 0]);
+    expect(chapters.map((el) => el.querySelectorAll('figure.fig').length)).toEqual([
+      1, 1, 1, 1, 1, 0,
+    ]);
     const duplicates = document.querySelectorAll(
       '.pp-chapter, .pp-pair, .pp-prose, .pp-ov, .pp-fig, .pp-fig-h, .pp-fig-b, .pp-fig-f, .pp-slot, .pp-links, .pp-go, .pp-note, .pp-proof',
     );
