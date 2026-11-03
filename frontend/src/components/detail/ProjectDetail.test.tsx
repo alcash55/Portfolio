@@ -1,7 +1,9 @@
-import { act, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { DETAILS } from '~/content/projects';
+import { DETAILS, type GallerySlide } from '~/content/projects';
+import { stubIntersectionObserver, stubMedia } from '../figures/figureTestKit';
 import { renderDetail } from './detailTestKit';
+import { MediaSection } from './ProjectDetail';
 
 describe('ProjectDetail header', () => {
   it('shows the h1, summary, stack line and a back link to the projects list', async () => {
@@ -85,26 +87,39 @@ describe('ProjectDetail body', () => {
     expect(section).toHaveAccessibleName('Architecture');
   });
 
-  it('shows a recording in a Media region on a reveal page', async () => {
-    await renderDetail('clipper');
-    const media = await screen.findByRole('region', { name: 'Media' });
-    expect(within(media).getByRole('figure', { name: 'Clipper recording' })).toBeInTheDocument();
+  it('does not repeat the home chapter recording or its single clip', async () => {
+    for (const [slug, name] of [
+      ['clipper', 'Clipper'],
+      ['golem-miners', 'Golem Miners'],
+    ] as const) {
+      const { unmount } = await renderDetail(slug);
+      await screen.findByRole('heading', { level: 1, name });
+      expect(screen.queryByRole('region', { name: 'Media' })).toBeNull();
+      expect(document.querySelector('video')).toBeNull();
+      unmount();
+    }
   });
 
-  it('shows a clip gallery in the Media region on Golem Miners', async () => {
-    await renderDetail('golem-miners');
-    const media = await screen.findByRole('region', { name: 'Media' });
-    expect(
-      within(media).getByRole('figure', { name: 'Golem Miners gameplay clips' }),
-    ).toBeInTheDocument();
+  it('shows a gallery once a page has several clips to choose from', () => {
+    stubIntersectionObserver();
+    stubMedia();
+    const slide = (n: number): GallerySlide => ({
+      src: `/media/clip-${n}.mp4`,
+      poster: `/media/clip-${n}-poster.webp`,
+      caption: `Clip ${n}`,
+      description: `What clip ${n} shows.`,
+      label: `Recording of clip ${n}`,
+    });
+    render(<MediaSection name="Demo" media={{ kind: 'gallery', slides: [slide(1), slide(2)] }} />);
+    expect(screen.getByRole('region', { name: 'Media' })).toBeInTheDocument();
   });
 
   it('leaves out the Media region and the checks figure on AC Composite Actions', async () => {
     await renderDetail('ac-composite-actions');
     await screen.findByRole('heading', { level: 1, name: 'AC Composite Actions' });
     expect(screen.queryByRole('region', { name: 'Media' })).toBeNull();
-    expect(screen.queryByText('9 of 9 passed')).toBeNull();
-    expect(screen.queryByRole('list', { name: /nine actions/i })).toBeNull();
+    expect(screen.queryByText(/\d+ of \d+ passed/)).toBeNull();
+    expect(screen.queryByRole('list', { name: /actions in the repo/i })).toBeNull();
   });
 
   it('writes "What I built" paragraphs with code spans', async () => {

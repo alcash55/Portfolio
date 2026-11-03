@@ -1,6 +1,6 @@
 import { Link, useRouter } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Diagram, Gallery, RevealVideo } from '../figures';
+import { Diagram, Gallery } from '../figures';
 import { DETAILS, nextAfter, type Detail, type DetailSlug, type Media } from '~/content/projects';
 import { BackIcon, ExternalIcon, ForwardIcon } from './icons';
 import { MessageBand } from './MessageBand';
@@ -142,34 +142,18 @@ function Actions({ detail }: { detail: Detail }) {
   );
 }
 
-function MediaSection({ name, media }: { name: string; media: Media }) {
-  switch (media.kind) {
-    case 'none':
-      return null;
-    case 'reveal':
-      return (
-        <section className="sec" aria-label="Media">
-          <RevealVideo
-            name={name}
-            src={media.src}
-            poster={media.poster}
-            posterSwap={media.posterSwap}
-            label={media.label}
-            caption={media.caption}
-          />
-        </section>
-      );
-    case 'gallery':
-      return (
-        <section className="sec" aria-label="Media">
-          <Gallery name={name} slides={media.slides} />
-        </section>
-      );
-    default: {
-      const unhandled: never = media;
-      return unhandled;
-    }
-  }
+/**
+ * The home chapter already plays this page's recording, so repeating it here added a
+ * 1,180 px banner that said nothing new. A page shows media only when it has more than
+ * the home chapter does: a gallery with several clips.
+ */
+export function MediaSection({ name, media }: { name: string; media: Media }) {
+  if (media.kind !== 'gallery' || media.slides.length < 2) return null;
+  return (
+    <section className="sec" aria-label="Media">
+      <Gallery name={name} slides={media.slides} />
+    </section>
+  );
 }
 
 /**

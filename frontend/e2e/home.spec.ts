@@ -20,6 +20,16 @@ test.describe('home, server HTML', () => {
     await expect(page.locator('[data-rv]')).toHaveCount(0);
   });
 
+  test('shows each recording on its poster, with no play button that would do nothing', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await expect(page.locator('#clipper video')).toHaveAttribute('poster', /clipper-run-poster/);
+    await expect(page.locator('#clipper').getByRole('button', { name: /video|clip/i })).toHaveCount(
+      0,
+    );
+  });
+
   test('lists every chapter in the index', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#cidx a[data-n]')).toHaveCount(CHAPTER_COUNT);
@@ -73,6 +83,47 @@ test.describe('home, chapter index', () => {
     await page.evaluate(() => document.getElementById('clipper')?.scrollIntoView());
     await expect(page.locator('#ctr')).toHaveAccessibleName(/^Chapter 05 \/ 12 · Clipper\s*\./);
     await expect(page.locator('#ctr b')).toHaveText('05');
+  });
+
+  test('the counter follows a nav link clicked on a project page', async ({ page }) => {
+    // The header mounts before the home chapters do on this route change.
+    await page.goto('/projects/clipper');
+    await page
+      .getByRole('navigation', { name: 'Primary' })
+      .getByRole('link', { name: 'Experience' })
+      .click();
+    await expect(page).toHaveURL(/#experience$/);
+    await expect(page.locator('#ctr')).toHaveAccessibleName(
+      /^Chapter 08 \/ 12 · Solea Energy\s*\./,
+    );
+  });
+
+  test('the counter and the index follow a nav link clicked on the home page', async ({ page }) => {
+    await page.goto('/');
+    await page
+      .getByRole('navigation', { name: 'Primary' })
+      .getByRole('link', { name: 'Contact' })
+      .click();
+    await expect(page.locator('#ctr b')).toHaveText('12');
+    await page.locator('#ctr').click();
+    await expect(page.locator('.cidx a[aria-current]')).toHaveAttribute('data-n', '12');
+  });
+});
+
+test.describe('home, click targets', () => {
+  test.use({ viewport: VIEWPORTS.desktop });
+
+  test('only the write-up link opens a project, not the text or figure beside it', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const chapter = page.locator('#clipper');
+    await chapter.scrollIntoViewIfNeeded();
+    await chapter.locator('.prose p').first().click();
+    await chapter.locator('figure .fig-h').click();
+    await expect(page).toHaveURL(/\/$|\/#clipper$/);
+    await chapter.getByRole('link', { name: /Read the write-up/ }).click();
+    await expect(page).toHaveURL(/\/projects\/clipper$/);
   });
 });
 

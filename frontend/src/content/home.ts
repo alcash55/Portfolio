@@ -1,4 +1,5 @@
 import type { ProjectSlug } from './pages';
+import { ACTION_COUNT_TITLE } from './checks';
 
 /** One row of the chapters index. `id` is the in-page anchor the row links to. */
 export interface IndexItem {
@@ -156,7 +157,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     n: 3,
     id: 'game-competition-website',
     overline: 'Game Competition Website',
-    heading: 'Scoring bingo from Discord screenshots',
+    heading: 'Everything an OSRS bingo event needs, in one web app',
     paragraphs: [
       {
         kind: 'body',
@@ -164,7 +165,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
       },
       {
         kind: 'proof',
-        text: 'Discord screenshots land in an admin review queue, and approved drops score for the team.',
+        text: 'Admins build the boards and draft the teams. A Discord bot collects screenshots into a review queue, and approved drops score for the team.',
       },
       {
         kind: 'body',
@@ -197,7 +198,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     paragraphs: [
       {
         kind: 'body',
-        text: 'Nine GitHub Actions my other repos call from CI, from a secret scan to an accessibility check. Each one reports back as a single pull request comment that stays current.',
+        text: `${ACTION_COUNT_TITLE} GitHub Actions my other repos call from CI, from a secret scan to an accessibility check. Each one reports back as a single pull request comment that stays current.`,
       },
       {
         kind: 'proof',

@@ -17,7 +17,7 @@ describe('Home', () => {
     const h2s = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
     expect(h2s).toEqual([
       'A portfolio with a Go API behind it',
-      'Scoring bingo from Discord screenshots',
+      'Everything an OSRS bingo event needs, in one web app',
       'CI that 11 of my repos share',
       'From a clip to a Short with one command',
       'Dig deep, get rich, wake the golems',

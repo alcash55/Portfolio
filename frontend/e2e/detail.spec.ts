@@ -13,9 +13,8 @@ test.describe('detail pages with JavaScript off', () => {
     expect(classes).toBe('dg');
     await expect(page.locator('figure.dg .e').first()).toHaveCSS('opacity', '1');
     await expect(page.getByText('Text version.')).toBeVisible();
-    // The poster shows and the clip is not playing, so a play button would do nothing.
-    await expect(page.locator('video').first()).toHaveAttribute('poster', /clipper-run-poster/);
-    await expect(page.getByRole('button', { name: /clip/i })).toHaveCount(0);
+    // The recording lives on the home chapter, so the write-up carries no video at all.
+    await expect(page.locator('video')).toHaveCount(0);
   });
 
   test('the narrow-screen numbered list replaces the drawing under 960px', async ({ page }) => {
@@ -33,10 +32,10 @@ test.describe('detail pages', () => {
     await page.goto('/projects/ac-composite-actions');
     await expect(page.getByRole('heading', { level: 2, name: 'Architecture' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Media' })).toHaveCount(0);
-    await expect(page.getByText('9 of 9 passed')).toHaveCount(0);
+    await expect(page.getByText(/\d+ of \d+ passed/)).toHaveCount(0);
   });
 
-  test('Golem Miners links to the build on this site and shows its one clip with a caption', async ({
+  test('Golem Miners links to the build on this site and leaves its clip to the home chapter', async ({
     page,
   }) => {
     await page.goto('/projects/golem-miners');
@@ -44,14 +43,15 @@ test.describe('detail pages', () => {
       'href',
       '/play/golem-miners/',
     );
-    await expect(page.getByRole('figure', { name: 'Golem Miners gameplay clips' })).toBeVisible();
-    // One clip is not a gallery to pick from, so no thumbnail row appears.
-    await expect(page.locator('.gthumbs')).toHaveCount(0);
+    // The home chapter plays the one clip, so the write-up does not repeat it.
+    await expect(page.locator('video')).toHaveCount(0);
   });
 
   test('the play button appears after hydration and toggles the label', async ({ page }) => {
-    await page.goto('/projects/clipper');
-    const control = page.getByRole('button', { name: /Play video|Pause video/ });
+    await page.goto('/');
+    const control = page
+      .locator('#clipper')
+      .getByRole('button', { name: /Play video|Pause video/ });
     await expect(control).toBeVisible();
   });
 
@@ -113,8 +113,8 @@ test.describe('reduced motion', () => {
 
   test('with reduced motion the clip stays on its poster until asked', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/projects/clipper');
-    const video = page.locator('video').first();
+    await page.goto('/');
+    const video = page.locator('#clipper video');
     await video.scrollIntoViewIfNeeded();
     await page.waitForTimeout(800);
     expect(await video.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);

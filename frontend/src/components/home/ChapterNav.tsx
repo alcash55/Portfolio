@@ -20,21 +20,41 @@ export function ChapterNav() {
   const popoverRef = useRef<HTMLDivElement>(null);
   const focusTimer = useRef<number | undefined>(undefined);
 
-  // The chapter that crosses a band around the middle of the viewport is "current".
+  // The chapter that crosses a line just above the middle of the viewport is "current".
+  // Chapters are read from the page on every scroll. A header that mounts before the home
+  // chapters do (a nav click from a project page) would otherwise hold an empty list and
+  // never update.
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return;
-    const chapters = document.querySelectorAll<HTMLElement>('[data-ch]');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const n = Number((entry.target as HTMLElement).dataset.ch);
-          if (entry.isIntersecting && Number.isInteger(n)) setCurrent(n);
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const line = window.innerHeight * 0.475;
+      for (const chapter of document.querySelectorAll<HTMLElement>('[data-ch]')) {
+        const n = Number(chapter.dataset.ch);
+        if (!Number.isInteger(n)) continue;
+        const { top, bottom } = chapter.getBoundingClientRect();
+        if (top <= line && line < bottom) {
+          setCurrent(n);
+          return;
         }
-      },
-      { rootMargin: '-45% 0px -50% 0px' },
-    );
-    chapters.forEach((chapter) => observer.observe(chapter));
-    return () => observer.disconnect();
+      }
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(read);
+    };
+    schedule();
+    // A jump to a hash scrolls after the route renders, so look again once it has settled.
+    const settle = window.setTimeout(read, 250);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    window.addEventListener('hashchange', schedule);
+    return () => {
+      window.clearTimeout(settle);
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('hashchange', schedule);
+    };
   }, []);
 
   // Opening puts focus on the current row, so arrow keys start where you are.
