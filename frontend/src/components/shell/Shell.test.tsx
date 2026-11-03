@@ -49,6 +49,12 @@ describe('Focus after a client-side navigation', () => {
     </>
   );
 
+  it('leaves focus alone on the first load, even when Strict Mode runs effects twice', async () => {
+    await renderShell('/', { '/': home }, { strict: true });
+    await screen.findByRole('heading', { name: 'Home headline' });
+    expect(document.body).toHaveFocus();
+  });
+
   it('moves focus to the h1 of the new page', async () => {
     const user = userEvent.setup();
     await renderShell('/projects/clipper', { '/': home });

@@ -7,7 +7,7 @@ import {
   createRouter,
 } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { StrictMode, type ReactNode } from 'react';
 import { Shell } from '~/components/shell/Shell';
 
 // A small router around the real Shell. The app's own route tree has a root that
@@ -16,6 +16,7 @@ import { Shell } from '~/components/shell/Shell';
 export async function renderShell(
   path = '/',
   bodies: Partial<Record<'/' | '/projects/$slug' | '/experience/$slug', ReactNode>> = {},
+  { strict = false }: { strict?: boolean } = {},
 ) {
   const rootRoute = createRootRoute({
     component: () => (
@@ -39,5 +40,6 @@ export async function renderShell(
     history: createMemoryHistory({ initialEntries: [path] }),
   });
   await router.load();
-  return render(<RouterProvider router={router} />);
+  const tree = <RouterProvider router={router} />;
+  return render(strict ? <StrictMode>{tree}</StrictMode> : tree);
 }

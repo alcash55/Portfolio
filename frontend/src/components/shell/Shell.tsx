@@ -23,14 +23,14 @@ export function Shell({ children }: { children: ReactNode }) {
   // starts, while the old page is still on screen, so focus would land on the wrong heading.
   const resolvedPath = useRouterState({ select: (state) => state.resolvedLocation?.pathname });
   useMessageLinks();
-  const firstRender = useRef(true);
+  const focusedPath = useRef(resolvedPath);
   useEffect(() => {
     // A client-side navigation keeps focus on the old link, so a screen reader hears
     // nothing. The first load is left alone: the browser already starts at the top.
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    // Compare paths rather than flag the first run. Strict Mode runs this effect twice
+    // in dev, and a one-shot flag let the second run focus the h1 and draw its ring.
+    if (focusedPath.current === resolvedPath) return;
+    focusedPath.current = resolvedPath;
     // A Message Alex link that crossed routes puts focus in the form instead.
     if (focusNameOnArrival()) return;
     const main = document.getElementById('main');
