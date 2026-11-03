@@ -6,7 +6,7 @@ import { renderDetail } from './detailTestKit';
 import { MediaSection } from './ProjectDetail';
 
 describe('ProjectDetail header', () => {
-  it('shows the h1, summary, stack line and a back link to the projects list', async () => {
+  it('shows the h1, summary, stack line and a back link to its own chapter', async () => {
     await renderDetail('clipper');
     const clipper = DETAILS.clipper;
     expect(
@@ -19,17 +19,17 @@ describe('ProjectDetail header', () => {
     const crumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(within(crumb).getByRole('link', { name: 'All projects' })).toHaveAttribute(
       'href',
-      '/#projects',
+      '/#clipper',
     );
     expect(within(crumb).getByText(clipper.name)).toHaveAttribute('aria-current', 'page');
   });
 
-  it('points an experience page back to the experience list', async () => {
+  it('points an experience page back to the role that links it', async () => {
     await renderDetail('ncr-voyix-docs');
     const crumb = await screen.findByRole('navigation', { name: 'Breadcrumb' });
     expect(within(crumb).getByRole('link', { name: 'All experience' })).toHaveAttribute(
       'href',
-      '/#experience',
+      '/#ncr-voyix',
     );
   });
 

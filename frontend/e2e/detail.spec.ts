@@ -67,10 +67,10 @@ test.describe('detail pages', () => {
     await expect(page.getByRole('heading', { level: 1 })).not.toBeFocused();
   });
 
-  test('the breadcrumb returns to the section on the home page', async ({ page }) => {
+  test('the breadcrumb returns to the role it opened from on the home page', async ({ page }) => {
     await page.goto('/experience/ncr-voyix-docs');
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link').click();
-    await expect(page).toHaveURL(/\/#experience$/);
+    await expect(page).toHaveURL(/\/#ncr-voyix$/);
   });
 
   test('the experience nav link reads as current on an experience page', async ({ page }) => {

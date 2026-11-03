@@ -2,6 +2,7 @@ import { Link, useRouter } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Diagram, Gallery } from '../figures';
 import { DETAILS, nextAfter, type Detail, type DetailSlug, type Media } from '~/content/projects';
+import { homeAnchor } from '~/lib/homeAnchor';
 import { BackIcon, ExternalIcon, ForwardIcon } from './icons';
 import { MessageBand } from './MessageBand';
 import { RichText } from './RichText';
@@ -24,7 +25,8 @@ export function ProjectDetail({ slug, form }: ProjectDetailProps) {
     <>
       <nav className="crumb" aria-label="Breadcrumb">
         <div className="crumb-in">
-          <Link to="/" hash={section}>
+          {/* The chapter this write-up opens from, so Back lands where the visitor left. */}
+          <Link to="/" hash={homeAnchor(slug)}>
             <BackIcon />
             <span>All {section}</span>
           </Link>
