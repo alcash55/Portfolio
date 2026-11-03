@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { CHECK_ROWS } from '~/content/checks';
+import { ACTION_COUNT_WORD, CHECK_ROWS } from '~/content/checks';
 import { cssVars, useInView } from './hooks';
 import './figures.css';
 
@@ -19,7 +19,10 @@ export function ChecksFigure() {
           {total} of {total} passed
         </span>
       </div>
-      <ul className="ck-list" aria-label="The nine actions in the repo, each passing">
+      <ul
+        className="ck-list"
+        aria-label={`The ${ACTION_COUNT_WORD} actions in the repo, each passing`}
+      >
         {CHECK_ROWS.map((row, i) => (
           <li key={row.name} className="ck-row" style={cssVars({ '--i': i })}>
             <span className="ico">

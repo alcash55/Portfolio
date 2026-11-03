@@ -6,6 +6,7 @@
 //     runners through scripts/generate-site-stats.mjs, and the row is dropped when the
 //     build could not read them.
 import { siteStats, testCountFact } from '~/lib/siteStats';
+import { ACTION_COUNT_TITLE } from './checks';
 import type { ExperienceSlug, ProjectSlug } from './pages';
 import { EXPERIENCE_SLUGS, PROJECT_SLUGS } from './pages';
 
@@ -334,7 +335,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     kind: 'project',
     name: 'AC Composite Actions', // AC-01
     summary:
-      'Nine GitHub Actions composite actions that my other repos call from CI. They scan pull requests for secrets, run an accessibility check, spellcheck markdown, score a resume PDF and list the changed files. Each check reports back as one pull request comment that it keeps current.', // AC-02
+      `${ACTION_COUNT_TITLE} GitHub Actions composite actions that my other repos call from CI. They scan pull requests for secrets, run an accessibility check, spellcheck markdown, score a resume PDF and list the changed files. Each check reports back as one pull request comment that it keeps current.`, // AC-02
     stack: 'JavaScript, GitHub Actions, Bun, Vitest', // AC-03
     links: [{ label: 'View on GitHub', href: `${GH}ac-composite-actions` }], // AC-04
     // The diagram already names the actions, and the home page lists them.

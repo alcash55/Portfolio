@@ -321,14 +321,16 @@
   font-size: 0.8125rem;
   padding-bottom: 6px;
 }
-/* A desktop chapter fits one snapport, so the card tightens to leave room. */
+/* A desktop chapter fits one snapport, so the card tightens to leave room. The rows
+   come from the repo, so their count moves. Ten rows fit at 5px. An eleventh makes the
+   chapter taller than the snapport, and e2e/home-full.spec.ts says so. */
 @media (min-width: 900px) {
   .checks {
     padding: 12px 18px 4px;
     gap: 8px;
   }
   .ck-row {
-    padding: 8px 14px;
+    padding: 5px 14px;
   }
 }
 .ck-f code {
