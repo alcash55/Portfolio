@@ -9,7 +9,13 @@ export const Route = createFileRoute('/resume')({
     if (resumeInfo.available) throw redirect({ href: RESUME_FILE, statusCode: 302 });
   },
   head: () => ({
-    meta: [{ title: RESUME_PAGE.title }, { name: 'description', content: RESUME_PAGE.description }],
+    meta: [
+      { title: RESUME_PAGE.title },
+      { name: 'description', content: RESUME_PAGE.description },
+      // This head only renders when the PDF is missing. The page answers 200, so without
+      // this a crawler could index the explanation as if it were the resume.
+      { name: 'robots', content: 'noindex' },
+    ],
   }),
   component: ResumePage,
 });

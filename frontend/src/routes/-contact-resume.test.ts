@@ -64,4 +64,9 @@ describe('/resume route', () => {
     expect(router.state.location.pathname).toBe('/resume');
     expect(title).toBe('Resume, Alex Cash');
   });
+
+  it('asks crawlers not to index the explanation page, which answers 200', async () => {
+    const { meta } = await load('/resume');
+    expect(meta).toContainEqual({ name: 'robots', content: 'noindex' });
+  });
 });
