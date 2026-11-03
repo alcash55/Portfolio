@@ -69,7 +69,7 @@ function NotFoundFrame({
       {crumb}
       <div className="pg">
         <div className={crumb ? 'nf' : 'nf nf-solo'}>
-          <h1>{h1}</h1>
+          <h1 tabIndex={-1}>{h1}</h1>
           {children}
         </div>
       </div>

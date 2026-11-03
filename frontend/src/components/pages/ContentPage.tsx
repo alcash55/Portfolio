@@ -17,7 +17,9 @@ export function ContentPage({ h1, back }: ContentPageProps) {
       >
         {back.label}
       </Link>
-      <h1 className="font-display text-page mt-6 tracking-[-0.015em] text-balance">{h1}</h1>
+      <h1 tabIndex={-1} className="font-display text-page mt-6 tracking-[-0.015em] text-balance">
+        {h1}
+      </h1>
     </PageFrame>
   );
 }

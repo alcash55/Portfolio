@@ -9,7 +9,9 @@ const linkClass =
 export function ResumePage() {
   return (
     <PageFrame>
-      <h1 className="font-display text-page tracking-[-0.015em] text-balance">{RESUME_PAGE.h1}</h1>
+      <h1 tabIndex={-1} className="font-display text-page tracking-[-0.015em] text-balance">
+        {RESUME_PAGE.h1}
+      </h1>
       <p className="text-ink-2 mt-4 max-w-[52ch] text-lg">{RESUME_PAGE.line}</p>
       <div className="mt-8 flex flex-wrap gap-x-6">
         <a className={linkClass} href={`mailto:${CONTACT_EMAIL}`}>

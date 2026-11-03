@@ -22,7 +22,9 @@ function focusName(event: MouseEvent<HTMLAnchorElement>) {
 export function ContactPage({ resume = resumeInfo }: { resume?: ResumeInfo }) {
   return (
     <PageFrame>
-      <h1 className="font-display text-page tracking-[-0.015em] text-balance">{CONTACT_PAGE.h1}</h1>
+      <h1 tabIndex={-1} className="font-display text-page tracking-[-0.015em] text-balance">
+        {CONTACT_PAGE.h1}
+      </h1>
       <p className="text-ink-2 mt-4 max-w-[52ch] text-lg">{CONTACT_PAGE.intro}</p>
       <p className="mt-6">
         <a className="pp-btn" href="#message" aria-label={CONTACT_PAGE.ctaName} onClick={focusName}>
