@@ -20,8 +20,9 @@ export function AnalyticsTracker() {
 
   useEffect(() => {
     if (path === undefined) return;
-    const { pathname, searchStr } = router.state.location;
-    analytics.pageview(`${window.location.origin}${pathname}${searchStr}`);
+    // Pathname only: a campaign link can carry an address in its query, and no page reads one.
+    const { pathname } = router.state.location;
+    analytics.pageview(`${window.location.origin}${pathname}`);
   }, [path, router]);
 
   return null;

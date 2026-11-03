@@ -41,7 +41,9 @@ export function Clip({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hydrated = useHydrated();
   const [playing, setPlaying] = useState(false);
-  const [failed, setFailed] = useState(false);
+  // Keyed by source, so a clip that replaces a broken one starts with its button back.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const failed = failedSrc === src;
   const [swapped, setSwapped] = useState<string | null>(null);
   const choice = useRef<Choice>(null);
   const inView = useRef(false);
@@ -69,7 +71,7 @@ export function Clip({
     const video = videoRef.current;
     if (!video) return;
     const sync = () => setPlaying(!video.paused);
-    const fail = () => setFailed(true);
+    const fail = () => setFailedSrc(loadedSrc.current);
     const ended = () => onEndedRef.current?.();
     const update = () => {
       if (choice.current === 'pause' || !inView.current) {
@@ -109,6 +111,8 @@ export function Clip({
     const video = videoRef.current;
     if (video && loadedSrc.current !== src) {
       loadedSrc.current = src;
+      // A pause the reader chose belongs to the old clip.
+      choice.current = null;
       video.load();
     }
   }, [src]);

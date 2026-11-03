@@ -10,6 +10,7 @@ import {
   type MouseEvent,
 } from 'react';
 import { CONTACT_EMAIL } from '~/content/people';
+import { useHydrated } from '~/components/shell/useHydrated';
 import { analytics } from '~/lib/analytics';
 import './contact.css';
 import { CopyEmailButton } from './CopyEmailButton';
@@ -88,6 +89,7 @@ export function ContactForm({
   emailLead?: string;
 }) {
   const uid = useId();
+  const hydrated = useHydrated();
   const ids = {
     name: `${uid}-name`,
     email: `${uid}-email`,
@@ -161,15 +163,28 @@ export function ContactForm({
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (sending) return;
-    const found = validateContact(values);
+    // The DOM is the source of truth at submit. Autofill and early typing can fill a
+    // field without a change event React saw, so state alone can read empty over a full form.
+    const data = new FormData(event.currentTarget);
+    const read = (field: ContactField) => {
+      const entry = data.get(field);
+      return typeof entry === 'string' ? entry : '';
+    };
+    const current: ContactValues = {
+      name: read('name'),
+      email: read('email'),
+      message: read('message'),
+    };
+    setValues(current);
+    const found = validateContact(current);
     if (Object.keys(found).length > 0) {
       setErrors(found);
       setSummaryTries((n) => n + 1);
       return;
     }
     setErrors({});
-    setSentTo(values.email.trim());
-    mutation.mutate({ ...values, website });
+    setSentTo(current.email.trim());
+    mutation.mutate({ ...current, website });
   }
 
   function focusField(field: ContactField) {
@@ -251,7 +266,8 @@ export function ContactForm({
             name: f,
             value: values[f],
             required: true,
-            readOnly: sending,
+            // Read-only until React owns the form, so nothing typed early is lost.
+            readOnly: sending || !hydrated,
             'aria-invalid': error ? (true as const) : undefined,
             'aria-describedby': describedBy || undefined,
             onChange: onChange(f),
@@ -342,6 +358,8 @@ export function ContactForm({
         <button
           type="submit"
           className="ct-btn ct-btn-primary"
+          // Without JS a native POST reaches the page URL, not the API, and drops the message.
+          disabled={!hydrated}
           aria-disabled={sending ? 'true' : undefined}
           onPointerDown={() => {
             pressingSend.current = true;

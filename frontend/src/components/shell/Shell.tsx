@@ -1,11 +1,22 @@
-import { useRouterState } from '@tanstack/react-router';
+import { useRouter, useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Footer } from './Footer';
 import { Header } from './Header';
 import { focusNameOnArrival, useMessageLinks } from './messageAlex';
 import { sectionForPath } from './nav';
 
+/** A hash link names where the visitor meant to land. Its heading takes focus, not the page h1. */
+function hashTarget(hash: string): HTMLElement | null {
+  const target = hash ? document.getElementById(hash) : null;
+  if (!target) return null;
+  const heading = target.matches('h1, h2') ? target : target.querySelector<HTMLElement>('h1, h2');
+  const focusable = heading ?? target;
+  // `focus()` does nothing on an element that has no tabindex, so skip to the page default.
+  return focusable.hasAttribute('tabindex') ? focusable : null;
+}
+
 export function Shell({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   // The path of the page that has finished loading. `location` changes when a navigation
@@ -23,10 +34,11 @@ export function Shell({ children }: { children: ReactNode }) {
     // A Message Alex link that crossed routes puts focus in the form instead.
     if (focusNameOnArrival()) return;
     const main = document.getElementById('main');
-    const target = main?.querySelector<HTMLElement>('h1') ?? main;
+    const target =
+      hashTarget(router.state.location.hash) ?? main?.querySelector<HTMLElement>('h1') ?? main;
     // preventScroll so a link to /#projects still scrolls to its section.
     target?.focus({ preventScroll: true });
-  }, [resolvedPath]);
+  }, [resolvedPath, router]);
 
   return (
     <>

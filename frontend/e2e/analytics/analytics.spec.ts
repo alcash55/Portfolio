@@ -192,6 +192,7 @@ test.describe('analytics with a token', () => {
     expect(events).toEqual([]);
     expect(hosts).toEqual([]);
     expect(sdkScripts).toEqual([]);
+    await expect(page.locator('head link[rel="preconnect"]')).toHaveCount(0);
   });
 
   test('sends nothing when Global Privacy Control is on', async ({ page }) => {
@@ -207,9 +208,16 @@ test.describe('analytics with a token', () => {
     expect(events).toEqual([]);
     expect(hosts).toEqual([]);
     expect(sdkScripts).toEqual([]);
+    await expect(page.locator('head link[rel="preconnect"]')).toHaveCount(0);
   });
 
-  test('hints the ingest connection in the head', async ({ page }) => {
+  test('hints the ingest connection from script, never in the server HTML', async ({
+    page,
+    request,
+  }) => {
+    const html = await (await request.get('/')).text();
+    expect(html).not.toMatch(/rel="preconnect"/i);
+
     await interceptPostHog(page);
     await page.goto('/');
     await expect(

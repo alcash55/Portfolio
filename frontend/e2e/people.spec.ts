@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { fail, fillForm, ok, send, stubContact } from './contactStub';
+import { fail, fillForm, formReady, ok, send, stubContact } from './contactStub';
 import { expect, test, VIEWPORTS } from './fixtures';
 
 test.describe('server HTML without JavaScript', () => {
@@ -39,6 +39,7 @@ test.describe('contact form', () => {
   }) => {
     const posted = await stubContact(page, ok);
     await page.goto('/contact');
+    await formReady(page);
     await send(page).click();
 
     const summary = page.getByRole('heading', { name: 'Check these fields before sending.' });
@@ -231,6 +232,7 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
 
       test('the contact form with errors showing has no violations', async ({ page }) => {
         await page.goto('/contact');
+        await formReady(page);
         await send(page).click();
         await page.getByRole('heading', { name: 'Check these fields before sending.' }).waitFor();
         const results = await new AxeBuilder({ page })

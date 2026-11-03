@@ -1,5 +1,5 @@
 import { createMemoryHistory } from '@tanstack/react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getRouter } from '~/router';
 
 // Loads the real route tree without rendering it. The root route renders <html>,
@@ -66,5 +66,74 @@ describe('routing', () => {
 
   it('does not treat a known page as not found', async () => {
     expect((await load('/projects/clipper')).notFound).toBe(false);
+  });
+});
+
+describe('social and canonical tags per route', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  async function loadWithOrigin(path: string, origin: string) {
+    vi.stubEnv('VITE_SITE_ORIGIN', origin);
+    vi.resetModules();
+    const { getRouter: freshRouter } = await import('~/router');
+    const router = freshRouter();
+    router.update({ ...router.options, history: createMemoryHistory({ initialEntries: [path] }) });
+    await router.load();
+    return {
+      meta: router.state.matches.flatMap((match) => match.meta ?? []),
+      links: router.state.matches.flatMap((match) => match.links ?? []),
+    };
+  }
+
+  it('gives a route its own og title and no absolute tags while the origin is unset', async () => {
+    const { router } = await load('/projects/clipper');
+    const meta = router.state.matches.flatMap((match) => match.meta ?? []);
+    expect(meta).toContainEqual({
+      property: 'og:title',
+      content: 'Clipper, work by Alex Cash',
+    });
+    expect(JSON.stringify(meta)).not.toMatch(/og:url|og:image"|https?:\/\//);
+    expect(router.state.matches.flatMap((match) => match.links ?? [])).not.toContainEqual(
+      expect.objectContaining({ rel: 'canonical' }),
+    );
+  });
+
+  it.each([
+    ['/', 'https://site.test/'],
+    ['/contact', 'https://site.test/contact'],
+    ['/projects/clipper', 'https://site.test/projects/clipper'],
+    ['/experience/ncr-voyix-docs', 'https://site.test/experience/ncr-voyix-docs'],
+  ])('%s names its own canonical url once the origin is set', async (path, url) => {
+    const { meta, links } = await loadWithOrigin(path, 'https://site.test');
+    expect(links).toContainEqual({ rel: 'canonical', href: url });
+    expect(meta).toContainEqual({ property: 'og:url', content: url });
+    expect(meta).toContainEqual({
+      property: 'og:image',
+      content: 'https://site.test/og-image.png',
+    });
+  });
+});
+
+describe('server head and the ingest host', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('carries no preconnect even in a build that has a PostHog token', async () => {
+    // A hint in the server HTML would open a connection for visitors who send
+    // Do Not Track, before any script can read the signal.
+    vi.stubEnv('VITE_POSTHOG_PROJECT_TOKEN', 'phc_testtoken');
+    vi.resetModules();
+    const { getRouter: freshRouter } = await import('~/router');
+    const router = freshRouter();
+    router.update({ ...router.options, history: createMemoryHistory({ initialEntries: ['/'] }) });
+    await router.load();
+    const links = router.state.matches.flatMap((match) => match.links ?? []);
+    expect(links.length).toBeGreaterThan(0);
+    expect(links.filter((link) => link?.rel === 'preconnect')).toEqual([]);
   });
 });

@@ -203,7 +203,8 @@
 .ct-btn-primary:hover {
   background: var(--accent-hover);
 }
-.ct-btn-primary[aria-disabled='true'] {
+.ct-btn-primary[aria-disabled='true'],
+.ct-btn-primary:disabled {
   cursor: progress;
   opacity: 0.8;
 }

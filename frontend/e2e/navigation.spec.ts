@@ -21,8 +21,15 @@ test.describe('client-side navigation', () => {
 
   test('returning to the home page by link moves focus to its heading', async ({ page }) => {
     await page.goto('/projects/clipper');
+    await page.getByRole('link', { name: /Alex Cash, home/ }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('#c1-h')).toBeFocused();
+  });
+
+  test('arriving on a hash link moves focus to that section, not the page h1', async ({ page }) => {
+    await page.goto('/projects/clipper');
     await page.getByRole('link', { name: /All projects/ }).click();
     await expect(page).toHaveURL(/\/#projects$/);
-    await expect(page.locator('#c1-h')).toBeFocused();
+    await expect(page.locator('#projects h2')).toBeFocused();
   });
 });

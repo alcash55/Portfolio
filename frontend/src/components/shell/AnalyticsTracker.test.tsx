@@ -63,6 +63,13 @@ describe('AnalyticsTracker', () => {
     ]);
   });
 
+  it('leaves the query string out of the pageview url', async () => {
+    // A campaign link can carry an address in its query. No page here reads a query.
+    await mount('/contact?email=ada%40example.com&utm_source=mail');
+
+    expect(urls()).toEqual([`${window.location.origin}/contact`]);
+  });
+
   it('ignores a hash-only change, which is a scroll on the same page', async () => {
     const router = await mount('/');
 
