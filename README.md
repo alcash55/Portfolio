@@ -87,6 +87,25 @@ stale data is served instead (`"stale": true`) rather than erroring. The fronten
 (`frontend/src/components/Pages/Projects/useProjects.ts`) merges this over a static fallback list
 and never surfaces a failure to the visitor beyond a `console.error`.
 
+### Golem Miners browser build
+
+`/play/golem-miners/` is a launcher page in `frontend/public/play/golem-miners/`. The Unity files
+are not in the repo or the deploy. The 51 MB data file is over the 25 MiB Workers asset limit, so
+the Worker (`frontend/src/lib/golemBuild.ts`) streams four files from the Portfolio release tagged
+`golem-miners-webgl-latest` and adds the `Content-Encoding: gzip` header Unity needs. Edge and
+browser caches hold a file for an hour.
+
+To ship a new build, make a WebGL build with Gzip compression, then run:
+
+```sh
+scripts/publish-golem-build.sh path/to/Builds/WebGL/Build <golem-miners-commit>
+```
+
+It checks that all four files exist and that the `.unityweb` files are gzip, replaces the release
+assets, and needs no Portfolio deploy. A CI job can run the same script. It needs a checkout of
+Portfolio for the script, `gh`, and a fine-grained token with contents write on this repo, passed
+as `GH_TOKEN`. Golem-Miners has no such job yet because a Unity build in CI needs a Unity license.
+
 ### Live resume data
 
 `GET /api/v1/resume` and `GET /api/v1/resume/:variant` serve the PDFs attached to the

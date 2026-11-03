@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { GOLEM_RELEASE_BASE, golemAsset, serveGolemAsset } from './golemBuild';
 
 describe('golemAsset', () => {
+  it('reads from the moving latest tag, not a dated release', () => {
+    expect(GOLEM_RELEASE_BASE).toMatch(/\/golem-miners-webgl-latest$/);
+  });
+
   it.each([
     ['WebGL.data.unityweb', 'application/octet-stream', 'gzip'],
     ['WebGL.framework.js.unityweb', 'application/javascript', 'gzip'],
@@ -25,14 +29,19 @@ describe('golemAsset', () => {
 
 describe('serveGolemAsset', () => {
   it('streams the release file and declares the gzip the Unity loader expects', async () => {
-    const upstream = new Response('bytes', { status: 200 });
+    const upstream = new Response('bytes', {
+      status: 200,
+      headers: { ETag: '"abc"', 'Last-Modified': 'Tue, 03 Nov 2026 05:00:00 GMT' },
+    });
     const fetchImpl = vi.fn().mockResolvedValue(upstream);
     const res = await serveGolemAsset('WebGL.wasm.unityweb', fetchImpl);
     expect(fetchImpl.mock.calls[0]?.[0]).toBe(`${GOLEM_RELEASE_BASE}/WebGL.wasm.unityweb`);
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('application/wasm');
     expect(res.headers.get('Content-Encoding')).toBe('gzip');
-    expect(res.headers.get('Cache-Control')).toContain('immutable');
+    expect(res.headers.get('Cache-Control')).toBe('public, max-age=3600');
+    expect(res.headers.get('ETag')).toBe('"abc"');
+    expect(res.headers.get('Last-Modified')).toBe('Tue, 03 Nov 2026 05:00:00 GMT');
     expect(await res.text()).toBe('bytes');
   });
 

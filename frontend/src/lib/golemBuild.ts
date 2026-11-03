@@ -1,7 +1,13 @@
 // Workers static assets cap one file at 25 MiB and WebGL.data.unityweb is 51 MB,
 // so the build lives in a GitHub release and the Worker streams it from there.
+// The tag is a moving pointer: scripts/publish-golem-build.sh replaces its files, so a new
+// build goes live without a site deploy.
 export const GOLEM_RELEASE_BASE =
-  'https://github.com/alcash55/Portfolio/releases/download/golem-miners-webgl-2026-10-29';
+  'https://github.com/alcash55/Portfolio/releases/download/golem-miners-webgl-latest';
+
+// Short because the files change under a fixed URL. An hour keeps a replay off GitHub
+// while a new build still reaches players the same day.
+const CACHE_SECONDS = 3600;
 
 interface GolemAsset {
   url: string;
@@ -30,16 +36,20 @@ export async function serveGolemAsset(name: string, fetchImpl: FetchLike): Promi
   const asset = golemAsset(name);
   if (!asset) return new Response('Not found', { status: 404 });
 
-  // cacheEverything keeps repeat plays off GitHub. The release tag is dated, so the file never changes.
   const upstream = await fetchImpl(asset.url, {
-    cf: { cacheEverything: true, cacheTtl: 31536000 },
+    cf: { cacheEverything: true, cacheTtl: CACHE_SECONDS },
   } as RequestInit);
   if (!upstream.ok || !upstream.body) return new Response('Build unavailable', { status: 502 });
 
   const headers = new Headers({
     'Content-Type': asset.contentType,
-    'Cache-Control': 'public, max-age=31536000, immutable',
+    'Cache-Control': `public, max-age=${CACHE_SECONDS}`,
   });
+  // Unity's loader keeps the data file in IndexedDB keyed on these, so a new build replaces it.
+  for (const name of ['ETag', 'Last-Modified']) {
+    const value = upstream.headers.get(name);
+    if (value) headers.set(name, value);
+  }
   if (asset.encoding) headers.set('Content-Encoding', asset.encoding);
   const length = upstream.headers.get('Content-Length');
   if (length) headers.set('Content-Length', length);
