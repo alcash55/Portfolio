@@ -6,7 +6,12 @@ e2e/test-results/
 e2e/test-results-analytics/
 e2e/playwright-report-analytics/
 e2e/playwright-report/
-public/play/
+# Only the launcher page is tracked. The 62 MB build is served from a GitHub release
+# by the Worker (src/lib/golemBuild.ts).
+public/play/*
+!public/play/golem-miners/
+public/play/golem-miners/*
+!public/play/golem-miners/index.html
 public/resume.pdf
 src/generated/
 .lighthouseci/

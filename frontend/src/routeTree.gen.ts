@@ -16,6 +16,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ExperienceSlugRouteImport } from './routes/experience.$slug'
 import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
+import { Route as PlayGolemMinersBuildSplatRouteImport } from './routes/play.golem-miners.Build.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,12 @@ const WorkSlugRoute = WorkSlugRouteImport.update({
   path: '/work/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayGolemMinersBuildSplatRoute =
+  PlayGolemMinersBuildSplatRouteImport.update({
+    id: '/play/golem-miners/Build/$',
+    path: '/play/golem-miners/Build/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/experience/$slug': typeof ExperienceSlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/play/golem-miners/Build/$': typeof PlayGolemMinersBuildSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByTo {
   '/experience/$slug': typeof ExperienceSlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/play/golem-miners/Build/$': typeof PlayGolemMinersBuildSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +89,7 @@ export interface FileRoutesById {
   '/experience/$slug': typeof ExperienceSlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/play/golem-miners/Build/$': typeof PlayGolemMinersBuildSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/experience/$slug'
     | '/projects/$slug'
     | '/work/$slug'
+    | '/play/golem-miners/Build/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/experience/$slug'
     | '/projects/$slug'
     | '/work/$slug'
+    | '/play/golem-miners/Build/$'
   id:
     | '__root__'
     | '/'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/experience/$slug'
     | '/projects/$slug'
     | '/work/$slug'
+    | '/play/golem-miners/Build/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +132,7 @@ export interface RootRouteChildren {
   ExperienceSlugRoute: typeof ExperienceSlugRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   WorkSlugRoute: typeof WorkSlugRoute
+  PlayGolemMinersBuildSplatRoute: typeof PlayGolemMinersBuildSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/golem-miners/Build/$': {
+      id: '/play/golem-miners/Build/$'
+      path: '/play/golem-miners/Build/$'
+      fullPath: '/play/golem-miners/Build/$'
+      preLoaderRoute: typeof PlayGolemMinersBuildSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +204,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExperienceSlugRoute: ExperienceSlugRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   WorkSlugRoute: WorkSlugRoute,
+  PlayGolemMinersBuildSplatRoute: PlayGolemMinersBuildSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
