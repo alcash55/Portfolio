@@ -1,27 +1,46 @@
-# [Portfolio Website](https://alcash55.github.io/Portfolio/)
+# Portfolio Website
 
-This is a website build to showcase my skills and experiences.
+My portfolio: a numbered, scrolling home page with thirteen chapters, a write-up page for each
+project and role, a contact form, and a live resume. The site is a server-rendered app on
+Cloudflare Workers. A small Go API handles the contact form.
+
+The public address is set in one place, the `VITE_SITE_ORIGIN` build variable (see
+[Changing the site URL](#changing-the-site-url)). Today it serves from
+<https://portfolio-website.alex-e-cash28.workers.dev>.
 
 ## Layout
 
 ```
-frontend/   React + TypeScript single-page app, deployed to GitHub Pages
-backend/    Go + Gin API: contact form + a GitHub proxy for live project data
+frontend/   TanStack Start app, built with Vite and deployed to Cloudflare Workers
+backend/    Go + Gin API: contact form, plus GitHub repo and resume proxies
+scripts/    One-off tooling: Golem build publishing, token and webhook wizards
 ```
 
 ## Architecture
 
 ### Frontend
 
-- [React](https://react.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Vite Bundle/Build Tool](https://vitejs.dev/)
-- [Github Actions CI/CD Pipeline](https://docs.github.com/en/actions)
+- [TanStack Start](https://tanstack.com/start) and [TanStack Router](https://tanstack.com/router),
+  server-rendered on [Cloudflare Workers](https://workers.cloudflare.com/)
+- [React 19](https://react.dev/) and [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vite.dev/) with the Cloudflare plugin, and [Tailwind CSS 4](https://tailwindcss.com/)
+- [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/) for unit tests,
+  [Playwright](https://playwright.dev/) with axe for browser and accessibility tests
+- [PostHog](https://posthog.com/), cookieless, loaded only when a project token is set at build time
 
-Notable dependencies:
+How the pieces fit:
 
-- [MUI](https://mui.com/)
-- [React Router Dom](https://reactrouter.com/en/main)
+- `src/content/` holds the copy and data for every page. Components render it and hold no prose.
+- The home page is a stack of `Chapter` sections. `CHAPTER_GROUPS` in `src/content/home.ts`
+  drives the chapter counter and the index. Each chapter must fit one screen at 1366×800, and
+  `e2e/home-full.spec.ts` checks it.
+- Project and role write-ups live at `/projects/:slug` and `/experience/:slug`. Their breadcrumb
+  returns to the chapter you opened them from.
+- The build runs three scripts first (`fetch-resume`, `generate-site-stats`, `generate-ci-actions`).
+  They write the resume PDF and the numbers shown on the site into gitignored files, so no count
+  on the page is typed by hand. None of them fails a build over missing data.
+- `/play/golem-miners/` is a launcher page. The Unity build is not in the repo or the deploy, so
+  the Worker streams it from a GitHub release (see below).
 
 ### Backend
 
@@ -83,28 +102,9 @@ header. `/healthz` and `/api/v1/projects` are deliberately not rate limited; see
 `GET /api/v1/projects` returns a curated, hand-maintained list of repos (`PROJECT_REPOS`, below),
 fetched from the GitHub API and cached for **one hour**, with concurrent refreshes single-flighted
 onto one upstream call. If a refresh fails but a previous successful fetch is still cached, that
-stale data is served instead (`"stale": true`) rather than erroring. The frontend
-(`frontend/src/components/Pages/Projects/useProjects.ts`) merges this over a static fallback list
-and never surfaces a failure to the visitor beyond a `console.error`.
-
-### Golem Miners browser build
-
-`/play/golem-miners/` is a launcher page in `frontend/public/play/golem-miners/`. The Unity files
-are not in the repo or the deploy. The 51 MB data file is over the 25 MiB Workers asset limit, so
-the Worker (`frontend/src/lib/golemBuild.ts`) streams four files from the Portfolio release tagged
-`golem-miners-webgl-latest` and adds the `Content-Encoding: gzip` header Unity needs. Edge and
-browser caches hold a file for an hour.
-
-To ship a new build, make a WebGL build with Gzip compression, then run:
-
-```sh
-scripts/publish-golem-build.sh path/to/Builds/WebGL/Build <golem-miners-commit>
-```
-
-It checks that all four files exist and that the `.unityweb` files are gzip, replaces the release
-assets, and needs no Portfolio deploy. A CI job can run the same script. It needs a checkout of
-Portfolio for the script, `gh`, and a fine-grained token with contents write on this repo, passed
-as `GH_TOKEN`. Golem-Miners has no such job yet because a Unity build in CI needs a Unity license.
+stale data is served instead (`"stale": true`) rather than erroring. The redesigned frontend does
+not call this endpoint. Project data lives in `frontend/src/content/projects.ts`, and the build
+reads the numbers it shows from the repos directly.
 
 ### Live resume data
 
@@ -149,8 +149,9 @@ stage=resolve_release status=404: unexpected status 404 fetching latest release`
 token nor the `Authorization` header value is ever part of that line, a response body, or a
 response header.
 
-The frontend links directly to these URLs rather than bundling a copy of the PDF, so a resume edit
-shows up on the site without a redeploy.
+The frontend build downloads the PDF from `/api/v1/resume/fullstack` (set through `RESUME_PDF_URL`)
+and ships it as `/resume.pdf`, so a resume edit reaches the site on the next deploy. If the file
+is missing, `/resume` shows an explanation instead of an error.
 
 #### Diagnosing a broken resume link
 
@@ -258,9 +259,22 @@ Frontend env files live in `frontend/`. Copy `frontend/.env.example` to
 
 | Variable                     | Required | Purpose                                                                                |
 | ----------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| `VITE_API_URL`                | no       | Backend base URL. Defaults to `http://localhost:8080`                                   |
+| `VITE_API_URL`                | no       | Go API base URL, used by the contact form. Defaults to `http://localhost:8080` in dev. A production build without it fails visibly instead of posting to the wrong place |
+| `VITE_SITE_ORIGIN`            | no       | Public origin of the site, such as `https://example.com`. Sets canonical links, social cards and the sitemap. Unset, the sitemap uses the request's own origin and canonical links are left off |
 | `VITE_POSTHOG_PROJECT_TOKEN`  | no       | PostHog project token, a write-only ingest key, not a secret. Unset disables analytics  |
 | `VITE_POSTHOG_HOST`           | no       | PostHog ingest host. Defaults to `https://us.i.posthog.com`. Use the EU host for an EU project |
+| `RESUME_PDF_URL`              | no       | Where `fetch-resume` downloads the PDF from. Defaults to the Resume repo's latest release. The Resume repo is private, so deploys point it at `<API>/api/v1/resume/fullstack` |
+| `RESUME_REQUIRED`             | no       | Set to `1` to fail the build when no PDF can be fetched. Set it for production builds |
+
+The build fails if any `VITE_` value looks like a credential, because Vite inlines every one of
+them into the client bundle.
+
+`frontend/.env` bakes its values into every local build. Before you build for a browser check,
+export the PostHog variables as empty strings so test traffic never reaches the real project:
+
+```sh
+export VITE_POSTHOG_HOST= VITE_POSTHOG_PROJECT_TOKEN=
+```
 
 ```sh
 cd frontend
@@ -268,67 +282,118 @@ bun install
 bun run dev     # http://localhost:3005
 ```
 
+Other scripts:
+
+```sh
+bun run build        # production build, runs the three generator scripts first
+bun run preview      # serve the production build locally
+bun run lint         # ESLint
+bun run typecheck    # tsc --noEmit
+bun run format       # Prettier
+bun run lighthouse   # build, then Lighthouse CI for mobile and desktop
+```
+
 Tests:
 
 ```sh
 cd frontend
 bun run test         # Vitest, single run
-bun run test:watch   # Vitest, watch mode
-bun run test:e2e     # Playwright smoke test, against a production build
+bun run test:e2e     # Playwright against a production build, then the analytics specs
 ```
 
-`test:e2e` (`frontend/e2e/`) is a small suite of real-Chromium checks for the class of bug that
-lint, `tsc --noEmit`, Vitest, and `vite build` all pass on: layout/rendering and runtime-only
-failures. It builds the app and serves it with `vite preview` (not the dev server) before running.
-Needs the Playwright Chromium browser once: `bunx playwright install chromium` (cached at
-`~/.cache/ms-playwright`; CI caches the same path so it isn't re-downloaded every run).
+`test:e2e` (`frontend/e2e/`) runs real Chromium against the production build served through the
+Workers runtime, the same bundle that deploys. It catches layout and runtime failures that lint,
+`tsc`, Vitest and `vite build` all pass on, and it runs axe on the main pages in light and dark
+themes at phone and desktop widths. The default run builds with no PostHog token. A second config,
+`playwright.analytics.config.ts`, builds with a made-up token and answers every ingest request with
+`page.route`, so nothing reaches a real PostHog project. Every spec stubs the API too, so a
+backend running on your machine cannot change a result. Install the browser once with
+`bunx playwright install chromium`.
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` is a reusable workflow (`workflow_call`) that runs on every pull
 request: lint, `tsc --noEmit`, `bun run test`, and `bun run build` for the frontend; the Playwright
-smoke test (`frontend/e2e/`) against a production build, in its own job so a smoke failure reads
-as distinct from a unit-test failure; and `go vet`, `go test ./... -race`, and `go build` for the
+suite (`frontend/e2e/`) against a production build, in its own job so a browser failure reads as
+distinct from a unit-test failure; and `go vet`, `go test ./... -race`, and `go build` for the
 backend.
 
-`.github/workflows/deploy.yml` (push to `main`) calls that same `ci.yml` as a gate before
-deploying the frontend to GitHub Pages. A push to `main` only deploys if CI passes. The backend
-deploys separately: Render watches `main` directly via the `render.yaml` blueprint and isn't gated
-on this repo's CI.
-
-One more workflow exists outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
+One more workflow runs outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
 stop the Render free plan from spinning down (see below). It doesn't block a deploy.
 
-The old `check-resume.yml` ATS check is gone: it ran against a bundled `frontend/src/assets/AlexResume.pdf`
-that no longer exists now that the resume is served live from the Resume repo (see "Live resume
-data" above). The same ATS check now runs in the Resume repo's own `resume-analysis.yml`, against
-all three variants, on every PR there.
+> `.github/workflows/deploy.yml` still publishes the frontend to GitHub Pages on a push to `main`.
+> The production site now deploys to Cloudflare Workers, so that workflow is out of date and needs
+> replacing with a `wrangler deploy` job before it is trusted again.
+
+The old `check-resume.yml` ATS check is gone: the resume is served live from the Resume repo (see
+"Live resume data" below), and the same ATS check runs in that repo's own `resume-analysis.yml`
+against all three variants on every PR there.
 
 ## Deployment
 
 The two halves deploy independently:
 
-| Part        | Host                         | URL                                       | Trigger                                         |
-| ----------- | ---------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| `frontend/` | GitHub Pages                 | <https://alcash55.github.io/Portfolio/>   | Push to `main` → `.github/workflows/deploy.yml` |
-| `backend/`  | [Render](https://render.com) | <https://portfolio-api-0mta.onrender.com> | Push to `main` → `render.yaml` blueprint        |
+| Part        | Host                                                | Address                                                        | Trigger                                  |
+| ----------- | --------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------- |
+| `frontend/` | [Cloudflare Workers](https://workers.cloudflare.com/) | <https://portfolio-website.alex-e-cash28.workers.dev>          | `wrangler deploy` from `frontend/`, by hand |
+| `backend/`  | [Render](https://render.com)                        | <https://portfolio-api-0mta.onrender.com>                      | Push to `main` → `render.yaml` blueprint |
 
-### Rolling back a Pages deploy
+### Deploying the frontend
 
-The `github-pages` environment has no required reviewer and no wait timer, so a push to `main`
-that passes CI deploys straight to production. If a deploy passes CI but the live site is
-still wrong (a runtime bug CI doesn't catch, a bad environment variable, a stale PostHog key),
-two recovery paths already work:
+Build with the production values, then deploy. The worker is named `portfolio-website` in
+`frontend/wrangler.jsonc`.
 
-- **Revert and push.** `git revert <bad-commit>` on `main` re-triggers `ci.yml` and then
-  `deploy.yml` from a clean state. This is the default choice, since it also fixes `main`
-  going forward rather than just the live site.
-- **Re-run a prior successful deploy.** In the Actions tab, open the last known-good
-  `Deploy static content to Pages` run and choose **Re-run all jobs**. This checks out that
-  run's commit fresh and rebuilds it rather than replaying a stored artifact, so a repository
-  variable changed since that run (`VITE_API_URL`, the PostHog vars) applies to the rebuild
-  too. It only works within GitHub's 90-day retention window for that run. Once a run ages
-  out, its **Re-run** button disappears and a revert is the only path back.
+```sh
+cd frontend
+export VITE_API_URL=https://portfolio-api-0mta.onrender.com
+export RESUME_PDF_URL=$VITE_API_URL/api/v1/resume/fullstack
+export RESUME_REQUIRED=1
+export VITE_SITE_ORIGIN=https://portfolio-website.alex-e-cash28.workers.dev
+export VITE_POSTHOG_HOST=$(gh variable get VITE_POSTHOG_HOST -R alcash55/Portfolio)
+export VITE_POSTHOG_PROJECT_TOKEN=$(gh variable get VITE_POSTHOG_PROJECT_TOKEN -R alcash55/Portfolio)
+rm -rf dist
+bunx vite build
+bunx wrangler deploy
+```
+
+`RESUME_REQUIRED=1` stops a production build from shipping without a resume. Cloudflare serves the
+built assets and runs the worker for server rendering, the sitemap and the Golem build proxy.
+
+To roll back, redeploy the previous commit or use `wrangler rollback`.
+
+### Changing the site URL
+
+Three places hold the address. Change all three together, in this order:
+
+1. **Backend CORS.** Add the new origin to `ALLOWED_ORIGINS` in the Render dashboard. Setting it
+   replaces the defaults, so keep the current origin in the list until the switch is done. Without
+   this the browser blocks the contact form with a CORS error. `render.yaml` still names only the
+   old GitHub Pages origin, so update it to match.
+2. **Build variable.** Set `VITE_SITE_ORIGIN` to the new origin and redeploy. This moves canonical
+   links, social cards and the sitemap.
+3. **Hosting.** Attach the domain to the `portfolio-website` worker in the Cloudflare dashboard
+   (Workers & Pages, Settings, Domains & Routes). Then add a `Sitemap:` line to
+   `frontend/public/robots.txt` with the new origin.
+
+The old `workers.dev` address keeps working unless you turn it off in the same settings page.
+
+### Golem Miners browser build
+
+`/play/golem-miners/` is a launcher page in `frontend/public/play/golem-miners/`. The Unity files
+are not in the repo or the deploy. The 51 MB data file is over the 25 MiB Workers asset limit, so
+the Worker (`frontend/src/lib/golemBuild.ts`) streams four files from the Portfolio release tagged
+`golem-miners-webgl-latest` and adds the `Content-Encoding: gzip` header Unity needs. Edge and
+browser caches hold a file for an hour.
+
+To ship a new build, make a WebGL build with Gzip compression, then run:
+
+```sh
+scripts/publish-golem-build.sh path/to/Builds/WebGL/Build <golem-miners-commit>
+```
+
+It checks that all four files exist and that the `.unityweb` files are gzip, replaces the release
+assets, and needs no Portfolio deploy. It needs a checkout of Portfolio for the script, `gh`, and a
+fine-grained token with contents write on this repo, passed as `GH_TOKEN`.
 
 ### Backend on Render
 
@@ -354,22 +419,18 @@ Two things Render handles that the app relies on:
   while the public URL is `https://<service>.onrender.com`.
 
 > On the free plan the service **spins down after ~15 minutes of inactivity**, and the next
-> request pays a cold start of roughly 50 seconds. Both frontend requests that hit the backend
-> allow 60 seconds via an `AbortController` before giving up, rather than hanging indefinitely, so
-> a cold start reads as slow, not broken. The contact form shows a "Sending…" state immediately
-> and, if the request is still going after 4s, swaps in copy explaining the server is waking up
-> (`ConnectForm.tsx`). The projects section shows skeleton cards while its fetch is in flight, then
-> renders the real cards, from live data merged over a static fallback, or the static fallback
-> alone if the fetch never comes back in time (`Projects.tsx`, `useProjects.ts`). Neither request
-> is ever left to hang forever. `.github/workflows/keep-alive.yml` pings `/healthz` every 10
-> minutes to make a cold start less likely in the first place. GitHub's `schedule` trigger is
-> best-effort, not a guarantee. It can be delayed under load, and GitHub disables `schedule`
-> entirely on a repo with no commits for 60 days, so a cold start is mitigated, not eliminated.
+> request pays a cold start of roughly 50 seconds. The contact form allows 60 seconds via an
+> `AbortController` (`sendContact.ts`) before it gives up, so a cold start reads as slow, not
+> broken. It shows a "Sending..." state immediately and, if the request is still going after 4s,
+> swaps in copy explaining the server is waking up (`ContactForm.tsx`).
+> `.github/workflows/keep-alive.yml` pings `/healthz` every 10 minutes to make a cold start less
+> likely in the first place. GitHub's `schedule` trigger is best-effort, not a guarantee. It can be
+> delayed under load, and GitHub disables `schedule` entirely on a repo with no commits for 60 days,
+> so a cold start is mitigated, not eliminated.
 > Upgrading off the free plan removes the spin-down altogether.
 
-The repository **variable** (not secret) `VITE_API_URL` points the Pages build at
-the API; it is currently set to `https://portfolio-api-0mta.onrender.com`. Keep
-it a variable. `VITE_`-prefixed values are inlined into the client bundle, and
+The repository **variable** (not secret) `VITE_API_URL` holds the API address,
+`https://portfolio-api-0mta.onrender.com`. Keep it a variable. `VITE_`-prefixed values are inlined into the client bundle, and
 Vite inlines **every** `VITE_` variable present at build time, whether the source
 references it or not.
 
@@ -382,7 +443,9 @@ one needs a rebuild.
 
 `ALLOWED_ORIGINS` is set to `https://alcash55.github.io` in the blueprint. That
 **replaces** the local-development defaults rather than adding to them, so the
-deployed API accepts only the Pages origin.
+deployed API accepts only the origins listed. The Render dashboard value overrides the
+blueprint and also lists the Workers address. Keep the two in step, and add any new site address
+before you switch to it (see "Changing the site URL").
 
 ### Building the backend image locally
 
