@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play Golem Miners, by Alex Cash</title>
+<meta name="description" content="Play the Golem Miners browser build: chop trees, craft a pickaxe and dig down through terrain that breaks block by block.">
+<style>
+:root{--bg:#141412;--panel:#1c1b19;--text:#f2f1ee;--text-2:#bfbcb6;--line:#f2f1ee1a;--accent:#7fd1a0;--on-accent:#0d1a12;
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--serif:"Newsreader","Times New Roman",serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:400 1rem/1.5 var(--sans)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--text);outline-offset:3px}
+.bar{position:fixed;inset:0 0 auto;height:48px;display:flex;align-items:center;gap:16px;padding:0 16px;z-index:3;background:linear-gradient(#141412f0,#14141200)}
+.bar a{font-weight:500;text-decoration:none;padding:8px 4px}
+.bar a:hover{text-decoration:underline}
+.bar .sp{flex:1}
+.bar button{font:inherit;font-weight:500;color:var(--text);background:#f2f1ee14;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.bar button:hover{background:#f2f1ee26}
+#unity-canvas{position:fixed;inset:0;width:100%;height:100%;display:block;background:var(--bg)}
+.gate{position:fixed;inset:0;z-index:2;display:grid;place-items:center;padding:64px 20px 24px;background:#141412e6}
+.gate[hidden]{display:none}
+.card{width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px}
+h1{font:400 clamp(1.75rem,1.4rem + 1.5vw,2.25rem)/1.1 var(--serif);margin:0 0 8px}
+.lede{color:var(--text-2);margin:0 0 20px}
+.prog{height:6px;border-radius:3px;background:#f2f1ee1a;overflow:hidden;margin:0 0 8px}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.stat{font-size:.875rem;color:var(--text-2);margin:0 0 20px;min-height:1.3em}
+.go{font:inherit;font-weight:600;color:var(--on-accent);background:var(--accent);border:0;border-radius:999px;padding:12px 22px;cursor:pointer}
+.go:disabled{opacity:.45;cursor:progress}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:24px 0 0;font-size:.9375rem}
+dt{font-weight:500}
+dd{margin:0;color:var(--text-2)}
+kbd{font:500 .8125rem/1 var(--sans);border:1px solid #f2f1ee33;border-radius:5px;padding:3px 6px;background:#f2f1ee0d}
+.note{font-size:.875rem;color:var(--text-2);margin:20px 0 0}
+.err{color:#ff8f85}
+@media (prefers-reduced-motion:reduce){.prog i{transition:none}}
+</style>
+</head>
+<body>
+<div class="bar"><a href="/projects/golem-miners">&larr; Golem Miners write-up</a><span class="sp"></span><button type="button" id="fs" hidden>Full screen</button></div>
+<canvas id="unity-canvas" tabindex="-1" aria-label="Golem Miners game"></canvas>
+
+<div class="gate" id="gate">
+  <main class="card">
+    <h1>Golem Miners</h1>
+    <p class="lede" id="lede">The browser build is single-player. It is about 62 MB, and the world takes a few seconds to generate once it loads.</p>
+    <div id="loadui">
+      <div class="prog" aria-hidden="true"><i id="pbar"></i></div>
+      <p class="stat" id="stat" role="status">Loading the game</p>
+      <button class="go" type="button" id="play" disabled>Play</button>
+    </div>
+    <dl aria-label="Controls">
+      <dt><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dt><dd>Move. <kbd>Shift</kbd> sprints, <kbd>Space</kbd> jumps</dd>
+      <dt>Mouse</dt><dd>Look. Hold left click to chop or dig</dd>
+      <dt><kbd>E</kbd></dt><dd>Pick up, talk, craft at the workbench</dd>
+      <dt><kbd>Tab</kbd></dt><dd>Bag and skills</dd>
+      <dt><kbd>1</kbd> to <kbd>6</kbd></dt><dd>Hotbar slot</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Settings, and frees the mouse</dd>
+    </dl>
+    <p class="note">Start by punching a tree for logs. Logs and flint make a pickaxe at the camp workbench.</p>
+  </main>
+</div>
+
+<script>
+/* Touch devices skip the 62 MB download: the game needs a keyboard and a mouse. */
+var touchOnly=matchMedia('(hover:none) and (pointer:coarse)').matches;
+var canvas=document.getElementById('unity-canvas'),gate=document.getElementById('gate'),stat=document.getElementById('stat'),pbar=document.getElementById('pbar'),play=document.getElementById('play'),fs=document.getElementById('fs');
+if(touchOnly){
+  document.getElementById('loadui').innerHTML='<p class="stat">Golem Miners needs a keyboard and a mouse, so it does not load on a phone or tablet. Open this page on a computer to play, or <a href="/projects/golem-miners">watch the gameplay recording</a>.</p>';
+}else{
+  var config={
+    dataUrl:'Build/WebGL.data.unityweb',
+    frameworkUrl:'Build/WebGL.framework.js.unityweb',
+    codeUrl:'Build/WebGL.wasm.unityweb',
+    streamingAssetsUrl:'StreamingAssets',
+    companyName:'Alex Cash',productName:'Golem Miners',productVersion:'1.0',
+    showBanner:function(msg,type){if(type==='error'){stat.textContent=msg;stat.classList.add('err')}}
+  };
+  var s=document.createElement('script');
+  s.src='Build/WebGL.loader.js';
+  s.onload=function(){
+    createUnityInstance(canvas,config,function(p){pbar.style.width=Math.round(p*100)+'%';stat.textContent='Loading the game, '+Math.round(p*100)+'%'})
+    .then(function(inst){
+      pbar.style.width='100%';stat.textContent='Ready.';play.disabled=false;play.focus();
+      fs.hidden=false;fs.onclick=function(){inst.SetFullscreen(1)};
+    })
+    .catch(function(e){stat.textContent='The game could not start: '+e;stat.classList.add('err')});
+  };
+  s.onerror=function(){stat.textContent='The game files did not load. Reload the page to try again.';stat.classList.add('err')};
+  document.body.appendChild(s);
+  play.onclick=function(){gate.hidden=true;canvas.focus()};
+}
+</script>
+</body>
+</html>

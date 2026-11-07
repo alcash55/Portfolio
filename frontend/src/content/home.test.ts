@@ -1,0 +1,113 @@
+import { describe, expect, it } from 'vitest';
+import {
+  ABOUT,
+  CHAPTER_COUNT,
+  CHAPTER_GROUPS,
+  PROJECT_CHAPTERS,
+  chapterTitle,
+  chapterNumber,
+} from './home';
+import { PROJECT_SLUGS } from './pages';
+import { EXPERIENCE } from './people';
+
+const allStrings = (value: unknown): string[] => {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(allStrings);
+  if (value && typeof value === 'object') return Object.values(value).flatMap(allStrings);
+  return [];
+};
+
+describe('chapter index', () => {
+  it('numbers thirteen chapters in page order, grouped as the header menu reads', () => {
+    const flat = CHAPTER_GROUPS.flatMap((g) => g.items.map((i) => [g.label, i.n, i.id, i.title]));
+    expect(flat).toEqual([
+      ['About', 1, 'about', 'About me'],
+      ['Projects', 2, 'projects', 'Portfolio Website'],
+      ['Projects', 3, 'game-competition-website', 'Game Competition'],
+      ['Projects', 4, 'ac-composite-actions', 'AC Composite Actions'],
+      ['Projects', 5, 'clipper', 'Clipper'],
+      ['Projects', 6, 'golem-miners', 'Golem Miners'],
+      ['Projects', 7, 'vscode-royalty-theme', 'Royalty Theme'],
+      ['Experience', 8, 'experience', 'Solea Energy'],
+      ['Experience', 9, 'ncr-voyix', 'NCR Voyix'],
+      ['Experience', 10, 'ncr-store-health', 'NCR'],
+      ['Experience', 11, 'education', 'Education'],
+      ['Certificates', 12, 'certificates', 'Certificates'],
+      ['Contact', 13, 'contact', 'Say hi'],
+    ]);
+    expect(CHAPTER_COUNT).toBe(13);
+  });
+
+  it('titles each experience chapter the same in the index and on the page', () => {
+    for (const spec of EXPERIENCE) expect(chapterTitle(spec.n), spec.id).toBe(spec.title);
+  });
+
+  it('formats the header counter number and title', () => {
+    expect(chapterNumber(1)).toBe('01');
+    expect(chapterNumber(13)).toBe('13');
+    expect(chapterTitle(6)).toBe('Golem Miners');
+    expect(() => chapterTitle(14)).toThrow('No chapter 14');
+  });
+});
+
+describe('project chapters', () => {
+  it('follow the comp order and number their figures 2 to 7', () => {
+    expect(PROJECT_CHAPTERS.map((c) => [c.n, c.id, c.fig.n])).toEqual([
+      [2, 'portfolio-website', 2],
+      [3, 'game-competition-website', 3],
+      [4, 'ac-composite-actions', 4],
+      [5, 'clipper', 5],
+      [6, 'golem-miners', 6],
+      [7, 'vscode-royalty-theme', 7],
+    ]);
+  });
+
+  it('alternate the figure side, starting on the left at chapter 2', () => {
+    expect(PROJECT_CHAPTERS.map((c) => c.reverse)).toEqual([true, false, true, false, true, false]);
+  });
+
+  it('link each write-up to a real project slug', () => {
+    for (const chapter of PROJECT_CHAPTERS) {
+      const writeUp = chapter.links.find((l) => l.kind === 'write-up');
+      expect(writeUp, chapter.id).toBeDefined();
+      if (writeUp?.kind === 'write-up') expect(PROJECT_SLUGS).toContain(writeUp.slug);
+      expect(writeUp && 'slug' in writeUp ? writeUp.slug : '').toBe(chapter.id);
+    }
+  });
+
+  it('keep the proof lines from the copy deck', () => {
+    const proof = (id: string) =>
+      PROJECT_CHAPTERS.find((c) => c.id === id)?.paragraphs.find((p) => p.kind === 'proof')?.text;
+    expect(proof('portfolio-website')).toBe(
+      "Every page passes axe's WCAG 2.2 AA checks on phone and desktop, in light and dark, on every pull request.",
+    );
+    expect(proof('clipper')).toBe(
+      'One command turns a YouTube or Twitch clip into a captioned, upload-ready Short. 387 tests pass.',
+    );
+    expect(proof('vscode-royalty-theme')).toBe(
+      'Keyword contrast raised from 2.96:1 to 8.1:1. A build check blocks any color below WCAG AA.',
+    );
+  });
+
+  it('say the code is private on Clipper and Golem Miners only', () => {
+    const noted = PROJECT_CHAPTERS.filter((c) => c.note).map((c) => [c.id, c.note]);
+    expect(noted).toEqual([
+      ['clipper', 'The code is private.'],
+      ['golem-miners', 'The code is private.'],
+    ]);
+  });
+});
+
+describe('copy hygiene', () => {
+  it('has no dashes used as punctuation, no curly quotes, no html entities', () => {
+    const strings = allStrings([ABOUT, PROJECT_CHAPTERS, CHAPTER_GROUPS]);
+    const bad = strings.filter((s) => /[–—‘’“”]|&[a-z]+;/.test(s));
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('about', () => {
+  it('uses the lead-approved h1', () => {
+    expect(ABOUT.heading).toBe('Alex Cash builds the Go API and the page that reads it.');
+  });
+});

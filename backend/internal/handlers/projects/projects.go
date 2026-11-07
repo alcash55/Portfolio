@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alcash55/Portfolio/internal/ttlcache"
 	"github.com/alcash55/Portfolio/pkg/config"
 	"github.com/gin-gonic/gin"
 )
@@ -66,7 +67,7 @@ type Handler struct {
 	cfg     config.Config
 	client  *http.Client
 	baseURL string
-	cache   *cache
+	cache   *ttlcache.Cache[[]Project]
 }
 
 // Option configures a Handler beyond its config.Config. Production code
@@ -88,7 +89,7 @@ func WithHTTPClient(client *http.Client) Option {
 // WithNow overrides the clock the cache uses for its TTL (default
 // time.Now), so tests can advance past the TTL without sleeping.
 func WithNow(now func() time.Time) Option {
-	return func(h *Handler) { h.cache.now = now }
+	return func(h *Handler) { h.cache.SetNow(now) }
 }
 
 // New builds a projects handler bound to cfg.
@@ -97,7 +98,7 @@ func New(cfg config.Config, opts ...Option) *Handler {
 		cfg:     cfg,
 		client:  &http.Client{Timeout: githubTimeout},
 		baseURL: defaultBaseURL,
-		cache:   newCache(cacheTTL, time.Now),
+		cache:   ttlcache.New[[]Project](cacheTTL, time.Now),
 	}
 	for _, opt := range opts {
 		opt(h)
@@ -111,7 +112,7 @@ func (h *Handler) GetProjects(c *gin.Context) {
 	// request may be shared (single-flighted) with other concurrent
 	// requests via h.cache, so it must not be canceled just because this
 	// particular caller disconnects.
-	projects, stale, err := h.cache.get(func() ([]Project, error) {
+	projects, stale, err := h.cache.Get(func() ([]Project, error) {
 		return h.fetchAll(context.Background())
 	})
 	if err != nil {
