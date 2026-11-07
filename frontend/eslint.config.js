@@ -14,7 +14,6 @@ export default tseslint.config(
       'e2e/playwright-report',
       'e2e/test-results-analytics',
       'e2e/playwright-report-analytics',
-      '.lighthouseci',
       'src/routeTree.gen.ts',
       'worker-configuration.d.ts',
     ],

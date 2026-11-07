@@ -20,7 +20,9 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `bun run build && bunx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
+    // api.invalid can never resolve, so no test can reach a real or local API. The Worker's
+    // own fetches fail, and fixtures.ts answers every API call the browser makes.
+    command: `VITE_API_URL=http://api.invalid bun run build && bunx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

@@ -12,6 +12,4 @@ public/play/*
 !public/play/golem-miners/
 public/play/golem-miners/*
 !public/play/golem-miners/index.html
-public/resume.pdf
 src/generated/
-.lighthouseci/

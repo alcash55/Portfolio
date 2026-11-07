@@ -20,7 +20,8 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `bun run build && bunx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
+    // See playwright.config.ts for why the API host is api.invalid.
+    command: `VITE_API_URL=http://api.invalid bun run build && bunx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
     url: `http://127.0.0.1:${PORT}`,
     // Its own port, so a server left over from the default suite is never reused here.
     reuseExistingServer: !process.env.CI,
