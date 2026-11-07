@@ -46,7 +46,7 @@ Probe security work yourself. A green suite shows a limiter matches its own test
 
 ## Deploys
 
-- The frontend deploys to the `portfolio-website` Worker. Run `wrangler deploy` from `frontend/` with the production `VITE_*` values from the README. Cloudflare Workers Builds tracks `main`.
+- The frontend deploys to the `portfolio-website` Worker. Cloudflare Workers Builds tracks `main` of `alcash55/Portfolio` and holds the production `VITE_*` values as build variables. For a manual deploy, run `wrangler deploy` from `frontend/` with the values from the README.
 - The backend deploys from a push to `main` through `render.yaml`. A new site origin goes into `ALLOWED_ORIGINS` first, or the browser blocks the contact form.
 - Changing the site URL means three edits in order: backend CORS, `VITE_SITE_ORIGIN`, then the Cloudflare domain. The README has the steps.
 
