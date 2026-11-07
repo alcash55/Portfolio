@@ -70,11 +70,11 @@ describe('sendContact', () => {
     });
   });
 
-  it('reports a network failure as a server error', async () => {
+  it('reports a request that never got a response as a network failure', async () => {
     const fetchStub = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
     await expect(sendContact(values, { fetch: fetchStub, apiUrl })).resolves.toEqual({
       ok: false,
-      kind: 'server_error',
+      kind: 'network',
     });
   });
 

@@ -1,7 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
 import { useHydrated } from '~/components/shell/useHydrated';
-import { prefersReducedMotion } from './hooks';
-import './figures.css';
+import { FOCUS_RING } from './figureStyles';
+import { useClip } from './useClip';
+
+// The window frame around a clip rounds and clips the corners, so the box needs no radius.
+const BOX = 'relative grid aspect-2/1 place-items-center overflow-clip bg-wash';
+const VIDEO = 'h-full w-full object-cover';
+const BUTTON = [
+  'absolute right-[12px] bottom-[12px] z-6 grid size-[44px] place-items-center',
+  'cursor-pointer rounded-[50%] border-[1.5px] border-line-strong bg-surface text-ink',
+  FOCUS_RING,
+].join(' ');
 
 export interface ClipProps {
   src: string;
@@ -16,18 +24,9 @@ export interface ClipProps {
   playRequest?: number;
 }
 
-type Choice = 'play' | 'pause' | null;
-
-function start(video: HTMLVideoElement): void {
-  // play() rejects when the browser blocks it. The poster stays, which is fine.
-  video.play().catch(() => {});
-}
-
 /**
- * A silent clip with a play and pause button. It plays while at least 40% of it
- * is in view, unless the reader asked to pause it, and under reduced motion it
- * waits for them to press play. A clip that fails to load keeps its poster and
- * drops the button.
+ * A silent clip with a play and pause button. `useClip` decides when it plays.
+ * A clip that fails to load keeps its poster and drops the button.
  */
 export function Clip({
   src,
@@ -38,106 +37,20 @@ export function Clip({
   onEnded,
   playRequest = 0,
 }: ClipProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const hydrated = useHydrated();
-  const [playing, setPlaying] = useState(false);
-  // Keyed by source, so a clip that replaces a broken one starts with its button back.
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const failed = failedSrc === src;
-  const [swapped, setSwapped] = useState<string | null>(null);
-  const choice = useRef<Choice>(null);
-  const inView = useRef(false);
-  const onEndedRef = useRef(onEnded);
-  const loadedSrc = useRef(src);
-
-  // A press is an explicit choice, and it outranks the in-view rule until pressed again.
-  const toggle = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (!video.paused) {
-      choice.current = 'pause';
-      video.pause();
-    } else {
-      choice.current = 'play';
-      start(video);
-    }
-  };
-
-  useEffect(() => {
-    onEndedRef.current = onEnded;
+  const { videoRef, playing, failed, shownPoster, toggle } = useClip({
+    src,
+    poster,
+    posterSwap,
+    onEnded,
+    playRequest,
   });
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const sync = () => setPlaying(!video.paused);
-    const fail = () => setFailedSrc(loadedSrc.current);
-    const ended = () => onEndedRef.current?.();
-    const update = () => {
-      if (choice.current === 'pause' || !inView.current) {
-        if (!video.paused) video.pause();
-        return;
-      }
-      if ((choice.current === 'play' || !prefersReducedMotion()) && video.paused) start(video);
-    };
-    video.addEventListener('play', sync);
-    video.addEventListener('pause', sync);
-    video.addEventListener('ended', ended);
-    // A bad <source> fires `error` on the source and it does not bubble, so listen while it passes down.
-    video.addEventListener('error', fail, true);
-    let observer: IntersectionObserver | undefined;
-    if (typeof IntersectionObserver !== 'undefined') {
-      observer = new IntersectionObserver(
-        (entries) => {
-          const last = entries.at(-1);
-          if (!last) return;
-          inView.current = last.isIntersecting;
-          update();
-        },
-        { threshold: 0.4 },
-      );
-      observer.observe(video);
-    }
-    return () => {
-      observer?.disconnect();
-      video.removeEventListener('play', sync);
-      video.removeEventListener('pause', sync);
-      video.removeEventListener('ended', ended);
-      video.removeEventListener('error', fail, true);
-    };
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video && loadedSrc.current !== src) {
-      loadedSrc.current = src;
-      // A pause the reader chose belongs to the old clip.
-      choice.current = null;
-      video.load();
-    }
-  }, [src]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video && playRequest > 0) start(video);
-  }, [playRequest]);
-
-  useEffect(() => {
-    if (!posterSwap) return;
-    const image = new Image();
-    image.onload = () => setSwapped(posterSwap);
-    image.src = posterSwap;
-    return () => {
-      image.onload = null;
-    };
-  }, [posterSwap]);
-
-  const shownPoster = posterSwap && swapped === posterSwap ? posterSwap : poster;
-
   return (
-    <div className="mbox">
+    <div className={BOX}>
       <video
         ref={videoRef}
+        className={VIDEO}
         muted
         playsInline
         loop={loop}
@@ -150,13 +63,11 @@ export function Clip({
       {hydrated && !failed ? (
         <button
           type="button"
-          className="vctl"
-          data-state={playing ? 'playing' : 'paused'}
+          className={BUTTON}
           aria-label={playing ? 'Pause video' : 'Play video'}
           onClick={toggle}
         >
-          <PlayIcon />
-          <PauseIcon />
+          {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
       ) : null}
     </div>
@@ -165,7 +76,7 @@ export function Clip({
 
 function PlayIcon() {
   return (
-    <svg className="i-play" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
       <path
         d="M5 3.2v11.6a.8.8 0 0 0 1.2.7l9-5.8a.8.8 0 0 0 0-1.4l-9-5.8A.8.8 0 0 0 5 3.2z"
         fill="currentColor"
@@ -176,7 +87,7 @@ function PlayIcon() {
 
 function PauseIcon() {
   return (
-    <svg className="i-pause" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
       <rect x="4" y="3" width="3.5" height="12" rx="1" fill="currentColor" />
       <rect x="10.5" y="3" width="3.5" height="12" rx="1" fill="currentColor" />
     </svg>

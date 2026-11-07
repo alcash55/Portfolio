@@ -3,6 +3,13 @@ import { useEffect, useState } from 'react';
 type CopyState = 'idle' | 'copied' | 'failed';
 
 const RESET_MS = 2000;
+const BUTTON = [
+  'inline-flex min-h-11 items-center',
+  'ml-[12px] rounded-full border-[1.5px] border-line-strong px-[14px]',
+  'text-[0.9375rem] leading-none font-medium text-ink',
+  'cursor-pointer transition-[background-color] duration-(--duration-press) ease-linear',
+  'hover:bg-fill',
+].join(' ');
 const FAILED_LABEL = "Couldn't copy. Select the address instead.";
 
 export function CopyEmailButton({ address }: { address: string }) {
@@ -29,7 +36,7 @@ export function CopyEmailButton({ address }: { address: string }) {
 
   return (
     <>
-      <button type="button" className="ct-copy" onClick={() => void copy()}>
+      <button type="button" className={BUTTON} onClick={() => void copy()}>
         {label}
       </button>
       <span role="status" className="sr">

@@ -1,18 +1,7 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type KeyboardEvent,
-  type ReactNode,
-} from 'react';
+import type { ReactNode } from 'react';
 import type { Photo } from '~/content/people';
 import { Fig } from '~/components/home/Fig';
-
-const subscribeNever = () => () => undefined;
-
-/** The strip settles after a swipe. The count updates once the scroll stops. */
-const SETTLE_MS = 60;
+import { usePhotoCarousel } from './usePhotoCarousel';
 
 export interface PhotoCarouselProps {
   /** Numbered frame the carousel sits in. */
@@ -22,9 +11,51 @@ export interface PhotoCarouselProps {
   photos: readonly Photo[];
   /** What the slides are, for the button names. */
   noun?: string;
-  /** Extra class on the strip, for a slide shape other than the 4:3 photo box. */
-  className?: string;
+  /**
+   * How a slide holds its image. `frame` fits it inside a 4:3 box, so photos of any shape line up.
+   * `natural` lets the image set its own height, so nothing crops and no bands show around it.
+   */
+  fit?: Fit;
 }
+
+type Fit = 'frame' | 'natural';
+
+// No autoplay: buttons, arrow keys and swipe move one strip. The scrollbar is hidden because the
+// buttons and the count replace it. The focus ring sits inside the strip, where the figure frame
+// would otherwise clip it.
+const TRACK = [
+  'flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain',
+  '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+  'focus-visible:-outline-offset-3',
+].join(' ');
+
+const SLIDE = 'shrink-0 basis-full snap-center';
+
+const BOX: Record<Fit, string> = {
+  // One fixed grid track, so a portrait photo scales down into the 4:3 box. With an auto track its
+  // natural height would stretch the box, and every slide in the row with it.
+  frame: [
+    'grid aspect-4/3 min-h-0 place-items-center bg-band p-2',
+    'grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)]',
+  ].join(' '),
+  natural: 'bg-band',
+};
+
+// The image classes also undo the 2:1 crop that the figure frame puts on every image.
+const IMAGE: Record<Fit, string> = {
+  frame: 'aspect-auto h-auto max-h-full w-auto max-w-full object-contain',
+  natural: 'aspect-auto h-auto w-full object-contain',
+};
+
+const CAPTION = 'px-[1.1rem] pt-3 text-[0.9375rem] text-ink-2';
+
+const BUTTON = [
+  'grid size-11 place-items-center rounded-[50%]',
+  'border-[1.5px] border-line-strong bg-surface text-ink',
+].join(' ');
+const BUTTON_ENABLED = 'cursor-pointer hover:bg-fill';
+// Dimmed and not clickable, but still focusable, so it stays in the tab order.
+const BUTTON_DISABLED = 'cursor-default opacity-40';
 
 /** A numbered figure holding the strip. The count and buttons sit in its caption. */
 export function PhotoCarousel({
@@ -32,78 +63,24 @@ export function PhotoCarousel({
   label,
   photos,
   noun = 'photo',
-  className,
+  fit = 'frame',
 }: PhotoCarouselProps) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [current, setCurrent] = useState(0);
-  // Buttons need script to work, so the server HTML and the first client render
-  // leave them out and hydration adds them.
-  const interactive = useSyncExternalStore(
-    subscribeNever,
-    () => true,
-    () => false,
+  const { trackRef, current, last, interactive, goTo, onScroll, onKeyDown } = usePhotoCarousel(
+    photos.length,
   );
-  const last = photos.length - 1;
-
-  useEffect(() => () => clearTimeout(settleTimer.current), []);
-
-  function syncFromScroll() {
-    const track = trackRef.current;
-    if (!track || track.clientWidth === 0) return;
-    const index = Math.round(track.scrollLeft / track.clientWidth);
-    setCurrent(Math.max(0, Math.min(last, index)));
-  }
-
-  function onScroll() {
-    clearTimeout(settleTimer.current);
-    settleTimer.current = setTimeout(syncFromScroll, SETTLE_MS);
-  }
-
-  function goTo(target: number) {
-    const track = trackRef.current;
-    const index = Math.max(0, Math.min(last, target));
-    if (!track) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // A jump of more than one photo snaps. Smooth scrolling across several
-    // slides would flash each of them past.
-    const behavior = reduced || Math.abs(index - current) > 1 ? 'auto' : 'smooth';
-    track.scrollTo({ left: index * track.clientWidth, behavior });
-    setCurrent(index);
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    switch (event.key) {
-      case 'ArrowRight':
-        goTo(current + 1);
-        break;
-      case 'ArrowLeft':
-        goTo(current - 1);
-        break;
-      case 'Home':
-        goTo(0);
-        break;
-      case 'End':
-        goTo(last);
-        break;
-      default:
-        return;
-    }
-    event.preventDefault();
-  }
 
   return (
     <Fig
       n={fig.n}
       label={fig.label}
       caption={
-        <span className="pp-car-st" role="status" aria-live="polite">
+        <span role="status" aria-live="polite">
           {current + 1} of {photos.length}
         </span>
       }
       meta={
         interactive ? (
-          <span className="pp-car-ctl">
+          <span className="flex items-center gap-[8px]">
             <CarButton
               label={`Previous ${noun}`}
               disabled={current === 0}
@@ -125,7 +102,7 @@ export function PhotoCarousel({
       {/* The region is the scroller and the tab stop, so keyboard users can reach
           the strip and axe accepts it as a scrollable region with focus. */}
       <div
-        className={className ? `pp-car ${className}` : 'pp-car'}
+        className={TRACK}
         role="region"
         aria-roledescription="carousel"
         aria-label={label}
@@ -136,14 +113,15 @@ export function PhotoCarousel({
       >
         {photos.map((photo, i) => (
           <div
-            className="pp-slide"
+            className={SLIDE}
             key={photo.src}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${photos.length}`}
           >
-            <div className="pp-box">
+            <div className={BOX[fit]}>
               <img
+                className={IMAGE[fit]}
                 src={photo.src}
                 width={photo.width}
                 height={photo.height}
@@ -151,7 +129,7 @@ export function PhotoCarousel({
                 alt={photo.alt}
               />
             </div>
-            <p>{photo.caption}</p>
+            <p className={CAPTION}>{photo.caption}</p>
           </div>
         ))}
       </div>
@@ -172,7 +150,7 @@ function CarButton({
 }) {
   return (
     <button
-      className="pp-car-btn"
+      className={`${BUTTON} ${disabled ? BUTTON_DISABLED : BUTTON_ENABLED}`}
       type="button"
       aria-label={label}
       aria-disabled={disabled || undefined}

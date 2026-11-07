@@ -8,7 +8,7 @@ describe('PeopleSections', () => {
   it('renders chapters 8 to 13 in order, each with a heading', async () => {
     await renderInRouter(
       <QueryClientProvider client={new QueryClient()}>
-        <PeopleSections resume={{ available: false }} />
+        <PeopleSections />
       </QueryClientProvider>,
     );
     const regions = screen.getAllByRole('region').filter((el) => el.hasAttribute('data-ch'));
@@ -33,10 +33,7 @@ describe('PeopleSections', () => {
   it('puts a supplied diagram into its chapter and an empty slot into the rest', async () => {
     await renderInRouter(
       <QueryClientProvider client={new QueryClient()}>
-        <PeopleSections
-          resume={{ available: false }}
-          figures={{ 'ncr-voyix': <p>Voyix diagram</p> }}
-        />
+        <PeopleSections figures={{ 'ncr-voyix': <p>Voyix diagram</p> }} />
       </QueryClientProvider>,
     );
     expect(screen.getByText('Voyix diagram')).toBeInTheDocument();
@@ -46,7 +43,7 @@ describe('PeopleSections', () => {
   it('builds every chapter from the home chapter and figure shell', async () => {
     await renderInRouter(
       <QueryClientProvider client={new QueryClient()}>
-        <PeopleSections resume={{ available: false }} />
+        <PeopleSections />
       </QueryClientProvider>,
     );
     const chapters = [...document.querySelectorAll<HTMLElement>('section[data-ch]')];
@@ -58,12 +55,12 @@ describe('PeopleSections', () => {
       true,
       true,
     ]);
-    // Chapters 8 to 12 each hold one framed figure. The contact band holds the dogs photo and the form.
+    // Chapters 8 to 12 each hold one framed figure. The contact band holds the form and no figure.
     expect(chapters.map((el) => el.querySelectorAll('.pair > .prose').length)).toEqual([
       1, 1, 1, 1, 1, 1,
     ]);
     expect(chapters.map((el) => el.querySelectorAll('figure.fig').length)).toEqual([
-      1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 0,
     ]);
     const duplicates = document.querySelectorAll(
       '.pp-chapter, .pp-pair, .pp-prose, .pp-ov, .pp-fig, .pp-fig-h, .pp-fig-b, .pp-fig-f, .pp-slot, .pp-links, .pp-go, .pp-note, .pp-proof',

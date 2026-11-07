@@ -6,7 +6,7 @@ import { EXPERIENCE_SLUGS, PROJECT_SLUGS, pageHref } from '~/content/pages';
  * answers with a redirect to the PDF whenever the file exists.
  */
 export function sitemapPaths(): string[] {
-  return ['/', ...[...PROJECT_SLUGS, ...EXPERIENCE_SLUGS].map(pageHref), '/contact'];
+  return ['/', ...[...PROJECT_SLUGS, ...EXPERIENCE_SLUGS].map(pageHref)];
 }
 
 function escapeXml(text: string): string {

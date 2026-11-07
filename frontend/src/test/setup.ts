@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeEach } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { installMatchMedia, resetSystem } from './system';
 
 // jsdom implements <dialog> as a plain element with no showModal() or close().
@@ -27,6 +27,12 @@ installDialog();
 
 beforeEach(() => {
   installMatchMedia();
+  // No unit test reaches the network. A test that needs an answer injects its own fetch, so
+  // a backend running on this machine cannot change a result.
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => Promise.reject(new Error('unit tests do not reach the network'))),
+  );
 });
 
 afterEach(() => {

@@ -224,6 +224,19 @@ describe('ContactForm', () => {
     },
   );
 
+  it('when the request never reaches a server, says so instead of advising a wait', async () => {
+    const { user } = setup(
+      vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch')),
+    );
+    await fillValid(user);
+    await user.click(field.send());
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent("Couldn't reach the server. Email works.");
+    expect(alert).not.toHaveTextContent('Try again in a minute');
+    expect(within(alert).getByRole('link', { name: EMAIL })).toBeInTheDocument();
+  });
+
   it('after a server error says the message is kept, and "Try again" sends it once more', async () => {
     const fetchStub = vi
       .fn<typeof fetch>()

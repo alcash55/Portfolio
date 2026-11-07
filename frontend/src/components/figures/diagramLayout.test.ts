@@ -84,6 +84,20 @@ describe('layoutDiagram', () => {
     expect(stub?.label).toEqual({ x: 562, y: 221, text: 'The build' });
   });
 
+  it('widens the canvas for a loop around the right edge so the curve is not clipped', () => {
+    const loop: Diagram = {
+      nodes: [
+        { id: 'a', label: 'Top', sub: '', col: 0, y: 0, planned: false },
+        { id: 'b', label: 'Bottom', sub: '', col: 0, y: 200, planned: false },
+      ],
+      edges: [
+        { kind: 'link', from: 'b', fromSide: 'r', to: 'a', toSide: 'r', text: 'Bottom to Top.' },
+      ],
+      alt: 'x',
+    };
+    expect(layoutDiagram(loop).width).toBeGreaterThan(NODE_W + 24);
+  });
+
   it('wraps a long label onto two lines and puts a subtitle under a short one', () => {
     const dcs = layoutDiagram(DETAILS['starbucks-store-health'].diagram).nodes.find(
       (n) => n.id === 'api',

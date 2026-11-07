@@ -12,7 +12,6 @@ const routes = [
   '/projects/vscode-royalty-theme',
   '/experience/ncr-voyix-docs',
   '/experience/starbucks-store-health',
-  '/contact',
   '/resume',
   '/no-such-page',
 ];

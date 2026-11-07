@@ -1,5 +1,7 @@
-/** An action folder in alcash55/ac-composite-actions, as the build read it. */
-export interface GeneratedAction {
+import { apiEndpoint } from './apiUrl';
+
+/** An action folder in alcash55/ac-composite-actions, as the API lists it. */
+export interface RepoAction {
   readonly name: string;
   readonly description: string;
 }
@@ -9,18 +11,48 @@ export interface CheckRow {
   readonly does: string;
 }
 
-/** Turns the generated module's default export into actions. Null means the build could not read the repo. */
-export function parseCiActions(input: unknown): readonly GeneratedAction[] | null {
+/** Turns a GET /api/v1/ci-actions body into actions. Null means it held none worth showing. */
+function parseActions(input: unknown): readonly RepoAction[] | null {
   if (typeof input !== 'object' || input === null) return null;
-  const list = (input as { actions?: unknown }).actions;
+  const list: unknown = 'actions' in input ? input.actions : undefined;
   if (!Array.isArray(list)) return null;
-  const actions = list.flatMap((item: unknown): GeneratedAction[] => {
+  const actions = list.flatMap((item: unknown): RepoAction[] => {
     if (typeof item !== 'object' || item === null) return [];
-    const { name, description } = item as { name?: unknown; description?: unknown };
+    const name: unknown = 'name' in item ? item.name : undefined;
+    const description: unknown = 'description' in item ? item.description : undefined;
     if (typeof name !== 'string' || name === '') return [];
     return [{ name, description: typeof description === 'string' ? description : '' }];
   });
   return actions.length > 0 ? actions : null;
+}
+
+// The figure already shows the fallback list, so a slow answer only costs a stale count.
+// Five seconds covers a warm API and gives up on a cold one instead of holding a socket.
+export const CI_ACTIONS_TIMEOUT_MS = 5_000;
+
+export interface CiActionsDeps {
+  readonly fetch: typeof fetch;
+  /** Base URL of the Go API. Empty means none is configured. */
+  readonly apiUrl: string;
+}
+
+/** The repo's actions from the API, or null on any failure, so the caller keeps its fallback. */
+export async function fetchCiActions(deps: CiActionsDeps): Promise<readonly RepoAction[] | null> {
+  if (deps.apiUrl === '') return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CI_ACTIONS_TIMEOUT_MS);
+  try {
+    const response = await deps.fetch(apiEndpoint(deps.apiUrl, '/api/v1/ci-actions'), {
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const body: unknown = await response.json();
+    return parseActions(body);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 const NO_DESCRIPTION = 'Runs from my other repos';
@@ -33,17 +65,17 @@ const stripFullStop = (text: string) => text.replace(/\.$/, '');
  * shows up without anyone editing this site.
  */
 export function buildCheckRows(
-  generated: readonly GeneratedAction[] | null,
+  actions: readonly RepoAction[] | null,
   written: Readonly<Record<string, string>>,
   fallback: readonly CheckRow[],
 ): readonly CheckRow[] {
-  if (!generated) return fallback;
+  if (!actions) return fallback;
   const order = Object.keys(written);
   const rank = (name: string) => {
     const at = order.indexOf(name);
     return at === -1 ? order.length : at;
   };
-  return [...generated]
+  return [...actions]
     .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name))
     .map((action) => ({
       name: action.name,
@@ -78,15 +110,4 @@ const WORDS = [
 /** A count as a word up to twenty, as digits after that. */
 export function countWord(n: number): string {
   return WORDS[n] ?? String(n);
-}
-
-// scripts/generate-ci-actions.mjs writes this file before dev, build and test. See
-// siteStats.ts for why this is a guarded glob and not an import.
-export function readGeneratedActions(): readonly GeneratedAction[] | null {
-  try {
-    const found = import.meta.glob('../generated/ciActions.ts', { eager: true, import: 'default' });
-    return parseCiActions(Object.values(found)[0]);
-  } catch {
-    return null;
-  }
 }

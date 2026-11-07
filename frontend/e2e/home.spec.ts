@@ -120,7 +120,7 @@ test.describe('home, click targets', () => {
     const chapter = page.locator('#clipper');
     await chapter.scrollIntoViewIfNeeded();
     await chapter.locator('.prose p').first().click();
-    await chapter.locator('figure .fig-h').click();
+    await chapter.getByText(/^Fig \d+$/).click();
     await expect(page).toHaveURL(/\/$|\/#clipper$/);
     await chapter.getByRole('link', { name: /Read the write-up/ }).click();
     await expect(page).toHaveURL(/\/projects\/clipper$/);

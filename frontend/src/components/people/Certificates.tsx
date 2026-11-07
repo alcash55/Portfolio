@@ -1,4 +1,5 @@
 import { Chapter } from '~/components/home/Chapter';
+import { NOTE, TEXT_LINK } from '~/components/home/homeStyles';
 import {
   CERTIFICATES,
   CERTIFICATES_CHAPTER as CHAPTER,
@@ -7,7 +8,6 @@ import {
   type Certificate,
 } from '~/content/people';
 import { PhotoCarousel } from './PhotoCarousel';
-import './people.css';
 
 const totalMinutes = CERTIFICATES.reduce((sum, cert) => sum + cert.minutes, 0);
 
@@ -41,7 +41,7 @@ export function Certificates() {
           label={CHAPTER.carouselLabel}
           photos={slides}
           noun="certificate"
-          className="pp-car-cert"
+          fit="natural"
         />
       }
     >
@@ -49,7 +49,7 @@ export function Certificates() {
         Certificates of completion from Master.dev, newest first. Together the courses run{' '}
         {totalLabel(totalMinutes)}.
       </p>
-      <ul className="pp-certs">
+      <ul className="mt-[8px] grid">
         {CERTIFICATES.map((cert) => (
           <CertificateRow key={cert.slug} cert={cert} />
         ))}
@@ -60,12 +60,12 @@ export function Certificates() {
 
 function CertificateRow({ cert }: { cert: Certificate }) {
   return (
-    <li>
-      <a className="pp-tl" href={cert.src} target="_blank" rel="noopener noreferrer">
+    <li className="flex flex-wrap items-baseline gap-x-[14px]">
+      <a className={TEXT_LINK} href={cert.src} target="_blank" rel="noopener noreferrer">
         {cert.title}
         <span className="sr"> (certificate image, opens in a new tab)</span>
       </a>
-      <small className="note">
+      <small className={NOTE}>
         {cert.teacher}, {formatDuration(cert.minutes)},{' '}
         <time dateTime={cert.completed}>{formatCompleted(cert.completed)}</time>
       </small>

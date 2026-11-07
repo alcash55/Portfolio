@@ -5,11 +5,14 @@ test.describe('client-side navigation', () => {
 
   test('the home About buttons look the same after a trip to a detail page', async ({ page }) => {
     const layout = () =>
-      page.locator('#about .acts').evaluate((el) => {
-        const style = getComputedStyle(el);
-        const btn = getComputedStyle(el.querySelector('.btn') as Element);
-        return { direction: style.flexDirection, gap: style.gap, padding: btn.padding };
-      });
+      page
+        .locator('#about')
+        .getByRole('link', { name: /^Message Alex/ })
+        .evaluate((button) => {
+          const row = getComputedStyle(button.parentElement as Element);
+          const style = getComputedStyle(button);
+          return { direction: row.flexDirection, gap: row.gap, padding: style.padding };
+        });
     await page.goto('/');
     const fresh = await layout();
     await page.locator('a[href="/projects/portfolio-website"]').first().click();

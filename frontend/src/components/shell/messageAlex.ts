@@ -10,9 +10,9 @@ const NAME_FIELD = 'form[aria-label="Message Alex"] input[name="name"]';
 // and those never run during server rendering.
 let focusFormOnArrival = false;
 
-/** The page's own form section: the home and detail pages use #contact, /contact uses #message. */
+/** The page's own form section: the home and detail pages both use #contact. */
 function formSection(): HTMLElement | null {
-  return document.getElementById('contact') ?? document.getElementById('message');
+  return document.getElementById('contact');
 }
 
 function isPlainLeftClick(event: MouseEvent): boolean {

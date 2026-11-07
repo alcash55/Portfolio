@@ -11,7 +11,7 @@ test.describe('contact copy, exact', () => {
 
   test('sent body names the address the visitor typed (MA-14)', async ({ page }) => {
     await stubContact(page, ok);
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
     const heading = page.getByRole('heading', { name: 'Message sent.' });
@@ -23,19 +23,19 @@ test.describe('contact copy, exact', () => {
 
   test('too long, client side, is a summary link and a field message (MA-21)', async ({ page }) => {
     const posted = await stubContact(page, ok);
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await page.getByRole('textbox', { name: /^Message/ }).fill('x'.repeat(1501));
     await send(page).click();
     const text = 'That message is too long. The limit is 1500 characters.';
     await expect(page.getByRole('link', { name: text })).toBeVisible();
-    await expect(page.locator('.ct-err', { hasText: text })).toBeVisible();
+    await expect(page.locator('p', { hasText: text })).toBeVisible();
     expect(posted).toEqual([]);
   });
 
   test('too long, from the API, reads the same (MA-21)', async ({ page }) => {
     await stubContact(page, fail(413));
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
     await expect(page.getByRole('alert')).toContainText(
@@ -50,7 +50,7 @@ test.describe('contact copy, exact', () => {
   ] as const) {
     test(`${label} shows the email fallback with a mailto link (MA-27)`, async ({ page }) => {
       await stubContact(page, fail(status));
-      await page.goto('/contact');
+      await page.goto('/');
       await fillForm(page);
       await send(page).click();
       const fallback = page.getByRole('alert').locator('p', { hasText: /^Or email / });
@@ -67,7 +67,7 @@ test.describe('contact copy, exact', () => {
       await new Promise((resolve) => setTimeout(resolve, 4600));
       await ok(route);
     });
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
     const status = page.getByRole('status', { name: 'Send status' });
@@ -75,8 +75,8 @@ test.describe('contact copy, exact', () => {
   });
 
   test('the contact page ends with the prefer-email line (CT-16)', async ({ page }) => {
-    await page.goto('/contact');
-    const line = page.locator('.ct-line');
+    await page.goto('/');
+    const line = page.locator('p', { hasText: 'Prefer email?' });
     await expect(line).toContainText(`Prefer email? ${ADDRESS}`);
     await expect(line.getByRole('link', { name: ADDRESS })).toHaveAttribute(
       'href',
@@ -87,7 +87,7 @@ test.describe('contact copy, exact', () => {
 
   test('the home band keeps the form fallback line (MA-28)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.ct-line')).toContainText(`Or email ${ADDRESS}`);
+    await expect(page.locator('p', { hasText: `Or email ${ADDRESS}` })).toBeVisible();
   });
 });
 
@@ -96,7 +96,7 @@ test.describe('copy email address button', () => {
 
   test('says Copied, then goes back', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.goto('/contact');
+    await page.goto('/');
     const button = page.getByRole('button', { name: 'Copy email address' });
     await button.click();
     await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
@@ -110,7 +110,7 @@ test.describe('copy email address button', () => {
         value: { writeText: () => Promise.reject(new Error('denied')) },
       });
     });
-    await page.goto('/contact');
+    await page.goto('/');
     await page.getByRole('button', { name: 'Copy email address' }).click();
     await expect(
       page.getByRole('button', { name: "Couldn't copy. Select the address instead." }),

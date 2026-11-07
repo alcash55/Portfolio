@@ -1,28 +1,48 @@
 import { THEME_CHOICES, type ThemeChoice } from '~/lib/theme';
 import { useTheme } from '~/lib/useTheme';
 
+// Both controls are in the markup and exactly one shows: the three-way group from 1024px, the
+// single sun/moon button below it.
+const GROUP =
+  'hidden gap-[2px] rounded-full border-[1.5px] border-line-strong p-[3px] min-[1024px]:inline-flex';
+
+// The pressed option is filled with the ink color and shows a check, so the state is not color alone.
+// In forced-colors mode the system highlight replaces the fill.
+const OPTION = [
+  'group inline-flex min-h-11 min-w-[44px] cursor-pointer items-center gap-[6px] rounded-full px-[14px]',
+  'text-[0.875rem] leading-none font-medium',
+  'transition-[background-color] duration-(--duration-color) ease-(--ease-color)',
+  'not-aria-pressed:hover:bg-fill aria-pressed:bg-ink aria-pressed:text-paper',
+  'forced-colors:aria-pressed:bg-[color:Highlight] forced-colors:aria-pressed:text-[color:HighlightText]',
+  'forced-colors:aria-pressed:[forced-color-adjust:none]',
+].join(' ');
+const CHECK = 'hidden group-aria-pressed:block';
+
+const SINGLE_BUTTON = [
+  'inline-grid size-11 cursor-pointer place-items-center rounded-[50%]',
+  'border-[1.5px] border-line-strong hover:bg-fill min-[1024px]:hidden',
+].join(' ');
+
 const LABELS: Record<ThemeChoice, string> = { light: 'Light', dark: 'Dark', system: 'System' };
 
-/**
- * Both controls are in the markup and CSS shows one: the three-way group from
- * 1024px up, the single sun/moon button below it.
- */
+/** The theme choice: a three-way group on wide screens, one sun/moon button on narrow ones. */
 export function ThemeControl() {
   const { choice, resolved, setChoice } = useTheme();
   const nextCompact = resolved === 'dark' ? 'light' : 'dark';
 
   return (
     <>
-      <fieldset className="theme-seg">
-        <legend>Theme</legend>
+      <fieldset className={GROUP}>
+        <legend className="sr">Theme</legend>
         {THEME_CHOICES.map((option) => (
           <button
             key={option}
             type="button"
+            className={OPTION}
             aria-pressed={choice === option}
             onClick={() => setChoice(option)}
           >
-            <svg className="ck" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <svg className={CHECK} width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
               <path
                 d="M2.5 7.4l3 3L11.5 3.8"
                 fill="none"
@@ -38,7 +58,7 @@ export function ThemeControl() {
       </fieldset>
       <button
         type="button"
-        className="theme-btn"
+        className={SINGLE_BUTTON}
         aria-label={`Switch to ${nextCompact} theme`}
         onClick={() => setChoice(nextCompact)}
       >

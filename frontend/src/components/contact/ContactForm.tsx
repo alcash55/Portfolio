@@ -1,67 +1,85 @@
-import { useMutation } from '@tanstack/react-query';
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type FormEvent,
-  type MouseEvent,
-} from 'react';
+import { useCallback } from 'react';
 import { CONTACT_EMAIL } from '~/content/people';
-import { useHydrated } from '~/components/shell/useHydrated';
-import { analytics } from '~/lib/analytics';
-import './contact.css';
 import { CopyEmailButton } from './CopyEmailButton';
-import { defaultSendDeps } from './defaultDeps';
-import { sendContact, type ContactErrorKind, type SendDeps } from './sendContact';
-import {
-  LIMITS,
-  MESSAGE_LIMIT,
-  MESSAGE_TOO_LONG,
-  validateContact,
-  type ContactErrors,
-  type ContactField,
-  type ContactValues,
-} from './validate';
+import { FIELDS, LABELS, failureCopy, isRetryable, submitLabel } from './contactCopy';
+import type { SendDeps } from './sendContact';
+import { useContactForm } from './useContactForm';
+import { LIMITS, MESSAGE_LIMIT } from './validate';
 
-// Shown after this long without a reply, so a cold API host reads as slow, not broken.
-const SLOW_HINT_MS = 4000;
+// px stays px and rem stays rem, as the old stylesheet had them: the root font size grows above
+// 1440px wide, so a rem-based Tailwind step (gap-4, p-3.5) would drift from these there.
+//
+// The form sits in two bands that name themselves with a class, and the in-[] variants below
+// restyle it from the outside: .pp-cform on the home page, .dband under a write-up.
 
-const FIELDS: readonly ContactField[] = ['name', 'email', 'message'];
-const LABELS: Record<ContactField, string> = { name: 'Name', email: 'Email', message: 'Message' };
-const EMPTY: ContactValues = { name: '', email: '', message: '' };
+// In the home band (.pp-cform), where a chapter fits one screen, the form tightens: a 12px gap
+// and a shorter message box.
+const CARD = [
+  'grid gap-(--ct-gap) [--ct-gap:16px] min-[900px]:in-[.pp-cform]:[--ct-gap:12px]',
+  'rounded-card border border-line bg-surface p-6 shadow-card',
+].join(' ');
 
-function failureCopy(kind: ContactErrorKind): string {
-  switch (kind) {
-    case 'validation':
-      return 'Please check your details and try again.';
-    case 'too_large':
-      return MESSAGE_TOO_LONG;
-    case 'rate_limited':
-      return 'Too many messages. Wait a moment and try again.';
-    case 'server_error':
-    case 'timeout':
-      return "Couldn't send that. Try again in a minute.";
-    default: {
-      const unhandled: never = kind;
-      return unhandled;
-    }
-  }
-}
+// The write-up band (.dband) form is shorter than the home chapter's: 20px of card padding on a
+// phone and a fixed 24px from 768px (CARD's p-6 grows with the root size), and Name and Email on
+// one row once the column can hold two fields. Only the <form> gets this. The "Message sent" card
+// keeps CARD as it is.
+const FORM_IN_BAND = [
+  'in-[.dband]:p-[20px] min-[768px]:in-[.dband]:p-[24px]',
+  'min-[1100px]:in-[.dband]:grid-cols-2',
+  // Name and Email are the only children that hold an input. Everything else spans the row.
+  'min-[1100px]:in-[.dband]:[&>:not(:has(>input))]:col-span-full',
+].join(' ');
 
-/** Only these failures leave the visitor with a message worth retrying as is. */
-function isRetryable(kind: ContactErrorKind): boolean {
-  return kind === 'server_error' || kind === 'timeout';
-}
+const HEADING = 'font-display text-[1.75rem] leading-[1.15]';
+const FIELD = 'grid gap-[6px]';
+// In the write-up band, a field with no error keeps an empty 6px slot below it, the room an inline
+// error takes, so the rows do not jump when one appears.
+const FIELD_IDLE = `${FIELD} in-[.dband]:after:content-['']`;
 
-function withField(errors: ContactErrors, field: ContactField, message?: string): ContactErrors {
-  const next = { ...errors };
-  if (message === undefined) delete next[field];
-  else next[field] = message;
-  return next;
-}
+const CONTROL = [
+  'w-full rounded-[14px] bg-paper',
+  'text-base leading-[1.4] text-ink read-only:text-ink-2',
+].join(' ');
+// An error never rides on color alone: a thicker border, an icon and the text. The padding
+// drops 0.5px a side so the thicker border does not move the text.
+const CONTROL_OK = 'border-[1.5px] border-line-strong px-[14px] py-[12px]';
+const CONTROL_BAD = 'border-2 border-error px-[13.5px] py-[11.5px]';
+// Shorter in the home band (.pp-cform) and in the write-up band (.dband), which fit less height.
+const MESSAGE_BOX = [
+  'min-h-[150px] min-[900px]:in-[.pp-cform]:min-h-[104px]',
+  'in-[.dband]:min-h-[112px]',
+].join(' ');
+
+const ERROR_BOX = 'rounded-[14px] border-2 border-error px-[16px] py-[14px]';
+const SUMMARY_LINK = [
+  'inline-flex min-h-11 items-center',
+  'font-medium text-error underline underline-offset-[3px]',
+].join(' ');
+const ERROR_LINE = 'flex items-start gap-[6px] font-medium text-error';
+const BANNER_LINE = 'flex items-start gap-[6px]';
+
+// The base reset removes underlines, and these links sit in running text.
+const INLINE_LINK = 'text-ink underline underline-offset-[3px]';
+
+// The alert and status regions stay in the page so screen readers hear what they receive.
+// While empty they would still add a grid gap each, so they leave the layout until written to.
+const LIVE_REGION = 'empty:absolute empty:h-px empty:w-px empty:overflow-hidden';
+
+const BUTTON = [
+  'inline-flex min-h-[48px] w-full items-center justify-center',
+  'rounded-full border-[1.5px] px-[24px]',
+  'text-base leading-none font-medium',
+  'cursor-pointer transition-[background-color] duration-(--duration-press) ease-linear',
+  // In the write-up band the text line is 1.2 tall and padding replaces the fixed height.
+  'in-[.dband]:min-h-12 in-[.dband]:py-[12px] in-[.dband]:leading-[1.2]',
+  'min-[768px]:in-[.dband]:py-0',
+].join(' ');
+const BUTTON_PRIMARY = [
+  'border-transparent bg-accent text-on-accent hover:bg-accent-hover',
+  'aria-disabled:cursor-progress aria-disabled:opacity-80',
+  'disabled:cursor-progress disabled:opacity-80',
+].join(' ');
+const BUTTON_SECONDARY = 'w-auto border-line-strong text-ink hover:bg-fill';
 
 // Mount-time focus. Stable identity, so a re-render never pulls focus back.
 function useFocusOnMount() {
@@ -72,7 +90,13 @@ function useFocusOnMount() {
 
 function ErrorIcon() {
   return (
-    <svg className="ct-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+    <svg
+      className="mt-[0.15em] shrink-0"
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      aria-hidden="true"
+    >
       <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <path d="M8 4.5v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="8" cy="11.2" r=".9" fill="currentColor" />
@@ -88,130 +112,42 @@ export function ContactForm({
   /** The words before the address under the form. The contact page ends with "Prefer email?". */
   emailLead?: string;
 }) {
-  const uid = useId();
-  const hydrated = useHydrated();
-  const ids = {
-    name: `${uid}-name`,
-    email: `${uid}-email`,
-    message: `${uid}-message`,
-  } satisfies Record<ContactField, string>;
-
-  const [values, setValues] = useState<ContactValues>(EMPTY);
-  const [website, setWebsite] = useState('');
-  const [errors, setErrors] = useState<ContactErrors>({});
-  const [blurNote, setBlurNote] = useState('');
-  const [summaryTries, setSummaryTries] = useState(0);
-  const [slow, setSlow] = useState(false);
-  const [sentTo, setSentTo] = useState('');
-  const [returns, setReturns] = useState(0);
-  const nameRef = useRef<HTMLInputElement>(null);
-  const pressingSend = useRef(false);
+  const {
+    ids,
+    hydrated,
+    values,
+    website,
+    setWebsite,
+    errors,
+    errorFields,
+    showSummary,
+    summaryTries,
+    blurNote,
+    count,
+    over,
+    slow,
+    sending,
+    sent,
+    sentTo,
+    failure,
+    nameRef,
+    sendButton,
+    onChange,
+    onBlur,
+    onSubmit,
+    focusField,
+    sendAnother,
+  } = useContactForm(deps);
   const focusOnMount = useFocusOnMount();
-
-  const mutation = useMutation({
-    mutationFn: (submission: ContactValues & { website: string }) =>
-      sendContact(submission, deps ?? defaultSendDeps()),
-    onSuccess: (outcome) => {
-      if (outcome.ok) analytics.capture('contact_submitted');
-    },
-  });
-  const sending = mutation.isPending;
-  const result = mutation.data;
-  const sent = result?.ok === true;
-  const failure = result && !result.ok ? result.kind : null;
-
-  useEffect(() => {
-    if (!sending) return;
-    const timer = setTimeout(() => setSlow(true), SLOW_HINT_MS);
-    return () => {
-      clearTimeout(timer);
-      setSlow(false);
-    };
-  }, [sending]);
-
-  useEffect(() => {
-    if (returns > 0) nameRef.current?.focus();
-  }, [returns]);
-
-  const count = values.message.length;
-  const over = count > MESSAGE_LIMIT;
-  const errorFields = FIELDS.filter((f) => errors[f] !== undefined);
-  const showSummary = summaryTries > 0 && errorFields.length > 0;
-
-  function onChange(field: ContactField) {
-    return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const next = { ...values, [field]: event.target.value };
-      setValues(next);
-      // Errors appear on blur and on submit. Typing only clears one once it is fixed.
-      if (errors[field] !== undefined && validateContact(next)[field] === undefined) {
-        setErrors(withField(errors, field));
-      }
-    };
-  }
-
-  function onBlur(field: ContactField) {
-    return () => {
-      // An error that appears while the pointer is down on Send moves the button, and
-      // the release lands on empty space, so the click is lost. Send validates it all.
-      if (pressingSend.current) return;
-      const message = validateContact(values)[field];
-      setErrors(withField(errors, field, message));
-      setBlurNote(message === undefined ? '' : `${LABELS[field]}: ${message}`);
-    };
-  }
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (sending) return;
-    // The DOM is the source of truth at submit. Autofill and early typing can fill a
-    // field without a change event React saw, so state alone can read empty over a full form.
-    const data = new FormData(event.currentTarget);
-    const read = (field: ContactField) => {
-      const entry = data.get(field);
-      return typeof entry === 'string' ? entry : '';
-    };
-    const current: ContactValues = {
-      name: read('name'),
-      email: read('email'),
-      message: read('message'),
-    };
-    setValues(current);
-    const found = validateContact(current);
-    if (Object.keys(found).length > 0) {
-      setErrors(found);
-      setSummaryTries((n) => n + 1);
-      return;
-    }
-    setErrors({});
-    setSentTo(current.email.trim());
-    mutation.mutate({ ...current, website });
-  }
-
-  function focusField(field: ContactField) {
-    return (event: MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault();
-      document.getElementById(ids[field])?.focus();
-    };
-  }
-
-  function sendAnother() {
-    mutation.reset();
-    setValues(EMPTY);
-    setWebsite('');
-    setErrors({});
-    setBlurNote('');
-    setSummaryTries(0);
-    setReturns((n) => n + 1);
-  }
 
   if (sent) {
     return (
-      <div className="ct-card ct-sent">
-        <h3 className="ct-h" tabIndex={-1} ref={focusOnMount}>
+      <div className={`${CARD} justify-items-start`}>
+        <h3 className={HEADING} tabIndex={-1} ref={focusOnMount}>
           Message sent.
         </h3>
-        <p>Thanks for writing. I will reply to {sentTo}.</p>
-        <button type="button" className="ct-btn ct-btn-2" onClick={sendAnother}>
+        <p className="wrap-anywhere">Thanks for writing. I will reply to {sentTo}.</p>
+        <button type="button" className={`${BUTTON} ${BUTTON_SECONDARY}`} onClick={sendAnother}>
           Send another message
         </button>
         <EmailLine lead={emailLead} />
@@ -219,30 +155,24 @@ export function ContactForm({
     );
   }
 
-  const submitLabel = sending
-    ? 'Sending'
-    : failure && isRetryable(failure)
-      ? 'Try again'
-      : 'Send message';
-
   return (
-    <div className="ct-wrap">
+    <div className="grid gap-[16px]">
       <form
-        className="ct-card"
+        className={`${CARD} ${FORM_IN_BAND}`}
         method="post"
         aria-label="Message Alex"
         noValidate
         onSubmit={onSubmit}
       >
         {showSummary ? (
-          <div className="ct-esum" key={summaryTries}>
-            <h3 className="ct-h" tabIndex={-1} ref={focusOnMount}>
+          <div className={`grid gap-[8px] ${ERROR_BOX}`} key={summaryTries}>
+            <h3 className={HEADING} tabIndex={-1} ref={focusOnMount}>
               Check these fields before sending.
             </h3>
-            <ul>
+            <ul className="pl-5">
               {errorFields.map((f) => (
                 <li key={f}>
-                  <a href={`#${ids[f]}`} onClick={focusField(f)}>
+                  <a className={SUMMARY_LINK} href={`#${ids[f]}`} onClick={focusField(f)}>
                     {errors[f]}
                   </a>
                 </li>
@@ -251,7 +181,7 @@ export function ContactForm({
           </div>
         ) : null}
 
-        <p className="ct-hint">All fields are required.</p>
+        <p className="text-[0.9375rem] text-ink-2">All fields are required.</p>
 
         {FIELDS.map((f) => {
           const error = errors[f];
@@ -261,6 +191,7 @@ export function ContactForm({
           ]
             .filter((id): id is string => id !== null)
             .join(' ');
+          const tone = error ? CONTROL_BAD : CONTROL_OK;
           const shared = {
             id: ids[f],
             name: f,
@@ -274,34 +205,41 @@ export function ContactForm({
             onBlur: onBlur(f),
           };
           return (
-            <div className={error ? 'ct-fld ct-bad' : 'ct-fld'} key={f}>
-              <label htmlFor={ids[f]}>
-                {LABELS[f]} <span className="ct-rq">(required)</span>
+            <div className={error ? FIELD : FIELD_IDLE} key={f}>
+              <label className="text-[0.9375rem] font-medium" htmlFor={ids[f]}>
+                {LABELS[f]} <span className="font-normal text-ink-2">(required)</span>
               </label>
               {f === 'message' ? (
                 // No maxlength here: a paste past the limit shows the count over it
                 // and the message below, instead of cutting the text without a word.
-                <textarea {...shared} />
+                <textarea {...shared} className={`${CONTROL} ${tone} ${MESSAGE_BOX}`} />
               ) : f === 'name' ? (
                 <input
                   {...shared}
+                  className={`${CONTROL} ${tone} min-h-12`}
                   ref={nameRef}
                   type="text"
                   autoComplete="name"
                   maxLength={LIMITS.name}
                 />
               ) : (
-                <input {...shared} type="email" autoComplete="email" maxLength={LIMITS.email} />
+                <input
+                  {...shared}
+                  className={`${CONTROL} ${tone} min-h-12`}
+                  type="email"
+                  autoComplete="email"
+                  maxLength={LIMITS.email}
+                />
               )}
               {error ? (
-                <p className="ct-err" id={`${ids[f]}-err`}>
+                <p className={`${ERROR_LINE} text-[0.9375rem]`} id={`${ids[f]}-err`}>
                   <ErrorIcon />
                   {error}
                 </p>
               ) : null}
               {f === 'message' ? (
                 <span
-                  className={over ? 'ct-cnt ct-over' : 'ct-cnt'}
+                  className={`justify-self-end text-[0.8125rem] ${over ? 'flex items-center gap-[6px] font-medium text-error' : 'text-ink-3'}`}
                   id={`${ids[f]}-cnt`}
                   aria-live={over ? 'polite' : 'off'}
                 >
@@ -314,7 +252,7 @@ export function ContactForm({
         })}
 
         {/* Honeypot. People never see or reach it. The API drops anything that fills it. */}
-        <div className="ct-trap" aria-hidden="true">
+        <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
           <input
             type="text"
             name="website"
@@ -325,27 +263,39 @@ export function ContactForm({
           />
         </div>
 
-        <div role="alert" className="ct-banner-slot">
+        <div role="alert" className={LIVE_REGION}>
           {failure ? (
-            <div className="ct-banner">
-              <p>
+            <div className={`grid gap-[4px] ${ERROR_BOX}`}>
+              <p className={ERROR_LINE}>
                 <ErrorIcon />
                 {failureCopy(failure)}
               </p>
-              {isRetryable(failure) ? <p>Your message is still in the form.</p> : null}
+              {isRetryable(failure) ? (
+                <p className={BANNER_LINE}>Your message is still in the form.</p>
+              ) : null}
               <p>
-                Or email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                Or email{' '}
+                <a className={INLINE_LINK} href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </a>
               </p>
             </div>
           ) : null}
         </div>
 
-        <div role="status" aria-label="Send status" className="ct-slow">
+        <div
+          role="status"
+          aria-label="Send status"
+          className={`text-[0.9375rem] text-ink-2 ${LIVE_REGION}`}
+        >
           {slow ? (
             <>
               <p>Waking the server. This can take up to a minute.</p>
               <p>
-                Or email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                Or email{' '}
+                <a className={INLINE_LINK} href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </a>
               </p>
             </>
           ) : null}
@@ -357,21 +307,13 @@ export function ContactForm({
 
         <button
           type="submit"
-          className="ct-btn ct-btn-primary"
+          className={`${BUTTON} ${BUTTON_PRIMARY}`}
           // Without JS a native POST reaches the page URL, not the API, and drops the message.
           disabled={!hydrated}
           aria-disabled={sending ? 'true' : undefined}
-          onPointerDown={() => {
-            pressingSend.current = true;
-          }}
-          onPointerUp={() => {
-            pressingSend.current = false;
-          }}
-          onPointerLeave={() => {
-            pressingSend.current = false;
-          }}
+          {...sendButton}
         >
-          {submitLabel}
+          {submitLabel(sending, failure)}
         </button>
       </form>
       <EmailLine lead={emailLead} />
@@ -381,8 +323,11 @@ export function ContactForm({
 
 function EmailLine({ lead }: { lead: string }) {
   return (
-    <p className="ct-line">
-      {lead} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+    <p className="text-[0.9375rem] text-ink-2 wrap-anywhere">
+      {lead}{' '}
+      <a className={INLINE_LINK} href={`mailto:${CONTACT_EMAIL}`}>
+        {CONTACT_EMAIL}
+      </a>
       <CopyEmailButton address={CONTACT_EMAIL} />
     </p>
   );

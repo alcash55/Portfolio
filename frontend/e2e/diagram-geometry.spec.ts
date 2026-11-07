@@ -48,8 +48,15 @@ function measure(args: { svgSelector: string; room: number; touch: number }): Me
   for (const svg of document.querySelectorAll(svgSelector)) {
     const name = svg.closest('section')?.id || location.pathname;
     const boxes: { id: string; box: Box }[] = [];
-    // Top-level nodes only. A chip is a node inside a node and is checked on its own.
-    for (const g of svg.querySelectorAll(':scope > g.n')) {
+    // The drawing is groups with no names. A node is a group with its own rect, an edge is a group
+    // with a path and no rect. Top-level nodes only: a chip is a node inside a node, and is
+    // checked on its own.
+    const groups = [...svg.querySelectorAll(':scope > g')];
+    const nodeGroups = groups.filter((g) => g.querySelector(':scope > rect'));
+    const edgeGroups = groups.filter(
+      (g) => !g.querySelector(':scope > rect') && g.querySelector(':scope > path'),
+    );
+    for (const g of nodeGroups) {
       nodes += 1;
       const rect = g.querySelector(':scope > rect');
       if (!rect) continue;
@@ -69,7 +76,7 @@ function measure(args: { svgSelector: string; room: number; touch: number }): Me
           );
         }
       }
-      for (const chip of g.querySelectorAll(':scope > g.n.in')) {
+      for (const chip of g.querySelectorAll(':scope > g')) {
         const chipRect = chip.querySelector(':scope > rect');
         if (!chipRect) continue;
         const c = boxOf(chipRect);
@@ -96,7 +103,7 @@ function measure(args: { svgSelector: string; room: number; touch: number }): Me
       });
     });
     // The line of each edge is the first path in its group. A stub that leaves the diagram has no end node.
-    for (const g of svg.querySelectorAll(':scope > g.e')) {
+    for (const g of edgeGroups) {
       edges += 1;
       const d = g.querySelector('path')?.getAttribute('d') ?? '';
       const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
@@ -107,7 +114,7 @@ function measure(args: { svgSelector: string; room: number; touch: number }): Me
       if (!boxes.some((b) => onBorder(sx, sy, b.box))) {
         problems.push(`${name}: an edge starts at ${sx},${sy}, which is on no node`);
       }
-      const leaves = g.querySelector('text.stub') !== null;
+      const leaves = g.querySelector(':scope > text') !== null;
       if (!leaves && !boxes.some((b) => onBorder(ex, ey, b.box))) {
         problems.push(`${name}: an edge ends at ${ex},${ey}, which is on no node`);
       }
@@ -122,7 +129,7 @@ test.describe('diagrams as drawn', () => {
   }) => {
     await page.goto('/');
     const result = await page.evaluate(measure, {
-      svgSelector: 'svg.hd-svg',
+      svgSelector: 'svg[role="img"]',
       room: BREATHING_ROOM,
       touch: TOUCH,
     });
@@ -139,7 +146,7 @@ test.describe('diagrams as drawn', () => {
         await page.goto(pageUrl(slug));
         await page.evaluate(() => document.fonts.ready);
         const result = await page.evaluate(measure, {
-          svgSelector: 'svg.dg-svg',
+          svgSelector: 'svg[role="img"]',
           room: BREATHING_ROOM,
           touch: TOUCH,
         });

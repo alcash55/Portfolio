@@ -1,4 +1,4 @@
-import type { Fact } from '~/content/projects';
+import type { Stat } from '~/content/projects';
 
 /** Test counts the build read from the repo. A null count could not be derived. */
 export interface SiteStats {
@@ -42,24 +42,25 @@ export const siteStats: SiteStats = parseSiteStats(readGenerated());
 
 const count = new Intl.NumberFormat('en-US');
 
-function phrase(n: number, noun: string): string {
-  return `${count.format(n)} ${noun}${n === 1 ? '' : 's'}`;
-}
-
 /**
- * The "tests gate every deploy" fact. Names only the counts that are known, and returns
+ * The "tests gate every deploy" stat. Names only the counts that are known, and returns
  * nothing when none is, so the page never states a number the build could not read.
  */
-export function testCountFact(stats: SiteStats): Fact | undefined {
-  const unit = stats.unitTests ? phrase(stats.unitTests, 'unit test') : null;
-  const browser = stats.browserTests ? phrase(stats.browserTests, 'browser test') : null;
+export function testCountStat({ unitTests, browserTests }: SiteStats): Stat | undefined {
+  // A count of zero is treated as unknown, since "0 tests gate every deploy" would be false.
+  const unit = unitTests || null;
+  const browser = browserTests || null;
   if (unit && browser) {
     return {
-      lead: `${count.format(stats.unitTests ?? 0)} and ${count.format(stats.browserTests ?? 0)} tests`,
-      body: `${unit} and ${browser} gate every deploy.`,
+      figure: count.format(unit + browser),
+      label: `tests gate every deploy: ${count.format(unit)} unit and ${count.format(browser)} browser.`,
     };
   }
   const only = unit ?? browser;
   if (!only) return undefined;
-  return { lead: only, body: `${only} ${only.startsWith('1 ') ? 'gates' : 'gate'} every deploy.` };
+  const kind = unit ? 'unit' : 'browser';
+  return {
+    figure: count.format(only),
+    label: `${kind} ${only === 1 ? 'test gates' : 'tests gate'} every deploy.`,
+  };
 }

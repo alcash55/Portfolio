@@ -27,17 +27,30 @@ describe('ExperienceChapter', () => {
     expect(screen.getByText('The code belongs to NCR.')).toBeInTheDocument();
   });
 
-  it('has no write-up link for Solea, where the panel carries the detail', async () => {
+  it('shows the Solea highlights and stack as plain visible text, since it has no write-up', async () => {
     await renderInRouter(<ExperienceChapter spec={solea} figure={<div>Diagram</div>} />);
     expect(screen.queryByRole('link', { name: /write-up/ })).not.toBeInTheDocument();
-    expect(screen.getByText('Read more')).toBeInTheDocument();
+    if (solea.writeUp) throw new Error('Solea should have no write-up');
+    const list = screen.getByRole('list');
+    expect(within(list).getAllByRole('listitem')).toHaveLength(solea.more.length);
+    for (const point of solea.more) expect(screen.getByText(point)).toBeVisible();
+    expect(screen.getByText(solea.stack)).toBeVisible();
   });
 
-  it('renders the Read more panel closed but present for readers without JavaScript', async () => {
+  it('has no Read more control or details element on any chapter', async () => {
+    for (const spec of EXPERIENCE) {
+      const { unmount } = await renderInRouter(
+        <ExperienceChapter spec={spec} figure={<div>Diagram</div>} />,
+      );
+      expect(screen.queryByText('Read more'), spec.id).not.toBeInTheDocument();
+      expect(document.querySelector('details'), spec.id).toBeNull();
+      unmount();
+    }
+  });
+
+  it('leaves the write-up bullets off a chapter that links to its write-up', async () => {
     await renderInRouter(<ExperienceChapter spec={voyix} figure={<div>Diagram</div>} />);
-    const details = document.querySelector('details') as HTMLDetailsElement;
-    expect(details.open).toBe(false);
-    for (const line of voyix.more) expect(details).toHaveTextContent(line.slice(0, 40));
-    expect(details).toHaveTextContent(voyix.stack);
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Commerce Design Docs/)).not.toBeInTheDocument();
   });
 });

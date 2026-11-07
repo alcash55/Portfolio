@@ -1,15 +1,5 @@
-import { createMemoryHistory, isRedirect } from '@tanstack/react-router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ResumeInfo } from '~/lib/resume';
-
-const state = vi.hoisted(() => ({ info: { available: false } as ResumeInfo }));
-
-vi.mock('~/lib/resume', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('~/lib/resume')>()),
-  get resumeInfo() {
-    return state.info;
-  },
-}));
+import { createMemoryHistory } from '@tanstack/react-router';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const { getRouter } = await import('~/router');
 
@@ -26,40 +16,60 @@ async function load(path: string) {
   };
 }
 
-beforeEach(() => {
-  state.info = { available: false };
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe('/contact route', () => {
-  it('sets its title and description', async () => {
-    const { title, meta } = await load('/contact');
-    expect(title).toBe('Contact, Alex Cash');
-    expect(meta).toContainEqual({
-      name: 'description',
-      content: 'Email Alex Cash, view his resume, or send a message.',
-    });
+  it('redirects to the form on the home page', async () => {
+    const { router } = await load('/contact');
+    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.hash).toBe('contact');
   });
 });
 
-describe('/resume route', () => {
-  it('redirects to the PDF with a 302 when the build fetched one', async () => {
-    state.info = { available: true, bytes: 23326 };
-    const { router } = await load('/resume');
-    expect(router.state.location.pathname).toBe('/resume.pdf');
+type Handler = (ctx: { next: () => unknown }) => Promise<unknown>;
 
-    // The router follows the redirect and drops its status, so read it where it is thrown.
-    const { Route } = await import('./resume');
-    let thrown: unknown;
-    try {
-      await (Route.options.beforeLoad as () => unknown)();
-    } catch (error) {
-      thrown = error;
-    }
-    expect(isRedirect(thrown)).toBe(true);
-    expect(thrown instanceof Response && thrown.status).toBe(302);
+async function getResume(): Promise<{ result: unknown; next: ReturnType<typeof vi.fn> }> {
+  const { Route } = await import('./resume');
+  const handlers = Route.options.server?.handlers;
+  const get = (typeof handlers === 'object' && handlers && 'GET' in handlers
+    ? handlers.GET
+    : undefined) as unknown as Handler;
+  const next = vi.fn(() => ({ isNext: true }));
+  return { result: await get({ next }), next };
+}
+
+describe('/resume route', () => {
+  it('answers with the PDF the API serves', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        new Response('%PDF-1.7', { headers: { 'Content-Type': 'application/pdf' } }),
+      );
+    vi.stubGlobal('fetch', fetchImpl);
+    const { result, next } = await getResume();
+    expect(next).not.toHaveBeenCalled();
+    expect(result).toBeInstanceOf(Response);
+    const res = result as Response;
+    expect(res.headers.get('Content-Type')).toBe('application/pdf');
+    expect(await res.text()).toBe('%PDF-1.7');
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toMatch(/\/api\/v1\/resume$/);
   });
 
-  it('stays on /resume and explains when there is no PDF', async () => {
+  it('falls through to the explanation page when the API fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(Response.json({ error: 'could not load resume' }, { status: 502 })),
+    );
+    const { result, next } = await getResume();
+    expect(next).toHaveBeenCalledOnce();
+    expect(result).toEqual({ isNext: true });
+  });
+
+  it('renders the explanation page with its own title', async () => {
     const { router, title } = await load('/resume');
     expect(router.state.location.pathname).toBe('/resume');
     expect(title).toBe('Resume, Alex Cash');

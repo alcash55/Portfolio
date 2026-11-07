@@ -103,7 +103,6 @@ describe('social and canonical tags per route', () => {
 
   it.each([
     ['/', 'https://site.test/'],
-    ['/contact', 'https://site.test/contact'],
     ['/projects/clipper', 'https://site.test/projects/clipper'],
     ['/experience/ncr-voyix-docs', 'https://site.test/experience/ncr-voyix-docs'],
   ])('%s names its own canonical url once the origin is set', async (path, url) => {

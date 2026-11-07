@@ -19,7 +19,6 @@ export async function renderInRouter(ui: ReactNode, path = '/') {
       leaf('/', () => ui),
       leaf('/experience/$slug', () => null),
       leaf('/projects/$slug', () => null),
-      leaf('/contact', () => null),
       leaf('/resume', () => null),
     ]),
     history: createMemoryHistory({ initialEntries: [path] }),

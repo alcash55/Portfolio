@@ -37,6 +37,8 @@
   --gutter: 1rem;
   --hdr: 3.75rem;
   --panel-gap: 0.75rem;
+  /* Height of the sticky breadcrumb on write-up pages. It joins --hdr in their scroll-margin. */
+  --crumb: 3.25rem;
 }
 
 :root[data-theme='dark'] {
@@ -153,8 +155,11 @@
   --text-page--line-height: 1.06;
   --text-contact: clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem); /* contact chapter h2 */
   --text-contact--line-height: 1.05;
-  --text-band: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem); /* contact band h2 */
-  --text-band--line-height: 1.08;
+  /* Contact band h2. Not named --text-band: text-band would read as the band color. */
+  --text-band-title: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  --text-band-title--line-height: 1.08;
+  --text-about: clamp(2.25rem, 1.4rem + 3vw, 3.75rem); /* About chapter h1 */
+  --text-about--line-height: 1.05;
   --text-section: clamp(1.625rem, 1.3rem + 1vw, 2rem); /* page section h2 */
   --text-section--line-height: 1.1;
   --text-claim: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
@@ -165,6 +170,121 @@
   /* Radii the comps use for cards and stages. */
   --radius-card: 24px;
   --radius-stage: 28px;
+
+  /* The reading line under the header grows with the page scroll (see ReadingLine). */
+  --animate-prog: prog linear both;
+  /* The chapter index slides down as it opens. It moves the translate property, because the
+     popover's centering is a transform. */
+  --animate-cidx-in: cidx-in 200ms var(--ease-lift);
+
+  @keyframes prog {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes cidx-in {
+    from {
+      opacity: 0;
+      translate: 0 -8px;
+    }
+  }
+}
+
+/* Figure animations (components/figures). Inline, because the delays read --i and --t from the
+   element each one runs on. A plain theme variable would resolve them on :root, where they do
+   not exist. The figures start them with motion-safe:in-data-run:, so a figure only plays once
+   it has set data-run, and never under reduced motion. */
+@theme inline {
+  /* Diagram: each edge fades in from a dim start. `backwards` holds that start through the delay
+     and lets the edge settle on its normal style afterwards. */
+  --animate-dg-edge: dg-edge-in 500ms var(--ease-color) calc(var(--i) * 380ms) backwards;
+  /* Home diagram: each edge draws in accent green, thick, then settles to the normal stroke. */
+  --animate-hd-line: hd-line 1500ms ease calc(var(--i) * 520ms) backwards;
+  --animate-hd-head: hd-head 1500ms ease calc(var(--i) * 520ms) backwards;
+  /* Checks: every row is passed in the HTML. The spinner shows only while its row waits its turn,
+     for --t, then the tick and the "Passed" label appear. */
+  --animate-ck-tick: ck-in 320ms var(--ease-lift) var(--t) backwards;
+  --animate-ck-passed: ck-st 240ms linear var(--t) backwards;
+  --animate-ck-spinner: ck-spin 700ms linear infinite, ck-vis var(--t) linear;
+
+  @keyframes dg-edge-in {
+    from {
+      opacity: 0.15;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes hd-line {
+    0% {
+      opacity: 0.2;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+    45% {
+      opacity: 1;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke: var(--text-3);
+      stroke-width: 2;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes hd-head {
+    0%,
+    30% {
+      opacity: 0.2;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+    }
+    60% {
+      opacity: 1;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+    }
+    100% {
+      stroke: var(--text-3);
+      stroke-width: 2;
+    }
+  }
+  @keyframes ck-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes ck-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes ck-st {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* Holds the spinner at full opacity for the length of --t. After that it falls back to its
+     resting opacity of 0. */
+  @keyframes ck-vis {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 /* Motion tokens (motion.md). Static so they are always emitted: components read
@@ -289,8 +409,10 @@
   }
 }
 
-/* Shell: header, theme control, menu, footer. Ported from the comps' header and
-   footer rules so spacing and sizes match them exactly. */
+/* Rules that stay global. The skip link and .sr are used by every page. The scroll snap and
+   the reveal below select by page state ([data-rv], the .home root), which a utility on one
+   element cannot express. The shell, the home chapters and the rest are Tailwind utilities
+   in their components. */
 @layer components {
   .skip {
     position: absolute;
@@ -314,340 +436,44 @@
     white-space: nowrap;
   }
 
-  .hdr {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    height: var(--hdr);
-    background: var(--paper);
-    border-bottom: 1px solid var(--line-soft);
+  /* ---------- Home: scroll snap ----------
+     One wheel tick moves one chapter. A chapter taller than the viewport scrolls freely
+     inside. The offset is scroll-margin on the chapter, not scroll-padding on <html>, so
+     focusing a header control never makes the browser scroll to reveal it. */
+  html:has(.home) {
+    scroll-snap-type: y mandatory;
   }
-  .hdr-in {
-    max-width: 90rem;
-    margin: 0 auto;
-    padding: 0 var(--gutter);
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+  .home .chapter {
+    scroll-snap-align: start;
+    scroll-margin-top: var(--hdr);
   }
-  .mark {
-    font: 400 1.5rem/1 var(--font-display);
-    text-decoration: none;
-    word-spacing: 0.06em;
-    letter-spacing: -0.01em;
-    min-height: 2.75rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .mark span {
-    padding-top: 2px;
-  }
-  /* The comps let the wordmark wrap onto two lines at 320px. Shrinking it keeps one line. */
-  @media (max-width: 359px) {
-    .mark {
-      font-size: 1.25rem;
-    }
-  }
-  .logo {
-    flex: none;
-  }
-  .hdr-r > nav {
-    display: none;
-    gap: 4px;
-  }
-  .hdr-r > nav a {
-    min-height: 2.75rem;
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.9375rem;
-    border-radius: 999px;
-    transition: background-color var(--duration-color) var(--ease-color);
-  }
-  .hdr-r > nav a:hover {
-    background: var(--fill);
-  }
-  .hdr-r > nav a[aria-current] {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 6px;
-  }
-  .hdr-r {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  html:has(.home) footer {
+    scroll-snap-align: end;
   }
 
-  .menu-pill {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    padding: 0 18px;
-    border-radius: 999px;
-    border: 1.5px solid var(--line-strong);
-    background: none;
-    color: var(--text);
-    font: 500 0.9375rem/1 var(--font-sans);
-    text-decoration: none;
-    cursor: pointer;
-  }
-  .theme-btn {
-    display: inline-grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    border: 1.5px solid var(--line-strong);
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    padding: 0;
-  }
-  .theme-btn:hover,
-  .menu-pill:hover {
-    background: var(--fill);
-  }
-
-  .theme-seg {
-    display: none;
-    border: 1.5px solid var(--line-strong);
-    border-radius: 999px;
-    padding: 3px;
-    gap: 2px;
-    margin: 0;
-  }
-  .theme-seg legend {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-  .theme-seg button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 2.75rem;
-    min-width: 44px;
-    padding: 0 14px;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--text);
-    font: 500 0.875rem/1 var(--font-sans);
-    cursor: pointer;
-    transition: background-color var(--duration-color) var(--ease-color);
-  }
-  .theme-seg button:hover {
-    background: var(--fill);
-  }
-  .theme-seg .ck {
-    display: none;
-  }
-  .theme-seg button[aria-pressed='true'] {
-    background: var(--text);
-    color: var(--paper);
-  }
-  .theme-seg button[aria-pressed='true'] .ck {
-    display: block;
-  }
-  @media (forced-colors: active) {
-    .theme-seg button[aria-pressed='true'] {
-      background: Highlight;
-      color: HighlightText;
-      forced-color-adjust: none;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .hdr-r > nav {
-      display: flex;
-    }
-    .menu-pill,
-    .theme-btn {
-      display: none;
-    }
-    .theme-seg {
-      display: inline-flex;
-    }
-    .hdr-r {
-      gap: 20px;
-    }
-  }
-
-  /* Menu dialog. The dialog fills the viewport so a click on it is a click on
-     the scrim, and the panel floats under the header. */
-  .menu-dialog {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--text);
-    overflow: hidden;
-  }
-  .menu-dialog::backdrop {
-    background: var(--scrim);
-  }
-  .menu-panel {
-    position: absolute;
-    top: calc(var(--hdr) - 8px);
-    right: var(--gutter);
-    left: var(--gutter);
-    max-width: 24rem;
-    margin-left: auto;
-    padding: 12px;
-    border-radius: var(--radius-card);
-    border: 1px solid var(--line);
-    background: var(--surface);
-    box-shadow: var(--shadow-1);
-  }
-  .menu-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 2.75rem;
-    margin-bottom: 4px;
-    border: 1.5px solid var(--line-strong);
-    border-radius: 999px;
-    background: none;
-    color: var(--text);
-    font: 500 0.9375rem/1 var(--font-sans);
-    cursor: pointer;
-  }
-  .menu-close:hover {
-    background: var(--fill);
-  }
-  .menu-panel ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .menu-panel nav a {
-    display: flex;
-    align-items: center;
-    min-height: 3rem;
-    padding: 0 12px;
-    border-radius: 12px;
-    font: 400 1.75rem/1 var(--font-display);
-    text-decoration: none;
-  }
-  .menu-panel nav a:hover {
-    background: var(--fill);
-  }
-  .menu-panel nav a[aria-current] {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 6px;
-  }
+  /* ---------- Home: section reveal ----------
+     The server HTML is the final state. Script marks only elements below the fold, and only
+     when motion is allowed, so a failed script or reduced motion leaves everything visible. */
   @media (prefers-reduced-motion: no-preference) {
-    .menu-dialog[open] .menu-panel {
+    .home [data-rv='wait'] {
+      opacity: 0;
+      transform: translateY(var(--reveal-rise));
+    }
+    .home [data-rv='in'] {
+      opacity: 1;
+      transform: none;
       transition:
-        transform var(--duration-sheet) var(--ease-drawer),
-        opacity var(--duration-sheet) var(--ease-drawer);
-      @starting-style {
-        transform: translateY(-12px);
-        opacity: 0;
-      }
+        opacity var(--duration-reveal) var(--ease-reveal),
+        transform var(--duration-reveal) var(--ease-reveal);
     }
-    .menu-dialog[open]::backdrop {
-      transition: background-color var(--duration-sheet) var(--ease-drawer);
-      @starting-style {
-        background-color: transparent;
-      }
+    .home .fig[data-rv='in'] {
+      transition-delay: var(--stagger-reveal);
     }
   }
-
-  .foot {
-    max-width: 78rem;
-    margin: 0 auto;
-    padding: 72px var(--gutter) 40px;
-    display: grid;
-    gap: 32px;
-  }
-  .foot nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 28px;
-  }
-  .foot .big a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 3rem;
-    font: 400 1.75rem/1 var(--font-display);
-    text-decoration: none;
-  }
-  .foot .big a:hover {
-    text-decoration: underline;
-    text-underline-offset: 6px;
-  }
-  .foot .small a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    font-size: 0.9375rem;
-    margin-right: 20px;
-  }
-  .foot p {
-    margin: 0;
-    color: var(--text-2);
-    font-size: 0.9375rem;
-  }
-  .foot .base {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 24px;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid var(--line);
-    padding-top: 20px;
-  }
-  .foot .addr2 {
-    user-select: all;
-    overflow-wrap: anywhere;
-  }
-  .foot .tl {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-    font-weight: 500;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 4px;
-  }
-
-  /* The home page footer is tighter than the one on inner pages: a 28px rhythm, one row of
-     links at phone width, medium-weight external links, and tap targets pinned to 44px
-     instead of growing with the root font size on very wide screens. */
-  html:has(.home) .foot {
-    gap: 28px;
-  }
-  html:has(.home) .foot .small {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 20px;
-  }
-  html:has(.home) .foot .small a {
-    margin-right: 0;
-  }
-  html:has(.home) .foot .small .ext {
-    font-weight: 500;
-    min-height: 44px;
-  }
-  html:has(.home) .foot .tl {
-    min-height: 44px;
+  @media print {
+    .home [data-rv] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
   }
 }

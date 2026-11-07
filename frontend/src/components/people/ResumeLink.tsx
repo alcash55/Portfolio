@@ -1,29 +1,26 @@
 import { analytics, type ResumeLocation } from '~/lib/analytics';
-import { RESUME_LABEL, resumeLinkName, type ResumeInfo } from '~/lib/resume';
+import { RESUME_LABEL, RESUME_LINK_NAME } from '~/lib/resume';
 
 /**
- * The visible text is `RESUME_LABEL`. The accessible name adds the file type,
- * size and the new tab, and begins with the visible text. With no PDF the link
- * opens the explanation page in the same tab, so it makes no new-tab claim.
+ * The visible text is `RESUME_LABEL`. The accessible name adds the file type and the new
+ * tab, and begins with the visible text.
  */
 export function ResumeLink({
-  info,
   location,
   className,
 }: {
-  info: ResumeInfo;
   location: ResumeLocation;
   className?: string;
 }) {
-  const opensTab = info.available;
   return (
-    // A full page request on purpose: /resume answers with a redirect to the PDF.
+    // A full page request on purpose: /resume is a Worker route that answers with the PDF.
     <a
       className={className}
       href="/resume"
-      aria-label={resumeLinkName(info)}
+      aria-label={RESUME_LINK_NAME}
+      target="_blank"
+      rel="noopener"
       onClick={() => analytics.capture('resume_clicked', { location })}
-      {...(opensTab ? { target: '_blank', rel: 'noopener' } : {})}
     >
       {RESUME_LABEL}
     </a>

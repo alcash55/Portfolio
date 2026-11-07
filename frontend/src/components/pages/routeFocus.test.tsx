@@ -1,7 +1,5 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { ContactPage } from '~/components/contact/ContactPage';
 import { renderInRouter } from '~/components/people/renderInRouter';
 import { ResumePage } from '~/components/people/ResumePage';
 import { ContentPage } from './ContentPage';
@@ -12,12 +10,6 @@ import { NotFoundRoute } from './NotFound';
 // the link that was clicked.
 describe('page headings the shell focuses on arrival', () => {
   it.each([
-    [
-      'the contact page',
-      <QueryClientProvider client={new QueryClient()} key="contact">
-        <ContactPage resume={{ available: false }} />
-      </QueryClientProvider>,
-    ],
     ['the resume page', <ResumePage key="resume" />],
     [
       'a project page',

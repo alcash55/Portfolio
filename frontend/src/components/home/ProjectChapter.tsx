@@ -3,6 +3,7 @@ import { chapterTitle, type ProjectChapterSpec } from '~/content/home';
 import { Chapter } from './Chapter';
 import { ChapterLinks } from './ChapterLinks';
 import { Fig } from './Fig';
+import { PROOF } from './homeStyles';
 
 /** A project chapter. `figure` is the body of the Fig frame. */
 export function ProjectChapter({ spec, figure }: { spec: ProjectChapterSpec; figure: ReactNode }) {
@@ -14,6 +15,7 @@ export function ProjectChapter({ spec, figure }: { spec: ProjectChapterSpec; fig
       overline={spec.overline}
       heading={spec.heading}
       reverse={spec.reverse}
+      textFirstOnPhone={spec.textFirstOnPhone}
       big={spec.big}
       figure={
         <Fig n={spec.fig.n} label={spec.fig.label} caption={spec.fig.caption} meta={spec.fig.meta}>
@@ -22,12 +24,12 @@ export function ProjectChapter({ spec, figure }: { spec: ProjectChapterSpec; fig
       }
     >
       {spec.paragraphs.map((p) => (
-        <p key={p.text} className={p.kind === 'proof' ? 'proof' : undefined}>
+        <p key={p.text} className={p.kind === 'proof' ? PROOF : undefined}>
           {p.text}
         </p>
       ))}
       <ChapterLinks links={spec.links} note={spec.note} />
-      {spec.afterLinks ? <p className="stack">{spec.afterLinks}</p> : null}
+      {spec.afterLinks ? <p>{spec.afterLinks}</p> : null}
     </Chapter>
   );
 }

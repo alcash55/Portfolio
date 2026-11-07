@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EXPERIENCE_SLUGS, PROJECT_SLUGS, findExperience, findProject } from './pages';
-import { siteStats, testCountFact } from '~/lib/siteStats';
+import { siteStats, testCountStat } from '~/lib/siteStats';
+import { EXPERIENCE } from './people';
 import { DETAILS, DETAIL_SLUGS, countFlows, getDetail, nextAfter, type Detail } from './projects';
 
 const all: readonly Detail[] = DETAIL_SLUGS.map((slug) => DETAILS[slug]);
@@ -56,8 +57,8 @@ describe('project and experience data', () => {
 
   it('numbers the flows the way the diagram write-ups count them', () => {
     expect(Object.fromEntries(all.map((d) => [d.slug, countFlows(d.diagram)]))).toEqual({
-      'portfolio-website': 8,
-      'game-competition-website': 7,
+      'portfolio-website': 9,
+      'game-competition-website': 13,
       'ac-composite-actions': 7,
       clipper: 8,
       'golem-miners': 7,
@@ -118,12 +119,11 @@ describe('project and experience data', () => {
     }
   });
 
-  it('keeps the two NCR pages image-free, with a status line and an owner notice', () => {
+  it('keeps the two NCR pages image-free, with a status line and no actions', () => {
     for (const slug of EXPERIENCE_SLUGS) {
       const d = DETAILS[slug];
       expect(d.media.kind).toBe('none');
       expect(d.status).toBeDefined();
-      expect(d.notice).toBe('The code belongs to NCR.');
       expect(d.links).toEqual([]);
     }
   });
@@ -143,54 +143,104 @@ describe('project and experience data', () => {
     expect(labels).toContain('Spelling, Markdown, alt text');
   });
 
-  it('carries the measured facts as written, with the cut rows left out', () => {
-    const leads = (slug: Detail['slug']) => DETAILS[slug].facts.map((f) => f.lead);
-    // The last row comes from the generated test counts and is absent when they are unknown.
-    const countFact = testCountFact(siteStats);
-    expect(leads('portfolio-website')).toEqual([
-      '10 times lighter, first version',
-      '50 requests, 2 calls',
-      '502 to 200',
-      '35 of 40 blocked',
-      ...(countFact ? [countFact.lead] : []),
+  it('keeps only the rows that carry a number the page does not already say', () => {
+    const figures = (slug: Detail['slug']) => DETAILS[slug].stats?.map((f) => f.figure);
+    // The last Portfolio stat comes from the generated test counts and is absent when they are unknown.
+    const countStat = testCountStat(siteStats);
+    expect(figures('portfolio-website')).toEqual([
+      '10×',
+      '50 to 2',
+      '35 of 40',
+      ...(countStat ? [countStat.figure] : []),
     ]);
-    expect(leads('vscode-royalty-theme').at(-1)).toBe('187 installs');
-    expect(DETAILS['vscode-royalty-theme'].facts.at(-1)?.body).toBe(
-      '187 installs on the Visual Studio Marketplace. The listing still serves version 2.2.0, and v3.0.0 is on GitHub, not yet published.',
-    );
-    expect(leads('clipper')).toEqual([
-      '3.0 faces per frame',
-      '58 seconds, 1080x1920',
-      '387 tests',
-      '8 of 8',
-    ]);
-    expect(leads('ac-composite-actions')).toEqual([
-      '11 repos',
-      '26 minutes',
-      '33 files, not 30',
-      '36 tests',
-    ]);
+    expect(figures('game-competition-website')).toEqual(['888', '422 to 22 KB']);
+    expect(figures('ac-composite-actions')).toEqual(['11', '26 min', '36']);
+    expect(figures('clipper')).toEqual(['3.0', '387', '8 of 8']);
+    expect(figures('golem-miners')).toEqual(['1,815', '7 GB to 198 MB']);
+    expect(figures('vscode-royalty-theme')).toEqual(['174 of 174', '8.1:1', '241 to 43', '187']);
   });
 
-  it.skipIf(siteStats.unitTests === null)(
-    'ends the Portfolio Website facts with the unit test count from the build',
-    () => {
-      const last = DETAILS['portfolio-website'].facts.at(-1);
-      expect(last?.body).toContain(`${siteStats.unitTests?.toLocaleString('en-US')} unit test`);
-      expect(last?.body).toMatch(/gate every deploy\.$/);
-    },
-  );
+  it('gives the two NCR pages no stats, since their rows only restated the text', () => {
+    expect(DETAILS['ncr-voyix-docs'].stats).toBeUndefined();
+    expect(DETAILS['starbucks-store-health'].stats).toBeUndefined();
+  });
 
-  it('counts paragraphs and facts per page', () => {
-    expect(Object.fromEntries(all.map((d) => [d.slug, [d.built.length, d.facts.length]]))).toEqual({
-      'portfolio-website': [2, testCountFact(siteStats) ? 5 : 4],
-      'game-competition-website': [3, 3],
-      'ac-composite-actions': [4, 4],
-      clipper: [3, 4],
-      'golem-miners': [6, 3],
+  it('labels every stat, and keeps the VS Code install caveat beside its number', () => {
+    for (const d of all) {
+      for (const stat of d.stats ?? []) {
+        expect(stat.figure.trim(), `${d.slug} figure`).not.toBe('');
+        expect(stat.label.trim(), `${d.slug} ${stat.figure}`).not.toBe('');
+      }
+    }
+    const installs = DETAILS['vscode-royalty-theme'].stats?.at(-1);
+    expect(installs?.label).toBe(
+      'installs on the Visual Studio Marketplace. The listing still serves version 2.2.0, and v3.0.0 is on GitHub, not yet published.',
+    );
+  });
+
+  it('ends the Portfolio Website stats with the unit test count from the build', () => {
+    if (siteStats.unitTests === null) return;
+    const last = DETAILS['portfolio-website'].stats?.at(-1);
+    expect(last?.label).toContain(`${siteStats.unitTests.toLocaleString('en-US')} unit`);
+    expect(last?.label).toMatch(/gate every deploy/);
+  });
+
+  it('counts paragraphs and stats per page', () => {
+    expect(
+      Object.fromEntries(all.map((d) => [d.slug, [d.built.length, d.stats?.length ?? 0]])),
+    ).toEqual({
+      'portfolio-website': [2, testCountStat(siteStats) ? 4 : 3],
+      'game-competition-website': [5, 2],
+      'ac-composite-actions': [4, 3],
+      clipper: [3, 3],
+      'golem-miners': [6, 2],
       'vscode-royalty-theme': [2, 4],
-      'ncr-voyix-docs': [4, 2],
-      'starbucks-store-health': [5, 2],
+      'ncr-voyix-docs': [5, 0],
+      'starbucks-store-health': [5, 0],
     });
+  });
+});
+
+describe('experience highlights', () => {
+  const builtText = (slug: Detail['slug']) => DETAILS[slug].built.join('\n');
+
+  it('keeps the home chapter for a role with a write-up free of the bullets and stack line', () => {
+    for (const spec of EXPERIENCE.filter((e) => e.writeUp)) {
+      expect('more' in spec, `${spec.id} more`).toBe(false);
+      expect('stack' in spec, `${spec.id} stack`).toBe(false);
+    }
+  });
+
+  it('keeps the bullets and stack for the one role with no write-up', () => {
+    const bare = EXPERIENCE.filter((e) => !e.writeUp);
+    expect(bare.map((e) => e.id)).toEqual(['experience']);
+  });
+
+  it('carries the Voyix bullets that the write-up did not already say', () => {
+    const text = builtText('ncr-voyix-docs');
+    expect(text).toContain('Commerce Design Docs that product teams build against');
+    expect(text).toContain('static analysis composite GitHub Actions that gate every merge');
+    // The other four bullets were already in the write-up, so they are said once.
+    expect(text.match(/review comment updates/g)).toHaveLength(1);
+    expect(text.match(/analytics pipelines/gi)).toHaveLength(1);
+  });
+
+  it('carries the Store Health instrumentation detail in one sentence with Tag Manager', () => {
+    const text = builtText('starbucks-store-health');
+    expect(text).toContain(
+      'instrumented digital connected services with Google Tag Manager and FullStory',
+    );
+    expect(text.match(/Google Tag Manager/g)).toHaveLength(1);
+    expect(text).toContain('7/2020 to 9/2020');
+    expect(text).toContain('Slack');
+  });
+
+  it('shows the same stack line on a write-up as the role had on the home page', () => {
+    expect(DETAILS['ncr-voyix-docs'].stack).toBe(
+      'Next.js, Strapi, remark, GitHub Actions, BigQuery, Looker',
+    );
+    expect(DETAILS['starbucks-store-health'].stack).toBe(
+      'React, MUI, Figma, FigJam, Design Systems, Accessibility, Google Tag Manager',
+    );
   });
 });

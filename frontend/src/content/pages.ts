@@ -27,7 +27,7 @@ const PROJECTS = [
     h1: 'Portfolio Website',
     title: 'Portfolio Website, work by Alex Cash',
     description:
-      'How this portfolio was built: a React front end, a Go API, a page 10 times lighter and a browser suite that gates every deploy.',
+      'How this portfolio was built: a React front end, a Go API, a version 1 made 10 times lighter and a browser suite that runs on every pull request.',
   },
   {
     slug: 'game-competition-website',

@@ -218,6 +218,8 @@ export function layoutDiagram(diagram: Diagram): DiagramLayout {
       path = `M${from.x} ${from.y}C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${b.x} ${b.y}`;
       // A loop under the nodes needs room below them.
       if (d0.dy === 1 && dt.dy === 1) maxY = Math.max(maxY, Math.max(from.y, b.y) + reach * 0.75);
+      // So does a loop around the right edge, or its curve is clipped by the viewBox.
+      if (d0.dx === 1 && dt.dx === 1) maxX = Math.max(maxX, Math.max(from.x, b.x) + reach * 0.75);
     }
     const px = -dt.dy;
     const py = dt.dx;

@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { PROJECT_CHAPTERS } from '~/content/home';
+import { PAIR_COLUMNS, type PairColumns } from './homeStyles';
 import { ProjectChapter } from './ProjectChapter';
 import { renderInRouter } from './renderInRouter';
 
@@ -21,7 +22,10 @@ describe('ProjectChapter', () => {
         name: 'From a clip to a Short with one command',
       }),
     ).toBeInTheDocument();
-    expect(within(region).getByText('Clipper', { selector: '.ov' })).toBeInTheDocument();
+    const overline = within(region).getByText('Clipper');
+    expect(overline.compareDocumentPosition(screen.getByRole('heading', { level: 2 }))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
   });
 
   it('renders the blurb, the proof line and the private notice as text', async () => {
@@ -33,7 +37,7 @@ describe('ProjectChapter', () => {
       screen.getByText(
         'One command turns a YouTube or Twitch clip into a captioned, upload-ready Short. 387 tests pass.',
       ),
-    ).toHaveClass('proof');
+    ).toBeVisible();
     expect(screen.getByText('The code is private.')).toBeInTheDocument();
   });
 
@@ -54,7 +58,7 @@ describe('ProjectChapter', () => {
   it('frames the figure slot with its number, label and caption', async () => {
     await renderInRouter(<ProjectChapter spec={spec('golem-miners')} figure={<p>slot body</p>} />);
     const fig = screen.getByRole('figure');
-    expect(within(fig).getByText('Fig 5')).toBeInTheDocument();
+    expect(within(fig).getByText('Fig 6')).toBeInTheDocument();
     expect(within(fig).getByText('Recording')).toBeInTheDocument();
     expect(within(fig).getByText('slot body')).toBeInTheDocument();
     expect(within(fig).getByText('Unity 6, C#, Unity Test Framework')).toBeInTheDocument();
@@ -67,10 +71,21 @@ describe('ProjectChapter', () => {
     expect(play.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('marks the figure side from the spec', async () => {
+  // jsdom loads no stylesheet, so the column template is the visible sign that the spec's two
+  // flags reached the layout. Portfolio is reversed and big, Game Competition is big only, and
+  // Golem Miners is reversed only.
+  it.each<[string, PairColumns]>([
+    ['portfolio-website', 'mediaReversed'],
+    ['game-competition-website', 'media'],
+    ['golem-miners', 'even'],
+  ])('lays out %s with the %s columns', async (id, columns) => {
     const { container } = await renderInRouter(
-      <ProjectChapter spec={spec('portfolio-website')} figure={<p>slot</p>} />,
+      <ProjectChapter spec={spec(id)} figure={<p>slot</p>} />,
     );
-    expect(container.querySelector('section')).toHaveClass('chapter', 'rev', 'big');
+    const pair = container.querySelector('section > div');
+    for (const other of Object.values(PAIR_COLUMNS)) {
+      if (other === PAIR_COLUMNS[columns]) expect(pair).toHaveClass(other);
+      else expect(pair).not.toHaveClass(other);
+    }
   });
 });

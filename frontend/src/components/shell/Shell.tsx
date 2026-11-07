@@ -49,7 +49,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <main id="main" tabIndex={-1}>
         {children}
       </main>
-      <Footer />
+      <Footer isHome={pathname === '/'} />
     </>
   );
 }

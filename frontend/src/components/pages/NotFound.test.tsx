@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { PILL } from '~/components/detail/pageStyles';
 import { renderInRouter } from '~/components/people/renderInRouter';
 import { NotFoundRoute, NotFoundSlug } from './NotFound';
 
@@ -15,9 +16,8 @@ describe('NotFoundSlug', () => {
     await renderInRouter(<NotFoundSlug />);
     const primary = screen.getByRole('link', { name: 'See all projects' });
     const secondary = screen.getByRole('link', { name: 'Go to the home page' });
-    // The shared button styles key off these class names.
-    expect(primary).toHaveClass('btn', 'btn-primary');
-    expect(secondary).toHaveClass('btn', 'btn-2');
+    expect(primary).toHaveClass(PILL.primary);
+    expect(secondary).toHaveClass(PILL.secondary);
   });
 });
 
@@ -30,10 +30,7 @@ describe('NotFoundRoute', () => {
 
   it('shows both actions as pill buttons, primary first', async () => {
     await renderInRouter(<NotFoundRoute />);
-    expect(screen.getByRole('link', { name: 'Go to the home page' })).toHaveClass(
-      'btn',
-      'btn-primary',
-    );
-    expect(screen.getByRole('link', { name: 'See the projects' })).toHaveClass('btn', 'btn-2');
+    expect(screen.getByRole('link', { name: 'Go to the home page' })).toHaveClass(PILL.primary);
+    expect(screen.getByRole('link', { name: 'See the projects' })).toHaveClass(PILL.secondary);
   });
 });

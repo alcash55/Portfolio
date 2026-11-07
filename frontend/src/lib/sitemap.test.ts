@@ -3,7 +3,7 @@ import { EXPERIENCE_SLUGS, PROJECT_SLUGS } from '~/content/pages';
 import { buildSitemap, resolveSiteOrigin, sitemapPaths, workRedirectTarget } from './sitemap';
 
 describe('sitemapPaths', () => {
-  it('lists the home page, every project, every experience page and the contact page', () => {
+  it('lists the home page, every project, and every experience page', () => {
     expect(sitemapPaths()).toEqual([
       '/',
       '/projects/portfolio-website',
@@ -14,7 +14,6 @@ describe('sitemapPaths', () => {
       '/projects/vscode-royalty-theme',
       '/experience/ncr-voyix-docs',
       '/experience/starbucks-store-health',
-      '/contact',
     ]);
   });
 
@@ -22,8 +21,8 @@ describe('sitemapPaths', () => {
     expect(sitemapPaths()).not.toContain('/resume');
   });
 
-  it('has one entry per content page, plus home and contact', () => {
-    expect(sitemapPaths()).toHaveLength(PROJECT_SLUGS.length + EXPERIENCE_SLUGS.length + 2);
+  it('has one entry per content page, plus home', () => {
+    expect(sitemapPaths()).toHaveLength(PROJECT_SLUGS.length + EXPERIENCE_SLUGS.length + 1);
   });
 });
 
@@ -39,7 +38,6 @@ describe('buildSitemap', () => {
     expect(xml).toContain('<loc>https://example.test/</loc>');
     expect(xml).toContain('<loc>https://example.test/projects/clipper</loc>');
     expect(xml).toContain('<loc>https://example.test/experience/ncr-voyix-docs</loc>');
-    expect(xml).toContain('<loc>https://example.test/contact</loc>');
   });
 
   it('writes exactly one <loc> per path', () => {
@@ -48,7 +46,7 @@ describe('buildSitemap', () => {
 
   it('does not double the slash when the origin ends in one', () => {
     expect(buildSitemap('https://example.test/')).toContain(
-      '<loc>https://example.test/contact</loc>',
+      '<loc>https://example.test/projects/clipper</loc>',
     );
   });
 

@@ -18,7 +18,7 @@ export const ANALYTICS_EVENTS = Object.freeze({
 } as const);
 
 /** Where a "View resume" link sits, so the dashboard can tell the links apart. */
-export type ResumeLocation = 'about' | 'education' | 'contact_band' | 'contact_page' | 'footer';
+export type ResumeLocation = 'about' | 'footer';
 
 interface EventProperties {
   resume_clicked: { location: ResumeLocation };

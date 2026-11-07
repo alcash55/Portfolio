@@ -36,7 +36,8 @@ describe('Diagram', () => {
       'YouTube channel and Twitch channel to Fetch: top videos and top clips.',
     );
     expect(items[7]).toHaveTextContent('Daily run script to Fetch: starts the run.');
-    expect(items[7]).toHaveClass('plan');
+    expect(items[7]).toHaveAttribute('data-planned');
+    expect(items.filter((item) => item.hasAttribute('data-planned'))).toHaveLength(1);
   });
 
   it('ends with a text version that is the alt text from the data', () => {
@@ -47,20 +48,23 @@ describe('Diagram', () => {
 
   it('draws the planned edges and nodes dashed, and nothing else', () => {
     const { container } = render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
-    expect(container.querySelectorAll('svg .e.plan')).toHaveLength(1);
-    expect(container.querySelectorAll('svg .n.plan')).toHaveLength(1);
+    // One planned edge (its group holds paths) and one planned node (its group holds a rect).
+    const planned = [...container.querySelectorAll('svg g[data-planned]')];
+    expect(planned).toHaveLength(2);
+    expect(planned.filter((g) => g.querySelector(':scope > rect'))).toHaveLength(1);
+    expect(planned.filter((g) => g.querySelector(':scope > path'))).toHaveLength(1);
   });
 
   it('draws one badge per numbered flow', () => {
-    const { container } = render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
-    const badges = [...container.querySelectorAll('svg .b text')].map((t) => t.textContent);
-    expect(badges).toEqual(['1', '2', '3', '4', '5', '6', '7', '8']);
+    render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
+    const badges = within(screen.getByRole('img')).getAllByText(/^\d+$/);
+    expect(badges.map((t) => t.textContent)).toEqual(['1', '2', '3', '4', '5', '6', '7', '8']);
   });
 
   it('labels the exit stub The build', () => {
     const royalty = DETAILS['vscode-royalty-theme'];
-    const { container } = render(<Diagram name={royalty.name} diagram={royalty.diagram} />);
-    expect(container.querySelector('svg .stub')).toHaveTextContent('The build');
+    render(<Diagram name={royalty.name} diagram={royalty.diagram} />);
+    expect(within(screen.getByRole('img')).getByText('The build')).toBeInTheDocument();
   });
 
   it('renders a heading only when given a title', () => {
@@ -75,12 +79,12 @@ describe('Diagram', () => {
     );
   });
 
-  it('ships the final state in the server HTML: no hidden, dimmed or running state', () => {
+  it('ships the final state in the server HTML: no dimmed or running state', () => {
     const html = renderToStaticMarkup(<Diagram name={clipper.name} diagram={clipper.diagram} />);
     expect(html).toContain('Fetch');
-    expect(html).not.toMatch(/class="[^"]*\b(pre|run)\b/);
+    // Match the attribute only: class names such as in-data-run:animate-* contain the same text.
+    expect(html).not.toMatch(/ data-run[ =>]/);
     expect(html).not.toContain('opacity');
-    expect(html).not.toContain('hidden');
   });
 
   it('plays the reveal once when the figure scrolls into view', () => {
@@ -88,9 +92,9 @@ describe('Diagram', () => {
     const { container } = render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
     const figure = container.querySelector('figure');
     expect(figure).not.toBeNull();
-    expect(figure).not.toHaveClass('run');
+    expect(figure).not.toHaveAttribute('data-run');
     act(() => io.show(figure as Element));
-    expect(figure).toHaveClass('run');
+    expect(figure).toHaveAttribute('data-run');
     expect(io.watching(figure as Element)).toBe(0);
   });
 
@@ -100,6 +104,6 @@ describe('Diagram', () => {
     const { container } = render(<Diagram name={clipper.name} diagram={clipper.diagram} />);
     const figure = container.querySelector('figure') as Element;
     expect(io.watching(figure)).toBe(0);
-    expect(figure).not.toHaveClass('run');
+    expect(figure).not.toHaveAttribute('data-run');
   });
 });

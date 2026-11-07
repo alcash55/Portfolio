@@ -1,7 +1,22 @@
 import type { HomeDiagram as HomeDiagramData } from '~/content/projects';
 import { cssVars, useSeenInView } from './hooks';
 import { layoutHomeDiagram, type HomePlacedEdge, type HomePlacedNode } from './homeDiagramLayout';
-import './figures.css';
+
+// From 900px a chapter fits one screen, so the drawing takes the viewport height minus the header
+// and 13rem for the rest of the chapter, up to 34rem.
+const DRAWING = [
+  'block h-auto w-full overflow-visible',
+  'min-[900px]:h-[min(calc(100svh-var(--hdr)-13rem),34rem)]',
+].join(' ');
+const NODE_BOX = 'fill-surface-2 stroke-line-strong stroke-[1.5]';
+const CHIP_BOX = 'fill-surface stroke-line-strong stroke-[1.5]';
+const NODE_LABEL = 'fill-ink text-[16px] font-medium';
+const NODE_SUB = 'fill-ink-2 text-[15px]';
+const LINE = 'stroke-ink-3 stroke-2';
+// Each edge draws in accent green, thick, then settles to the normal stroke. The head follows
+// the line a little later.
+const EDGE_LINE = `${LINE} motion-safe:in-data-run:animate-hd-line`;
+const EDGE_HEAD = `${LINE} motion-safe:in-data-run:animate-hd-head`;
 
 interface HomeDiagramProps {
   diagram: HomeDiagramData;
@@ -19,9 +34,9 @@ export function HomeDiagram({ diagram }: HomeDiagramProps) {
   const titleId = `hd-${diagram.key}-t`;
   const textId = `hd-${diagram.key}-d`;
   return (
-    <div ref={ref} className={run ? 'hd run' : 'hd'}>
+    <div ref={ref} className="relative px-[18px] pt-[8px] pb-[12px]" data-run={run || undefined}>
       <svg
-        className="hd-svg"
+        className={DRAWING}
         viewBox={layout.viewBox}
         role="img"
         aria-labelledby={titleId}
@@ -35,7 +50,7 @@ export function HomeDiagram({ diagram }: HomeDiagramProps) {
           <Node key={node.id} node={node} />
         ))}
       </svg>
-      <div id={textId} className="hd-sr">
+      <div id={textId} className="sr">
         <p>Text version of the diagram.</p>
         <ol>
           {diagram.steps.map((step) => (
@@ -49,21 +64,34 @@ export function HomeDiagram({ diagram }: HomeDiagramProps) {
 
 function Edge({ edge }: { edge: HomePlacedEdge }) {
   return (
-    <g className="e" style={cssVars({ '--i': edge.order })}>
-      <path className="ln" pathLength={1} d={edge.path} />
-      <path d={edge.head} />
+    <g style={cssVars({ '--i': edge.order })}>
+      <path
+        className={EDGE_LINE}
+        pathLength={1}
+        d={edge.path}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        className={EDGE_HEAD}
+        d={edge.head}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </g>
   );
 }
 
 function Node({ node }: { node: HomePlacedNode }) {
   return (
-    <g className="n">
-      <rect x={node.x} y={node.y} width={node.w} height={node.h} rx={14} />
+    <g>
+      <rect className={NODE_BOX} x={node.x} y={node.y} width={node.w} height={node.h} rx={14} />
       {node.lines.map((line) => (
         <text
           key={line.text}
-          className={line.role === 'label' ? 'l' : 's'}
+          className={line.role === 'label' ? NODE_LABEL : NODE_SUB}
           x={line.x}
           y={line.y}
           textAnchor="middle"
@@ -72,14 +100,22 @@ function Node({ node }: { node: HomePlacedNode }) {
         </text>
       ))}
       {node.chips.map((chip) => (
-        <g key={chip.text} className="n in">
-          <rect x={chip.x} y={chip.y} width={chip.w} height={chip.h} rx={10} />
-          <text className="s" x={chip.tx} y={chip.ty} textAnchor="middle">
+        <g key={chip.text}>
+          <rect className={CHIP_BOX} x={chip.x} y={chip.y} width={chip.w} height={chip.h} rx={10} />
+          <text className={NODE_SUB} x={chip.tx} y={chip.ty} textAnchor="middle">
             {chip.text}
           </text>
         </g>
       ))}
-      {node.chipArrow ? <path d={node.chipArrow} fill="none" /> : null}
+      {node.chipArrow ? (
+        <path
+          className={LINE}
+          d={node.chipArrow}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ) : null}
     </g>
   );
 }

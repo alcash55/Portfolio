@@ -1,5 +1,4 @@
 import type { ProjectSlug } from './pages';
-import { ACTION_COUNT_TITLE } from './checks';
 
 /** One row of the chapters index. `id` is the in-page anchor the row links to. */
 export interface IndexItem {
@@ -41,7 +40,7 @@ export const CHAPTER_GROUPS: readonly IndexGroup[] = [
     items: [
       { n: 8, id: 'experience', title: 'Solea Energy' },
       { n: 9, id: 'ncr-voyix', title: 'NCR Voyix' },
-      { n: 10, id: 'ncr-store-health', title: 'NCR Store Health' },
+      { n: 10, id: 'ncr-store-health', title: 'NCR' },
       { n: 11, id: 'education', title: 'Education' },
     ],
   },
@@ -72,7 +71,7 @@ export const ABOUT = {
   overline: 'About me',
   heading: 'Alex Cash builds the Go API and the page that reads it.',
   paragraph:
-    "I'm a software engineer in Memphis, TN. I work the whole stack in Go, TypeScript and React. That means Go or Node.js services, React micro-frontends and everything in between. Outside work I walk two dogs, Koda and Troy, and I coached lacrosse.",
+    "I'm a software engineer in Memphis, TN. I work the whole stack in Go, TypeScript and React. That means Go or Node.js services, React micro-frontends and everything in between. Outside work I walk two dogs, Koda and Troy. I'm a former Division I lacrosse player, and I coached the sport for three years.",
   availability: "Let's work together.",
   message: { label: 'Message Alex', ariaLabel: 'Message Alex (goes to the contact form)' },
   social: [
@@ -87,6 +86,15 @@ export const ABOUT = {
     src: '/images/joshua_tree.webp',
     width: 565,
     height: 424,
+  },
+  dogs: {
+    n: 1,
+    label: 'Dogs',
+    caption: 'Koda (left) and Troy (right).',
+    src: '/media/koda_and_troy.webp',
+    width: 800,
+    height: 600,
+    alt: 'Koda, a black and white doodle, and Troy, a red-brown doodle, sit side by side on the grass looking up with their tongues out.',
   },
 } as const;
 
@@ -121,6 +129,8 @@ export interface ProjectChapterSpec {
   readonly fig: FigSpec;
   /** True when the figure sits on the left. */
   readonly reverse: boolean;
+  /** With `reverse`, a phone still reads the prose first. */
+  readonly textFirstOnPhone?: boolean;
   /** Tall chapters get extra room so the figure can stay in view. */
   readonly big: boolean;
 }
@@ -143,14 +153,14 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
       },
       {
         kind: 'proof',
-        text: 'Lighthouse accessibility 100 on the home, project, experience and contact pages, mobile and desktop.',
+        text: "Every page passes axe's WCAG 2.2 AA checks on phone and desktop, in light and dark, on every pull request.",
       },
     ],
     links: [
       { kind: 'write-up', slug: 'portfolio-website', label: WRITE_UP },
       { kind: 'external', label: GITHUB, href: 'https://github.com/alcash55/Portfolio' },
     ],
-    fig: { n: 1, label: 'Recording', caption: 'Version 1: the current site' },
+    fig: { n: 2, label: 'Recording', caption: 'A 20-second tour of this site' },
     reverse: true,
     big: true,
   },
@@ -183,7 +193,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
       { kind: 'external', label: GITHUB, href: 'https://github.com/alcash55/Little-Town' },
     ],
     fig: {
-      n: 2,
+      n: 3,
       label: 'Recording',
       caption: 'React, TypeScript, Express, Supabase, PostgreSQL',
       meta: 'Demo data',
@@ -199,7 +209,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     paragraphs: [
       {
         kind: 'body',
-        text: `${ACTION_COUNT_TITLE} GitHub Actions my other repos call from CI, from a secret scan to an accessibility check. Each one reports back as a single pull request comment that stays current.`,
+        text: 'Reusable GitHub Actions that my other repos call from CI, from a secret scan to an accessibility check. Each one reports back as a single pull request comment that stays current.',
       },
       {
         kind: 'proof',
@@ -210,8 +220,9 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
       { kind: 'write-up', slug: 'ac-composite-actions', label: WRITE_UP },
       { kind: 'external', label: GITHUB, href: 'https://github.com/alcash55/ac-composite-actions' },
     ],
-    fig: { n: 3, label: 'Actions', caption: 'JavaScript, GitHub Actions, Bun, Vitest' },
+    fig: { n: 4, label: 'Actions', caption: 'JavaScript, GitHub Actions, Bun, Vitest' },
     reverse: true,
+    textFirstOnPhone: true,
     big: true,
   },
   {
@@ -239,7 +250,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     ],
     note: PRIVATE,
     fig: {
-      n: 4,
+      n: 5,
       label: 'Recording',
       caption: 'TypeScript, Node.js, FFmpeg, yt-dlp, faster-whisper',
     },
@@ -268,7 +279,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     note: PRIVATE,
     afterLinks:
       'Single-player, about 62 MB, for a computer with a keyboard and mouse. Steam co-op does not run in a browser.',
-    fig: { n: 5, label: 'Recording', caption: 'Unity 6, C#, Unity Test Framework' },
+    fig: { n: 6, label: 'Recording', caption: 'Unity 6, C#, Unity Test Framework' },
     reverse: true,
     big: false,
   },
@@ -300,7 +311,7 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
         href: 'https://github.com/alcash55/Royalty-VS-Code-Theme',
       },
     ],
-    fig: { n: 6, label: 'Recording', caption: 'VS Code, Node.js, JSON' },
+    fig: { n: 7, label: 'Recording', caption: 'VS Code, Node.js, JSON' },
     reverse: false,
     big: true,
   },

@@ -40,15 +40,16 @@ describe('HomeDiagram', () => {
     expect(items[0]).toHaveTextContent(
       'Product teams keep their Markdown in their own GitHub repositories.',
     );
-    expect(items[0]?.closest('.hd-sr')).not.toBeNull();
+    expect(items[0]?.closest('.sr')).not.toBeNull();
     expect(container.querySelector('figcaption')).toBeNull();
-    expect(container.querySelector('.alt-t')).toBeNull();
-    expect(container.querySelector('.flows')).toBeNull();
+    // The wide Diagram's caption and numbered list are not part of this one.
+    expect(screen.queryByText('Text version.')).toBeNull();
+    expect(screen.getAllByRole('list')).toHaveLength(1);
   });
 
   it('draws every edge, in order, with its stagger index', () => {
     const { container } = render(<HomeDiagram diagram={HOME_DIAGRAMS.solea} />);
-    const edges = [...container.querySelectorAll('svg .e')];
+    const edges = [...container.querySelectorAll('svg g[style*="--i"]')];
     expect(edges).toHaveLength(8);
     expect(edges.map((e) => (e as HTMLElement).style.getPropertyValue('--i'))).toEqual([
       '0',
@@ -63,15 +64,17 @@ describe('HomeDiagram', () => {
   });
 
   it('draws the Store and Country chips inside the dashboard node', () => {
-    const { container } = render(<HomeDiagram diagram={HOME_DIAGRAMS['ncr-store-health']} />);
-    const chips = [...container.querySelectorAll('svg .n.in text')].map((t) => t.textContent);
-    expect(chips).toEqual(['Store', 'Country']);
+    render(<HomeDiagram diagram={HOME_DIAGRAMS['ncr-store-health']} />);
+    const svg = screen.getByRole('img');
+    expect(within(svg).getByText('Store')).toBeInTheDocument();
+    expect(within(svg).getByText('Country')).toBeInTheDocument();
   });
 
   it('ships the final state in the server HTML: no running, hidden or dimmed state', () => {
     const html = renderToStaticMarkup(<HomeDiagram diagram={HOME_DIAGRAMS.solea} />);
     expect(html).toContain('Seven ISO submission APIs');
-    expect(html).not.toMatch(/class="[^"]*\brun\b/);
+    // Match the attribute only: class names such as in-data-run:animate-* contain the same text.
+    expect(html).not.toMatch(/ data-run[ =>]/);
     expect(html).not.toContain('opacity');
   });
 
@@ -79,9 +82,9 @@ describe('HomeDiagram', () => {
     const io = stubIntersectionObserver();
     const { container } = render(<HomeDiagram diagram={HOME_DIAGRAMS.solea} />);
     const root = container.firstElementChild as Element;
-    expect(root).not.toHaveClass('run');
+    expect(root).not.toHaveAttribute('data-run');
     act(() => io.show(root));
-    expect(root).toHaveClass('run');
+    expect(root).toHaveAttribute('data-run');
     expect(io.watching(root)).toBe(0);
   });
 
@@ -91,7 +94,7 @@ describe('HomeDiagram', () => {
     const { container } = render(<HomeDiagram diagram={HOME_DIAGRAMS.solea} />);
     const root = container.firstElementChild as Element;
     expect(io.watching(root)).toBe(0);
-    expect(root).not.toHaveClass('run');
+    expect(root).not.toHaveAttribute('data-run');
   });
 
   it('gives each of the three diagrams its own ids, so two on one page do not collide', () => {

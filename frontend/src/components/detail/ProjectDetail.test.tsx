@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DETAILS, type GallerySlide } from '~/content/projects';
 import { stubIntersectionObserver, stubMedia } from '../figures/figureTestKit';
 import { renderDetail } from './detailTestKit';
+import { PILL } from './pageStyles';
 import { MediaSection } from './ProjectDetail';
 
 describe('ProjectDetail header', () => {
@@ -51,14 +52,18 @@ describe('ProjectDetail header', () => {
       expect(a).toHaveAttribute('href', expected.href);
       expect(a).toHaveAttribute('target', '_blank');
       expect(a).toHaveAttribute('rel', expect.stringContaining('noopener'));
-      expect(a.classList.contains('btn-primary')).toBe(i === 0);
-      expect(a.classList.contains('btn-2')).toBe(i !== 0);
+      // Only the first link is the primary action.
+      const [wanted, other] =
+        i === 0 ? [PILL.primary, PILL.secondary] : [PILL.secondary, PILL.primary];
+      expect(a).toHaveClass(wanted);
+      expect(a).not.toHaveClass(other);
     }
   });
 
-  it('says the code is private on an NCR page and shows no buttons', async () => {
+  it('says once that the code belongs to NCR and shows no buttons', async () => {
     await renderDetail('ncr-voyix-docs');
-    expect(await screen.findByText('The code belongs to NCR.')).toBeInTheDocument();
+    expect(await screen.findByText(/the site and its code belong to NCR/)).toBeInTheDocument();
+    expect(screen.queryByText('The code belongs to NCR.')).toBeNull();
     expect(screen.queryByRole('link', { name: /opens in a new tab/ })).toBeNull();
   });
 
@@ -123,22 +128,49 @@ describe('ProjectDetail body', () => {
   });
 
   it('writes "What I built" paragraphs with code spans', async () => {
-    const { container } = await renderDetail('ac-composite-actions');
+    await renderDetail('ac-composite-actions');
     const heading = await screen.findByRole('heading', { level: 2, name: 'What I built' });
     const section = heading.closest('section');
     if (!section) throw new Error('What I built heading is not inside a section');
     expect(section.querySelectorAll('p')).toHaveLength(
       DETAILS['ac-composite-actions'].built.length,
     );
-    const codes = [...container.querySelectorAll('.built code')].map((el) => el.textContent);
+    const codes = [...section.querySelectorAll('code')].map((el) => el.textContent);
     expect(codes).toContain('security/betterleaks');
   });
 
-  it('lists every measured fact', async () => {
+  it('shows each stat as a large figure followed by its label', async () => {
     await renderDetail('clipper');
     const heading = await screen.findByRole('heading', { level: 2, name: 'What I measured' });
-    const list = within(heading.closest('section')!).getByRole('list');
-    expect(within(list).getAllByRole('listitem')).toHaveLength(DETAILS.clipper.facts.length);
+    const items = within(within(heading.closest('section')!).getByRole('list')).getAllByRole(
+      'listitem',
+    );
+    expect(items.map((li) => li.firstElementChild?.textContent)).toEqual(['3.0', '387', '8 of 8']);
+    expect(items[1]).toHaveTextContent(/387.*tests pass\./);
+    expect(items[2]).toHaveTextContent(/real clips/);
+  });
+
+  it('renders code spans inside a stat label', async () => {
+    await renderDetail('vscode-royalty-theme');
+    const heading = await screen.findByRole('heading', { level: 2, name: 'What I measured' });
+    const codes = [...heading.closest('section')!.querySelectorAll('code')];
+    expect(codes.map((el) => el.textContent)).toEqual(['npm run check']);
+  });
+
+  it('leaves the measured section out of a page with no stats', async () => {
+    for (const slug of ['ncr-voyix-docs', 'starbucks-store-health'] as const) {
+      const { unmount } = await renderDetail(slug);
+      await screen.findByRole('heading', { level: 1 });
+      expect(screen.queryByRole('heading', { name: 'What I measured' }), slug).toBeNull();
+      expect(document.querySelector('#h-wm'), slug).toBeNull();
+      unmount();
+    }
+  });
+
+  it('shows the Voyix bullets that moved off the home page in What I built', async () => {
+    await renderDetail('ncr-voyix-docs');
+    const heading = await screen.findByRole('heading', { level: 2, name: 'What I built' });
+    expect(heading.closest('section')).toHaveTextContent('Commerce Design Docs');
   });
 });
 

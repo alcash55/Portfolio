@@ -8,10 +8,11 @@ test.describe('detail pages with JavaScript off', () => {
   }) => {
     await page.goto('/projects/clipper');
     await expect(page.getByRole('img', { name: /Architecture diagram of Clipper/ })).toBeVisible();
-    // The final state is in the markup: no class waits for a script to reveal the figure.
-    const classes = await page.locator('figure.dg').getAttribute('class');
-    expect(classes).toBe('dg');
-    await expect(page.locator('figure.dg .e').first()).toHaveCSS('opacity', '1');
+    // The final state is in the markup: nothing waits for a script to reveal the figure.
+    const diagram = page.locator('figure', { has: page.locator('svg[role="img"]') });
+    await expect(diagram).not.toHaveAttribute('data-run');
+    // Edges come before nodes in the drawing, so the first group is an edge.
+    await expect(diagram.locator('svg > g').first()).toHaveCSS('opacity', '1');
     await expect(page.getByText('Text version.')).toBeVisible();
     // The recording lives on the home chapter, so the write-up carries no video at all.
     await expect(page.locator('video')).toHaveCount(0);
@@ -20,8 +21,8 @@ test.describe('detail pages with JavaScript off', () => {
   test('the narrow-screen numbered list replaces the drawing under 960px', async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.phone);
     await page.goto('/projects/ac-composite-actions');
-    await expect(page.locator('.dg-svg')).toBeHidden();
-    await expect(page.locator('ol.flows li')).toHaveCount(7);
+    await expect(page.locator('svg[role="img"]')).toBeHidden();
+    await expect(page.locator('figure ol > li')).toHaveCount(7);
   });
 });
 
@@ -73,6 +74,23 @@ test.describe('detail pages', () => {
     await expect(page).toHaveURL(/\/#ncr-voyix$/);
   });
 
+  test('the NCR write-ups carry what the home page no longer hides, and skip the empty stats', async ({
+    page,
+  }) => {
+    await page.goto('/experience/ncr-voyix-docs');
+    await expect(
+      page.getByText(/Commerce Design Docs that product teams build against/),
+    ).toBeVisible();
+    await expect(page.getByText(/static analysis composite GitHub Actions/)).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'What I measured' })).toHaveCount(0);
+
+    await page.goto('/experience/starbucks-store-health');
+    await expect(
+      page.getByText(/instrumented digital connected services with Google Tag Manager/),
+    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'What I measured' })).toHaveCount(0);
+  });
+
   test('the experience nav link reads as current on an experience page', async ({ page }) => {
     await page.goto('/experience/starbucks-store-health');
     await expect(
@@ -91,7 +109,9 @@ test.describe('detail pages', () => {
       .getByRole('heading', { level: 2, name: 'What I measured' })
       .evaluate((el) => el.getBoundingClientRect().top);
     const header = await page.locator('header').evaluate((el) => el.getBoundingClientRect().height);
-    const crumb = await page.locator('.crumb').evaluate((el) => el.getBoundingClientRect().height);
+    const crumb = await page
+      .getByRole('navigation', { name: 'Breadcrumb' })
+      .evaluate((el) => el.getBoundingClientRect().height);
     expect(top).toBeGreaterThanOrEqual(header + crumb);
   });
 });
@@ -103,9 +123,11 @@ test.describe('reduced motion', () => {
     test(`the diagram edges are visible at rest with motion set to ${reduce}`, async ({ page }) => {
       await page.emulateMedia({ reducedMotion: reduce });
       await page.goto('/projects/ac-composite-actions');
-      await page.locator('figure.dg').scrollIntoViewIfNeeded();
+      const diagram = page.locator('figure', { has: page.locator('svg[role="img"]') });
+      await diagram.scrollIntoViewIfNeeded();
       // The animation only fades edges in. Once it ends, or when there is none, they are opaque.
-      await expect(page.locator('figure.dg .e').first()).toHaveCSS('opacity', '1', {
+      // Edges come before nodes in the drawing, so the first group is an edge.
+      await expect(diagram.locator('svg > g').first()).toHaveCSS('opacity', '1', {
         timeout: 8000,
       });
     });

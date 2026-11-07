@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import {
   CHAPTER_COUNT,
   CHAPTER_GROUPS,
@@ -6,8 +5,48 @@ import {
   chapterNumber,
   chapterTitle,
 } from '~/content/home';
+import { useChapterIndex } from './useChapterIndex';
+import { useCurrentChapter } from './useCurrentChapter';
 
 const POPOVER_ID = 'cidx';
+
+// The counter needs the room the wordmark text takes below 480px (Header hides that text). On
+// the narrowest phones the title leaves the layout and stays in the button's name, because it
+// would cut the total ("01 / 1...").
+const COUNTER = [
+  'mx-auto flex min-h-11 min-w-0 max-w-max flex-1 items-center justify-center gap-[0.5rem]',
+  'rounded-full border-0 bg-transparent px-[0.75rem] cursor-pointer',
+  'text-[0.8125rem] text-ink-2 tabular-nums min-[640px]:text-[0.875rem] hover:bg-fill',
+  'max-[360px]:gap-[0.25rem] max-[360px]:px-[0.25rem]',
+].join(' ');
+const COUNTER_TEXT = 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap';
+const COUNTER_TITLE = 'max-[480px]:sr-only';
+const COUNTER_NUMBER = 'font-semibold text-ink';
+
+// A native popover under the header. Its centering is a transform, not Tailwind's translate,
+// because the open animation moves the translate property and would drag the centering with it.
+// Keep `display` off this element: the browser hides a closed popover with it. `cidx` is a
+// hook: HomeEffects leaves clicks inside it to the index's own handler.
+const INDEX = [
+  'cidx',
+  'fixed inset-auto top-[calc(var(--hdr)+0.5rem)] left-1/2 m-0 [transform:translateX(-50%)]',
+  'w-[min(30rem,calc(100vw-1.5rem))] max-h-[calc(100svh-var(--hdr)-1.5rem)] overflow-auto',
+  'rounded-[24px] border border-line bg-surface px-[1rem] pt-[1.1rem] pb-[1rem] text-ink',
+  'shadow-[0_24px_70px_#1c191747] backdrop:bg-scrim',
+  'motion-safe:open:animate-cidx-in',
+].join(' ');
+const INDEX_TITLE = 'mb-[0.5rem] ml-[0.75rem] font-display text-[1.5rem] leading-[1.1] font-normal';
+const INDEX_GROUP = 'mt-2';
+const INDEX_GROUP_TITLE = 'mt-2 mb-1 ml-3 text-[0.8125rem] leading-[1.2] font-medium text-ink-3';
+// The current row gets a fill, a heavier weight and an accent bar. The focus ring sits inside the
+// row, where the list's scroll box would otherwise clip it.
+const INDEX_ROW = [
+  'grid min-h-11 grid-cols-[2.25rem_1fr] items-center rounded-[12px] px-[0.75rem] text-base',
+  'hover:bg-fill focus-visible:-outline-offset-3',
+  'aria-[current=true]:bg-fill-2 aria-[current=true]:font-semibold',
+  'aria-[current=true]:[box-shadow:inset_3px_0_0_var(--accent)]',
+].join(' ');
+const INDEX_NUMBER = 'text-[0.875rem] text-ink-3 tabular-nums';
 
 /**
  * Header counter ("06 / 12 . Golem Miners") and the chapter index it opens.
@@ -16,107 +55,22 @@ const POPOVER_ID = 'cidx';
  * current-row mark need script.
  */
 export function ChapterNav() {
-  const [current, setCurrent] = useState(1);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const focusTimer = useRef<number | undefined>(undefined);
-
-  // The chapter that crosses a line just above the middle of the viewport is "current".
-  // Chapters are read from the page on every scroll. A header that mounts before the home
-  // chapters do (a nav click from a project page) would otherwise hold an empty list and
-  // never update.
-  useEffect(() => {
-    let frame = 0;
-    const read = () => {
-      frame = 0;
-      const line = window.innerHeight * 0.475;
-      for (const chapter of document.querySelectorAll<HTMLElement>('[data-ch]')) {
-        const n = Number(chapter.dataset.ch);
-        if (!Number.isInteger(n)) continue;
-        const { top, bottom } = chapter.getBoundingClientRect();
-        if (top <= line && line < bottom) {
-          setCurrent(n);
-          return;
-        }
-      }
-    };
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(read);
-    };
-    schedule();
-    // A jump to a hash scrolls after the route renders, so look again once it has settled.
-    const settle = window.setTimeout(read, 250);
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-    window.addEventListener('hashchange', schedule);
-    return () => {
-      window.clearTimeout(settle);
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-      window.removeEventListener('hashchange', schedule);
-    };
-  }, []);
-
-  // Opening puts focus on the current row, so arrow keys start where you are.
-  useEffect(() => {
-    const popover = popoverRef.current;
-    if (!popover) return;
-    const onToggle = (event: Event) => {
-      if ((event as ToggleEvent).newState !== 'open') return;
-      const target =
-        popover.querySelector<HTMLElement>('[aria-current]') ?? popover.querySelector('a');
-      target?.focus({ preventScroll: true });
-    };
-    popover.addEventListener('toggle', onToggle);
-    return () => popover.removeEventListener('toggle', onToggle);
-  }, []);
-
-  useEffect(() => () => window.clearTimeout(focusTimer.current), []);
-
+  const current = useCurrentChapter();
+  const { popoverRef, onKeyDown, onPick } = useChapterIndex();
   const title = chapterTitle(current);
-
-  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    const links = Array.from(event.currentTarget.querySelectorAll<HTMLAnchorElement>('a'));
-    const at = links.indexOf(document.activeElement as HTMLAnchorElement);
-    const last = links.length - 1;
-    const next =
-      event.key === 'ArrowDown'
-        ? Math.min(last, at + 1)
-        : event.key === 'ArrowUp'
-          ? Math.max(0, at - 1)
-          : event.key === 'Home'
-            ? 0
-            : event.key === 'End'
-              ? last
-              : null;
-    if (next === null) return;
-    event.preventDefault();
-    links[next]?.focus({ preventScroll: true });
-  }
-
-  // The hash jump moves the page. Focus follows to the heading once the popover has
-  // handed focus back, which Firefox does after a short delay.
-  function onPick(id: string) {
-    popoverRef.current?.hidePopover();
-    const target = document.getElementById(id);
-    const heading = target?.matches('h1, h2')
-      ? target
-      : target?.querySelector<HTMLElement>('h1, h2');
-    window.clearTimeout(focusTimer.current);
-    if (heading)
-      focusTimer.current = window.setTimeout(() => heading.focus({ preventScroll: true }), 120);
-  }
 
   return (
     <>
-      <button className="ctr" id="ctr" type="button" popoverTarget={POPOVER_ID}>
+      <button className={COUNTER} id="ctr" type="button" popoverTarget={POPOVER_ID}>
         {/* No aria-label: the name comes from the visible text, so it contains it. */}
-        <span className="ctr-t">
-          <span className="sr">Chapter</span> <b>{chapterNumber(current)}</b> / {CHAPTER_COUNT}{' '}
-          <span className="ctr-title">&middot; {title}</span>
+        <span className={COUNTER_TEXT}>
+          <span className="sr">Chapter</span>{' '}
+          <b className={COUNTER_NUMBER}>{chapterNumber(current)}</b> / {CHAPTER_COUNT}{' '}
+          <span className={COUNTER_TITLE}>&middot; {title}</span>
           <span className="sr">. Open chapter index</span>
         </span>
         <svg
+          className="shrink-0"
           width="14"
           height="14"
           viewBox="0 0 14 14"
@@ -132,29 +86,32 @@ export function ChapterNav() {
       </button>
       <div
         id={POPOVER_ID}
-        className="cidx"
+        className={INDEX}
         popover="auto"
         role="dialog"
         aria-labelledby="cidx-h"
         ref={popoverRef}
         onKeyDown={onKeyDown}
       >
-        <h2 id="cidx-h">{CHAPTER_INDEX_TITLE}</h2>
+        <h2 id="cidx-h" className={INDEX_TITLE}>
+          {CHAPTER_INDEX_TITLE}
+        </h2>
         <nav aria-label={CHAPTER_INDEX_TITLE}>
           {CHAPTER_GROUPS.map((group) => (
-            <section key={group.label}>
-              <h3>{group.label}</h3>
+            <section key={group.label} className={INDEX_GROUP}>
+              <h3 className={INDEX_GROUP_TITLE}>{group.label}</h3>
               <ol>
                 {group.items.map((item) => (
                   <li key={item.n}>
                     <a
+                      className={INDEX_ROW}
                       href={`#${item.id}`}
                       data-n={item.n}
                       aria-current={item.n === current ? 'true' : undefined}
                       onClick={() => onPick(item.id)}
                     >
-                      <span className="n">{chapterNumber(item.n)}</span>
-                      <span className="t">{item.title}</span>
+                      <span className={INDEX_NUMBER}>{chapterNumber(item.n)}</span>
+                      <span>{item.title}</span>
                     </a>
                   </li>
                 ))}

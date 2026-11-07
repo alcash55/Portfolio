@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSiteStats, testCountFact } from './siteStats';
+import { parseSiteStats, testCountStat } from './siteStats';
 
 describe('parseSiteStats', () => {
   it('reads both counts from the generated module', () => {
@@ -45,45 +45,47 @@ describe('parseSiteStats', () => {
   });
 });
 
-describe('testCountFact', () => {
-  it('names both counts when both are known', () => {
-    expect(testCountFact({ unitTests: 174, browserTests: 194 })).toEqual({
-      lead: '174 and 194 tests',
-      body: '174 unit tests and 194 browser tests gate every deploy.',
+describe('testCountStat', () => {
+  it('shows the total as the figure and splits it in the label when both counts are known', () => {
+    expect(testCountStat({ unitTests: 174, browserTests: 194 })).toEqual({
+      figure: '368',
+      label: 'tests gate every deploy: 174 unit and 194 browser.',
     });
   });
 
   it('puts a thousands separator in a long count', () => {
-    expect(testCountFact({ unitTests: 1234, browserTests: 5 })?.body).toBe(
-      '1,234 unit tests and 5 browser tests gate every deploy.',
-    );
+    expect(testCountStat({ unitTests: 1234, browserTests: 5 })).toEqual({
+      figure: '1,239',
+      label: 'tests gate every deploy: 1,234 unit and 5 browser.',
+    });
   });
 
   it('renders only the unit count when the browser count is unknown', () => {
-    expect(testCountFact({ unitTests: 174, browserTests: null })).toEqual({
-      lead: '174 unit tests',
-      body: '174 unit tests gate every deploy.',
+    expect(testCountStat({ unitTests: 174, browserTests: null })).toEqual({
+      figure: '174',
+      label: 'unit tests gate every deploy.',
     });
   });
 
   it('renders only the browser count when the unit count is unknown', () => {
-    expect(testCountFact({ unitTests: null, browserTests: 194 })).toEqual({
-      lead: '194 browser tests',
-      body: '194 browser tests gate every deploy.',
+    expect(testCountStat({ unitTests: null, browserTests: 194 })).toEqual({
+      figure: '194',
+      label: 'browser tests gate every deploy.',
     });
   });
 
   it('uses the singular for a count of one', () => {
-    expect(testCountFact({ unitTests: 1, browserTests: null })?.body).toBe(
-      '1 unit test gates every deploy.',
-    );
+    expect(testCountStat({ unitTests: 1, browserTests: null })).toEqual({
+      figure: '1',
+      label: 'unit test gates every deploy.',
+    });
   });
 
-  it('returns nothing when no count is known, so the row is cut', () => {
-    expect(testCountFact({ unitTests: null, browserTests: null })).toBeUndefined();
+  it('returns nothing when no count is known, so the stat is cut', () => {
+    expect(testCountStat({ unitTests: null, browserTests: null })).toBeUndefined();
   });
 
   it('returns nothing for a count of zero, since "0 tests gate every deploy" is false', () => {
-    expect(testCountFact({ unitTests: 0, browserTests: 0 })).toBeUndefined();
+    expect(testCountStat({ unitTests: 0, browserTests: 0 })).toBeUndefined();
   });
 });

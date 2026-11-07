@@ -1,11 +1,8 @@
 import { Chapter } from '~/components/home/Chapter';
 import { EDUCATION } from '~/content/people';
-import { resumeInfo, resumeSizeLabel, type ResumeInfo } from '~/lib/resume';
 import { PhotoCarousel } from './PhotoCarousel';
-import { ResumeLink } from './ResumeLink';
-import './people.css';
 
-export function Education({ resume = resumeInfo }: { resume?: ResumeInfo }) {
+export function Education() {
   return (
     <Chapter
       id={EDUCATION.id}
@@ -24,10 +21,6 @@ export function Education({ resume = resumeInfo }: { resume?: ResumeInfo }) {
       {EDUCATION.lines.map((line) => (
         <p key={line}>{line}</p>
       ))}
-      <div className="links">
-        <ResumeLink info={resume} location="education" className="pp-btn" />
-        {resume.available ? <small className="note">{resumeSizeLabel(resume.bytes)}</small> : null}
-      </div>
     </Chapter>
   );
 }

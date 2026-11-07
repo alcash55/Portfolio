@@ -134,7 +134,7 @@ describe('in-page links', () => {
 describe('ReadingLine', () => {
   it('is decorative', () => {
     const { container } = render(<ReadingLine />);
-    expect(container.querySelector('.prog')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('[data-reading-line]')).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('fills with scroll position where scroll timelines are missing', () => {
@@ -153,7 +153,9 @@ describe('ReadingLine', () => {
     act(() => {
       window.dispatchEvent(new Event('scroll'));
     });
-    expect(container.querySelector<HTMLElement>('.prog i')?.style.transform).toBe('scaleX(0.5)');
+    expect(container.querySelector<HTMLElement>('[data-reading-line] i')?.style.transform).toBe(
+      'scaleX(0.5)',
+    );
   });
 
   it('leaves the transform to CSS where scroll timelines exist', () => {
@@ -162,6 +164,6 @@ describe('ReadingLine', () => {
     act(() => {
       window.dispatchEvent(new Event('scroll'));
     });
-    expect(container.querySelector<HTMLElement>('.prog i')?.style.transform).toBe('');
+    expect(container.querySelector<HTMLElement>('[data-reading-line] i')?.style.transform).toBe('');
   });
 });

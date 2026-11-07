@@ -1,4 +1,6 @@
 const stroke = {
+  // The icons sit beside text in flex rows and must not squash when the text wraps.
+  className: 'shrink-0',
   fill: 'none',
   stroke: 'currentColor',
   strokeWidth: 1.75,

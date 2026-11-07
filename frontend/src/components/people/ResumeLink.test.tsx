@@ -15,7 +15,7 @@ describe('ResumeLink', () => {
   });
 
   it('records which resume link was clicked', async () => {
-    render(<ResumeLink info={{ available: true, bytes: 23_326 }} location="contact_band" />);
+    render(<ResumeLink location="footer" />);
     const link = screen.getByRole('link', { name: /^View resume/ });
     // The link opens a new tab. Keep jsdom from trying to navigate.
     link.addEventListener('click', (event) => event.preventDefault());
@@ -23,11 +23,11 @@ describe('ResumeLink', () => {
     await userEvent.click(link);
 
     expect(analytics.capture).toHaveBeenCalledTimes(1);
-    expect(analytics.capture).toHaveBeenCalledWith('resume_clicked', { location: 'contact_band' });
+    expect(analytics.capture).toHaveBeenCalledWith('resume_clicked', { location: 'footer' });
   });
 
   it('records nothing until the link is clicked', () => {
-    render(<ResumeLink info={{ available: false }} location="about" />);
+    render(<ResumeLink location="about" />);
     expect(analytics.capture).not.toHaveBeenCalled();
   });
 });

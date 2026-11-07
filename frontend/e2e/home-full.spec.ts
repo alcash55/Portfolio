@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test';
 import { expect, test, VIEWPORTS } from './fixtures';
 import { CHAPTER_COUNT } from '../src/content/home';
 
@@ -21,7 +22,7 @@ test.describe('home, assembled', () => {
   test('every project and experience figure has a real body', async ({ page }) => {
     await page.goto('/');
     const empty = await page
-      .locator('[data-slot="figure"], .fig-slot')
+      .locator('[data-slot="figure"]')
       .evaluateAll((els) => els.map((el) => el.closest('section')?.id));
     expect(empty, 'chapters still showing an empty figure slot').toEqual([]);
   });
@@ -86,17 +87,19 @@ test.describe('home chapter heights, desktop', () => {
     page,
   }) => {
     await page.goto('/');
-    const nested = await page.locator('.fig .mcap, .fig .checks').evaluateAll((els) =>
-      els.map((el) => {
-        const style = getComputedStyle(el);
-        return {
-          cls: el.className,
-          border: style.borderTopWidth,
-          shadow: style.boxShadow,
-          visible: el.getBoundingClientRect().height > 1,
-        };
-      }),
-    );
+    // The window around each recording is two levels above its video (window, clip box, video).
+    // The checks panel is the parent of its list.
+    const windows = page.locator('.fig video').locator('xpath=../..');
+    const panel = page.getByRole('list', { name: /actions in the repo/ }).locator('xpath=..');
+    const edgesOf = (loc: Locator) =>
+      loc.evaluateAll((els) =>
+        els.map((el) => {
+          const style = getComputedStyle(el);
+          return { cls: el.className, border: style.borderTopWidth, shadow: style.boxShadow };
+        }),
+      );
+    const nested = [...(await edgesOf(windows)), ...(await edgesOf(panel))];
+    expect(nested.length, 'windows and panels found').toBeGreaterThanOrEqual(5);
     for (const item of nested) {
       expect(item.border, `${item.cls} border`).toBe('0px');
       expect(item.shadow, `${item.cls} shadow`).toBe('none');
@@ -147,15 +150,13 @@ test.describe('home paging, desktop', () => {
     await expect.poll(scrollY, { message: 'one notch burst from the top' }).toBe(first + snapport);
   });
 
-  // Read more drops its text down in the prose column, so an open chapter is taller than
-  // the snapport. Its snap area grows with it. The next chapter must still come next.
-  test('with Read more open, paging still reaches the next chapter and skips none', async ({
+  // Solea lists its highlights in the chapter, so it can run taller than the snapport on a short
+  // screen. Paging from it must still reach the next chapter and skip none.
+  test('paging from the Solea chapter reaches the next chapter and skips none', async ({
     page,
   }) => {
     await page.goto('/');
     await page.evaluate(() => document.querySelector('#experience')?.scrollIntoView());
-    await page.locator('#experience summary').click();
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.mouse.click(5, 300);
     const header = await page
       .locator('header')
@@ -171,14 +172,8 @@ test.describe('home paging, desktop', () => {
         return hit ? Number(hit.dataset.ch) : 0;
       }, header);
     await expect.poll(reading, { message: 'starts in chapter 8' }).toBe(8);
-    const open = await page
-      .locator('#experience')
-      .evaluate((el) => el.getBoundingClientRect().height);
-    const snapport = VIEWPORTS.desktop.height - header;
-    expect(open, 'the open chapter is taller than one snapport').toBeGreaterThan(snapport);
-
     await page.keyboard.press('PageDown');
-    await expect.poll(reading, { message: 'PageDown from the open chapter' }).toBe(9);
+    await expect.poll(reading, { message: 'PageDown from chapter 8' }).toBe(9);
 
     await page.keyboard.press('PageUp');
     await expect.poll(reading, { message: 'PageUp back' }).toBe(8);

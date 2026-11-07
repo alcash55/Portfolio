@@ -11,28 +11,34 @@ test.describe('server HTML without JavaScript', () => {
       'Trade submissions for seven markets',
       'Rebuilding the Voyix docs site',
       'Store Health for Starbucks UK',
-      'Degrees in software, then coaching lacrosse',
+      'Division I lacrosse, software degrees, then coaching',
       'Say hi.',
     ]) {
       await expect(page.getByRole('heading', { level: 2, name })).toBeAttached();
     }
     await expect(page.getByRole('form', { name: 'Message Alex' })).toBeAttached();
-    // Read more is a native details element, so it opens with no script.
-    await expect(page.locator('details.pp-more')).toHaveCount(3);
+    // No chapter hides text behind a control. Solea has no write-up, so its highlights are in the HTML.
+    await expect(page.locator('details')).toHaveCount(0);
+    await expect(page.locator('#experience').getByText(/Portfolio Credit Analysis/)).toBeAttached();
     // The carousel buttons need script, so none ship in the server HTML.
     await expect(page.getByRole('button', { name: 'Next photo' })).toHaveCount(0);
-    await expect(page.locator('#education .pp-slide')).toHaveCount(4);
+    await expect(page.locator('#education').getByRole('group', { name: / of 4$/ })).toHaveCount(4);
     // The certificates are in the server HTML too: a row and a slide for each course.
-    await expect(page.locator('#certificates .pp-certs li')).toHaveCount(4);
-    await expect(page.locator('#certificates .pp-slide')).toHaveCount(4);
+    await expect(page.locator('#certificates').getByRole('listitem')).toHaveCount(4);
+    await expect(page.locator('#certificates').getByRole('group', { name: / of 4$/ })).toHaveCount(
+      4,
+    );
     await expect(page.getByRole('button', { name: 'Next certificate' })).toHaveCount(0);
   });
+});
 
-  test('/contact renders its h1 and the form', async ({ page }) => {
-    await page.goto('/contact');
-    await expect(page.getByRole('heading', { level: 1, name: 'Get in touch.' })).toBeAttached();
-    await expect(page.getByRole('form', { name: 'Message Alex' })).toBeAttached();
-  });
+test('/contact redirects to the form on the home page', async ({ request, page }) => {
+  const response = await request.get('/contact', { maxRedirects: 0 });
+  expect(response.status()).toBe(301);
+  expect(response.headers().location).toMatch(/\/#contact$/);
+  await page.goto('/contact');
+  await expect(page).toHaveURL(/\/#contact$/);
+  await expect(page.getByRole('form', { name: 'Message Alex' })).toBeVisible();
 });
 
 test.describe('contact form', () => {
@@ -42,7 +48,7 @@ test.describe('contact form', () => {
     page,
   }) => {
     const posted = await stubContact(page, ok);
-    await page.goto('/contact');
+    await page.goto('/');
     await formReady(page);
     await send(page).click();
 
@@ -55,7 +61,7 @@ test.describe('contact form', () => {
 
   test('a good submit posts once and moves focus to the sent heading', async ({ page }) => {
     const posted = await stubContact(page, ok);
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
 
@@ -73,7 +79,7 @@ test.describe('contact form', () => {
   test('a server error keeps the typing and a retry then succeeds', async ({ page }) => {
     let calls = 0;
     await stubContact(page, (route) => (++calls === 1 ? fail(502)(route) : ok(route)));
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
 
@@ -88,7 +94,7 @@ test.describe('contact form', () => {
 
   test('a rate limit says to wait', async ({ page }) => {
     await stubContact(page, fail(429));
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
     await expect(page.getByRole('alert')).toContainText(
@@ -101,7 +107,7 @@ test.describe('contact form', () => {
       await new Promise((resolve) => setTimeout(resolve, 4600));
       await ok(route);
     });
-    await page.goto('/contact');
+    await page.goto('/');
     await fillForm(page);
     await send(page).click();
 
@@ -112,86 +118,56 @@ test.describe('contact form', () => {
     await expect(page.getByText('Waking the server. This can take up to a minute.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Message sent.' })).toBeVisible();
   });
-
-  test('the home band posts through the same form', async ({ page }) => {
-    const posted = await stubContact(page, ok);
-    await page.goto('/');
-    await fillForm(page);
-    await send(page).click();
-    await expect(page.getByRole('heading', { name: 'Message sent.' })).toBeVisible();
-    expect(posted).toHaveLength(1);
-  });
 });
 
 test.describe('experience and education', () => {
   test.use({ viewport: VIEWPORTS.desktop });
 
-  test('Read more drops the text down in the prose column and the figure stays put', async ({
+  test('no chapter says Read more, and only Solea lists highlights, beside its figure', async ({
     page,
   }) => {
     await page.goto('/');
-    const details = page.locator('details.pp-more').first();
-    const summary = details.locator('summary');
-    const chapter = details.locator('xpath=ancestor::section');
-    const figure = chapter.locator('figure').first();
-    const prose = chapter.locator('.prose');
-    await summary.scrollIntoViewIfNeeded();
-    await page.evaluate(() => document.fonts.ready);
-    // The chapter slides in 30px as it fades in. Measure once it is revealed and has settled.
-    await expect(prose).toHaveAttribute('data-rv', 'in');
-    await expect(figure.locator('xpath=ancestor-or-self::*[@data-rv]').first()).toHaveAttribute(
-      'data-rv',
-      'in',
-    );
-    await page.waitForFunction(() =>
-      [...document.querySelectorAll<HTMLElement>('[data-rv="in"]')].every(
-        (el) => getComputedStyle(el).opacity === '1' && getComputedStyle(el).transform === 'none',
-      ),
-    );
-    // Offsets from the chapter's own corner, so a scroll between the two readings changes nothing.
-    const offsets = async () => {
-      const [c, f, s] = await Promise.all([
-        chapter.boundingBox(),
-        figure.boundingBox(),
-        summary.boundingBox(),
-      ]);
-      return {
-        figure: { x: f!.x - c!.x, y: f!.y - c!.y, w: f!.width, h: f!.height },
-        summary: { x: s!.x - c!.x, y: s!.y - c!.y },
-      };
-    };
-    const before = await offsets();
-    await summary.click();
-    await expect(details).toHaveAttribute('open', '');
-    const list = details.getByText(/Portfolio Credit Analysis/);
-    await expect(list).toBeVisible();
+    await expect(page.getByText('Read more')).toHaveCount(0);
+    await expect(page.locator('details')).toHaveCount(0);
 
-    // The text sits inside the prose column, below the summary, and covers nothing.
-    const [proseBox, listBox, summaryBox] = await Promise.all([
-      prose.boundingBox(),
+    const solea = page.locator('#experience');
+    const list = solea.locator('.prose').getByRole('list');
+    await list.scrollIntoViewIfNeeded();
+    await expect(list.getByRole('listitem')).toHaveCount(6);
+    await expect(list.getByText(/Portfolio Credit Analysis/)).toBeVisible();
+    await expect(
+      solea.getByText('Go, TypeScript, React, Tailwind CSS, Snowflake, Grafana'),
+    ).toBeVisible();
+    // The list stays inside the prose column, clear of the figure.
+    const [prose, items, figure] = await Promise.all([
+      solea.locator('.prose').boundingBox(),
       list.boundingBox(),
-      summary.boundingBox(),
+      solea.locator('figure').first().boundingBox(),
     ]);
-    expect(listBox!.y, 'text starts below the summary').toBeGreaterThanOrEqual(
-      summaryBox!.y + summaryBox!.height - 1,
+    expect(items!.x, 'list starts inside the prose column').toBeGreaterThanOrEqual(prose!.x);
+    expect(items!.x + items!.width, 'list ends inside the prose column').toBeLessThanOrEqual(
+      prose!.x + prose!.width + 1,
     );
-    expect(listBox!.x, 'text starts inside the prose column').toBeGreaterThanOrEqual(proseBox!.x);
-    expect(listBox!.x + listBox!.width, 'text ends inside the prose column').toBeLessThanOrEqual(
-      proseBox!.x + proseBox!.width + 1,
-    );
-    expect(await offsets(), 'the figure and the summary do not move').toEqual(before);
-    await expect(details.getByRole('button')).toHaveCount(0);
+    expect(
+      items!.x + items!.width <= figure!.x || figure!.x + figure!.width <= items!.x,
+      'list does not overlap the figure',
+    ).toBe(true);
 
-    await summary.click();
-    await expect(details).not.toHaveAttribute('open', '');
-    await expect(summary).toBeFocused();
+    // The roles with a write-up link to it and carry no list of their own.
+    for (const id of ['ncr-voyix', 'ncr-store-health']) {
+      await expect(page.locator(`#${id} .prose`).getByRole('list'), id).toHaveCount(0);
+      await expect(
+        page.locator(`#${id}`).getByRole('link', { name: /Read the write-up/ }),
+        id,
+      ).toBeVisible();
+    }
   });
 
   test('the carousel moves with its buttons and the arrow keys', async ({ page }) => {
     await page.goto('/');
     const region = page.getByRole('region', { name: 'Education and coaching photos' });
     await region.scrollIntoViewIfNeeded();
-    const status = page.locator('#education .pp-car-st');
+    const status = page.locator('#education').getByRole('status');
     await expect(status).toHaveText('1 of 4');
     await expect(page.getByRole('button', { name: 'Previous photo' })).toBeDisabled();
 
@@ -212,7 +188,7 @@ test.describe('experience and education', () => {
     await page.goto('/');
     const region = page.getByRole('region', { name: 'Master.dev certificates' });
     await region.scrollIntoViewIfNeeded();
-    const status = page.locator('#certificates .pp-car-st');
+    const status = page.locator('#certificates').getByRole('status');
     await expect(status).toHaveText('1 of 4');
     await page.getByRole('button', { name: 'Next certificate' }).click();
     await expect(status).toHaveText('2 of 4');
@@ -236,19 +212,20 @@ test.describe('experience and education', () => {
       .getByRole('region', { name: 'Education and coaching photos' })
       .scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: 'Next photo' }).click();
-    await expect(page.locator('#education .pp-car-st')).toHaveText('2 of 4');
+    await expect(page.locator('#education').getByRole('status')).toHaveText('2 of 4');
   });
 });
 
 test.describe('resume route', () => {
-  test('answers with the file or an explanation, never an error', async ({ request }) => {
+  // The e2e build points at an API host that cannot resolve (playwright.config.ts), so the
+  // Worker's fetch fails and this checks the failure path. Unit tests cover the PDF answer.
+  test('explains, with noindex, when the API cannot supply the PDF', async ({ request }) => {
     const response = await request.get('/resume', { maxRedirects: 0 });
-    if (response.status() === 302) {
-      expect(response.headers().location).toMatch(/\/resume\.pdf$/);
-    } else {
-      expect(response.status()).toBe(200);
-      expect(await response.text()).toContain('The resume is not available right now.');
-    }
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('text/html');
+    const html = await response.text();
+    expect(html).toContain('The resume is not available right now.');
+    expect(html).toMatch(/<meta name="robots" content="noindex"/);
   });
 });
 
@@ -258,7 +235,7 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
       test.use({ viewport, colorScheme: theme });
 
       test('the contact form with errors showing has no violations', async ({ page }) => {
-        await page.goto('/contact');
+        await page.goto('/');
         await formReady(page);
         await send(page).click();
         await page.getByRole('heading', { name: 'Check these fields before sending.' }).waitFor();
@@ -270,9 +247,8 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
         ).toEqual([]);
       });
 
-      test('the home page with Read more open has no violations', async ({ page }) => {
+      test('the home page has no violations', async ({ page }) => {
         await page.goto('/');
-        await page.locator('details.pp-more > summary').first().click();
         // Chapters fade in as they arrive. axe reads a half-faded color as low contrast.
         await page.waitForFunction(() =>
           [...document.querySelectorAll<HTMLElement>('[data-rv="in"]')].every(

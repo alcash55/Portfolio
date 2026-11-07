@@ -43,14 +43,6 @@ describe('RevealVideo markup', () => {
     expect(screen.getByRole('figure', { name: 'Clipper recording' })).toBeInTheDocument();
   });
 
-  it('drops the window card styling inside a Fig frame, which is already the card', () => {
-    const inFig = render(<RevealVideo {...props} framed />);
-    expect(inFig.container.querySelector('.frame')).toHaveClass('clipf');
-    inFig.unmount();
-    const alone = render(<RevealVideo {...props} />);
-    expect(alone.container.querySelector('.frame')).not.toHaveClass('clipf');
-  });
-
   it('frames a muted, looping clip with its poster and a caption', () => {
     const { container } = render(<RevealVideo {...props} />);
     const v = video(container);
@@ -68,7 +60,10 @@ describe('RevealVideo markup', () => {
 
   it('keeps the window dots out of the accessibility tree', () => {
     const { container } = render(<RevealVideo {...props} />);
-    expect(container.querySelector('.bar')).toHaveAttribute('aria-hidden', 'true');
+    const bar = container.querySelector('[aria-hidden="true"]');
+    expect(bar).not.toBeNull();
+    expect(bar?.children).toHaveLength(3);
+    expect(bar).not.toContainElement(container.querySelector('video'));
   });
 
   it('sends no play button in the server HTML, because it would do nothing without script', () => {

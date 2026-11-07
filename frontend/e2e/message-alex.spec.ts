@@ -51,13 +51,6 @@ test.describe('Message Alex focuses the Name field', () => {
     });
   }
 
-  test("footer link on /contact goes to that page's form", async ({ page }) => {
-    await page.goto('/contact');
-    await page.getByRole('contentinfo').getByRole('link', { name: MESSAGE }).click();
-    await expect(nameField(page)).toBeFocused();
-    await expect(page).toHaveURL(/\/contact$/);
-  });
-
   test('footer link on a page with no form crosses to the home form and is not pulled to the heading', async ({
     page,
   }) => {

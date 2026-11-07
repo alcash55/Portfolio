@@ -12,12 +12,12 @@ describe('header on the home route', () => {
     expect(
       within(header).getByRole('navigation', { name: 'Primary', hidden: true }),
     ).toBeInTheDocument();
-    expect(header.querySelector('.prog')).not.toBeNull();
+    expect(header.querySelector('[data-reading-line]')).not.toBeNull();
   });
 
   it('leaves other routes without a counter', async () => {
     await renderShell('/projects/clipper');
     expect(screen.queryByRole('button', { name: /^Chapter \d+ \/ 13/ })).toBeNull();
-    expect(screen.getByRole('banner').querySelector('.prog')).toBeNull();
+    expect(screen.getByRole('banner').querySelector('[data-reading-line]')).toBeNull();
   });
 });

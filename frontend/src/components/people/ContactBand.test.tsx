@@ -4,11 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { ContactBand } from './ContactBand';
 import { renderInRouter } from './renderInRouter';
 
-async function setup(resume: Parameters<typeof ContactBand>[0]['resume'] = { available: false }) {
+async function setup() {
   const client = new QueryClient();
   await renderInRouter(
     <QueryClientProvider client={client}>
-      <ContactBand resume={resume} />
+      <ContactBand />
     </QueryClientProvider>,
   );
   return screen.getByRole('region', { name: 'Say hi.' });
@@ -20,34 +20,15 @@ describe('ContactBand', () => {
     expect(band).toHaveAttribute('id', 'contact');
     expect(band).toHaveAttribute('data-ch', '13');
     expect(within(band).getByRole('heading', { level: 2, name: 'Say hi.' })).toBeInTheDocument();
-    expect(
-      within(band).getByText("Let's work together. Send me a message here."),
-    ).toBeInTheDocument();
+    expect(within(band).getByText('Send me a message here.')).toBeInTheDocument();
   });
 
-  it('shows Koda and Troy as Fig 12 with alt text that names both', async () => {
+  it('puts the form before the fold and leaves out the dogs and the link row', async () => {
     const band = await setup();
-    expect(within(band).getByText('Fig 12')).toBeInTheDocument();
-    const photo = within(band).getByRole('img', { name: /^Koda, a black and white doodle/ });
-    expect(photo).toHaveAttribute('src', '/media/koda_and_troy.webp');
-    expect(within(band).getByText('Koda (left) and Troy (right).')).toBeInTheDocument();
-  });
-
-  it('opens LinkedIn and GitHub in a new tab and says so in the name', async () => {
-    const band = await setup();
-    const linkedin = within(band).getByRole('link', { name: 'LinkedIn (opens in a new tab)' });
-    expect(linkedin).toHaveAttribute('href', 'https://www.linkedin.com/in/alexander-cash/');
-    expect(linkedin).toHaveAttribute('target', '_blank');
-    expect(linkedin).toHaveAttribute('rel', 'noopener');
-    const github = within(band).getByRole('link', { name: 'GitHub (opens in a new tab)' });
-    expect(github).toHaveAttribute('href', 'https://github.com/alcash55');
-  });
-
-  it('links the resume with its size when the file exists', async () => {
-    const band = await setup({ available: true, bytes: 23326 });
-    expect(
-      within(band).getByRole('link', { name: 'View resume (PDF, 23 KB, opens in a new tab)' }),
-    ).toHaveAttribute('href', '/resume');
+    expect(within(band).queryByRole('figure')).not.toBeInTheDocument();
+    expect(within(band).queryByRole('img')).not.toBeInTheDocument();
+    expect(within(band).queryByRole('link', { name: /^LinkedIn/ })).not.toBeInTheDocument();
+    expect(within(band).queryByRole('link', { name: /^View resume/ })).not.toBeInTheDocument();
   });
 
   it('holds the message form and the fallback address', async () => {

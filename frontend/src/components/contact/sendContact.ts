@@ -9,7 +9,8 @@ export type ContactErrorKind =
   | 'validation' // 400
   | 'too_large' // 413
   | 'rate_limited' // 429
-  | 'server_error' // 502, any other non-2xx status, or a network failure
+  | 'server_error' // 502 or any other non-2xx status
+  | 'network' // the request never got a response: no API, offline, blocked
   | 'timeout'; // aborted after the cold start allowance
 
 export type SendResult = { ok: true } | { ok: false; kind: ContactErrorKind };
@@ -64,7 +65,7 @@ export async function sendContact(values: ContactSubmission, deps: SendDeps): Pr
     if (error instanceof DOMException && error.name === 'AbortError') {
       return { ok: false, kind: 'timeout' };
     }
-    return { ok: false, kind: 'server_error' };
+    return { ok: false, kind: 'network' };
   } finally {
     clearTimeout(timer);
   }

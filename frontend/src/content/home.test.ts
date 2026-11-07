@@ -8,6 +8,7 @@ import {
   chapterNumber,
 } from './home';
 import { PROJECT_SLUGS } from './pages';
+import { EXPERIENCE } from './people';
 
 const allStrings = (value: unknown): string[] => {
   if (typeof value === 'string') return [value];
@@ -29,12 +30,16 @@ describe('chapter index', () => {
       ['Projects', 7, 'vscode-royalty-theme', 'Royalty Theme'],
       ['Experience', 8, 'experience', 'Solea Energy'],
       ['Experience', 9, 'ncr-voyix', 'NCR Voyix'],
-      ['Experience', 10, 'ncr-store-health', 'NCR Store Health'],
+      ['Experience', 10, 'ncr-store-health', 'NCR'],
       ['Experience', 11, 'education', 'Education'],
       ['Certificates', 12, 'certificates', 'Certificates'],
       ['Contact', 13, 'contact', 'Say hi'],
     ]);
     expect(CHAPTER_COUNT).toBe(13);
+  });
+
+  it('titles each experience chapter the same in the index and on the page', () => {
+    for (const spec of EXPERIENCE) expect(chapterTitle(spec.n), spec.id).toBe(spec.title);
   });
 
   it('formats the header counter number and title', () => {
@@ -46,14 +51,14 @@ describe('chapter index', () => {
 });
 
 describe('project chapters', () => {
-  it('follow the comp order and number their figures 1 to 6', () => {
+  it('follow the comp order and number their figures 2 to 7', () => {
     expect(PROJECT_CHAPTERS.map((c) => [c.n, c.id, c.fig.n])).toEqual([
-      [2, 'portfolio-website', 1],
-      [3, 'game-competition-website', 2],
-      [4, 'ac-composite-actions', 3],
-      [5, 'clipper', 4],
-      [6, 'golem-miners', 5],
-      [7, 'vscode-royalty-theme', 6],
+      [2, 'portfolio-website', 2],
+      [3, 'game-competition-website', 3],
+      [4, 'ac-composite-actions', 4],
+      [5, 'clipper', 5],
+      [6, 'golem-miners', 6],
+      [7, 'vscode-royalty-theme', 7],
     ]);
   });
 
@@ -74,7 +79,7 @@ describe('project chapters', () => {
     const proof = (id: string) =>
       PROJECT_CHAPTERS.find((c) => c.id === id)?.paragraphs.find((p) => p.kind === 'proof')?.text;
     expect(proof('portfolio-website')).toBe(
-      'Lighthouse accessibility 100 on the home, project, experience and contact pages, mobile and desktop.',
+      "Every page passes axe's WCAG 2.2 AA checks on phone and desktop, in light and dark, on every pull request.",
     );
     expect(proof('clipper')).toBe(
       'One command turns a YouTube or Twitch clip into a captioned, upload-ready Short. 387 tests pass.',

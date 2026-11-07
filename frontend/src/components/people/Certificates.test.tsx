@@ -57,7 +57,7 @@ describe('Certificates', () => {
 
   it('shows every certificate in a numbered carousel with certificate-specific buttons', async () => {
     await renderInRouter(<Certificates />);
-    expect(screen.getByText('Fig 11')).toBeInTheDocument();
+    expect(screen.getByText('Fig 12')).toBeInTheDocument();
     const carousel = screen.getByRole('region', { name: 'Master.dev certificates' });
     expect(within(carousel).getAllByRole('img')).toHaveLength(CERTIFICATES.length);
     expect(

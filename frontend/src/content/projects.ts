@@ -1,12 +1,11 @@
 // Page bodies for the six project pages and the two experience pages. Each string
 // is a row of the copy deck. Two kinds of row are left out on purpose:
-//   - Comp-only placeholders: the pending-domain note, the Lighthouse re-run row
-//     and the publish-pending marker. Each has a production fallback, applied here.
-//   - The test-count row (PD-16) is not typed here. Its numbers come from the test
-//     runners through scripts/generate-site-stats.mjs, and the row is dropped when the
+//   - Comp-only placeholders: the pending-domain note and the publish-pending marker.
+//     Each has a production fallback, applied here.
+//   - The test-count stat (PD-16) is not typed here. Its numbers come from the test
+//     runners through scripts/generate-site-stats.mjs, and the stat is dropped when the
 //     build could not read them.
-import { siteStats, testCountFact } from '~/lib/siteStats';
-import { ACTION_COUNT_TITLE } from './checks';
+import { siteStats, testCountStat } from '~/lib/siteStats';
 import type { ExperienceSlug, ProjectSlug } from './pages';
 import { EXPERIENCE_SLUGS, PROJECT_SLUGS } from './pages';
 
@@ -64,9 +63,11 @@ export interface ExternalLink {
   readonly href: string;
 }
 
-export interface Fact {
-  readonly lead: string;
-  readonly body: string;
+/** One measured number. Read aloud, the figure and label make a sentence: "387 tests pass." */
+export interface Stat {
+  readonly figure: string;
+  /** Backticks mark code. */
+  readonly label: string;
 }
 
 export interface GallerySlide {
@@ -105,13 +106,14 @@ export interface Detail {
   readonly diagram: Diagram;
   /** Paragraphs for "What I built". Backticks mark code. */
   readonly built: readonly string[];
-  readonly facts: readonly Fact[];
+  /** The numbers that no other part of the page says. A page with none leaves this out. */
+  readonly stats?: readonly Stat[];
 }
 
 const GH = 'https://github.com/alcash55/';
 
-function optionalFact(fact: Fact | undefined): Fact[] {
-  return fact ? [fact] : [];
+function optionalStat(stat: Stat | undefined): Stat[] {
+  return stat ? [stat] : [];
 }
 
 function node(
@@ -157,10 +159,13 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     kind: 'project',
     name: 'Portfolio Website', // PD-02
     summary:
-      'The site you are on: a React and TypeScript front end, a Go API behind it, and a browser suite that gates every deploy. The project list keeps working when GitHub or the API does not.', // PD-03
+      'The site you are on: a React and TypeScript front end on Cloudflare Workers, a Go API behind it, and a browser suite that runs on every pull request. The resume, the CI list and the contact form all go through that API.', // PD-03
     stack: 'React, TypeScript, Go, Playwright, GitHub Actions', // PD-04
     links: [
-      { label: 'Open the live site', href: 'https://alcash55.github.io/Portfolio/' }, // PD-05 fallback
+      {
+        label: 'Visit the original site (version 1)',
+        href: 'https://alcash55.github.io/Portfolio/',
+      }, // PD-05
       { label: 'View on GitHub', href: `${GH}Portfolio` }, // PD-06
     ],
     media: {
@@ -168,31 +173,31 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       src: '/media/hero-reveal.mp4',
       poster: '/media/hero-reveal-poster.webp',
       label:
-        'Recording of the live Portfolio Website: the theme changes, the page scrolls to the contact form, and a message is typed into it',
-      caption: 'Version 1: the current site',
+        'Recording of this site: the About headline, the chapter menu opening, a write-up scrolling to its architecture diagram, the Clipper recording playing, and the theme switching from light to dark',
+      caption: 'A 20-second tour of this site',
     },
     diagram: {
       nodes: [
         node('browser', 'Browser', 'Loads the page', 0, 0),
-        node('host', 'Web host', '', 1, 0),
-        node('react', 'React app', 'Asks for projects', 1, 150),
-        node('saved', 'Saved project list', 'Fallback', 0, 150),
-        node('api', 'Go API', 'Live stats or stale copy', 2, 150),
-        node('cache', 'Cache, 1 hour', 'Checked first', 3, 150),
+        node('host', 'Cloudflare Worker', 'Renders the page', 1, 0),
+        node('react', 'React app', 'Asks for the CI list', 1, 150),
+        node('saved', 'Built-in CI list', 'Fallback', 0, 150),
+        node('api', 'Go API', 'Live copy or stale copy', 2, 150),
+        node('cache', 'Cache', 'Checked first', 3, 150),
         node('gh', 'GitHub API', 'One refresh', 4, 150),
         node('discord', 'Discord webhook', 'Validated message', 3, 300),
       ],
       edges: [
-        link('browser', 'r', 'host', 'l', 'Browser to Web host: loads the page.'),
-        link('react', 'r', 'api', 'l', 'React app to Go API: asks for projects.'),
-        link('api', 'r', 'cache', 'l', 'Go API to Cache, 1 hour: checks it first.'),
+        link('browser', 'r', 'host', 'l', 'Browser to Cloudflare Worker: loads the page.'),
+        link('react', 'r', 'api', 'l', 'React app to Go API: asks for the CI list.'),
+        link('api', 'r', 'cache', 'l', 'Go API to Cache: checks it first.'),
         link('cache', 'r', 'gh', 'l', 'Cache to GitHub API: one refresh, however many callers.'),
         link(
           'api',
           'b',
           'react',
           'b',
-          'Go API to React app: live stats, or the stale copy, flagged.',
+          'Go API to React app: the live list, or the stale copy, flagged.',
           { fromAt: 0.3, toAt: 0.7 },
         ),
         link(
@@ -200,7 +205,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'l',
           'saved',
           'r',
-          'React app to Saved project list: fallback when the API is unreachable.',
+          'React app to Built-in CI list: fallback when the API is unreachable.',
         ),
         link(
           'react',
@@ -214,32 +219,35 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           fromAt: 0.8,
           toAt: 0.5,
         }),
+        link('host', 'r', 'api', 't', 'Cloudflare Worker to Go API: asks for the resume PDF.', {
+          fromAt: 0.5,
+          toAt: 0.7,
+        }),
       ],
-      alt: 'The browser loads the page from a web host. The React app asks the Go API for projects. The API checks a one-hour cache and, when it is cold, refreshes once from the GitHub API however many callers are waiting. The API returns live stats, or the stale copy with a flag. If the API is unreachable the app shows a saved project list. The contact form posts to the same API, which limits each IP to 5 messages a minute and forwards the validated message to a Discord webhook.',
+      alt: 'The browser loads the page from a Cloudflare Worker. The React app asks the Go API for the CI list. The API checks a cache and, when it is cold, refreshes once from the GitHub API however many callers are waiting. The API returns the live list, or the stale copy with a flag. If the API is unreachable the app shows a built-in list. The contact form posts to the API, which limits each IP to 5 messages a minute and forwards the validated message to a Discord webhook. The Worker also asks the API for the resume PDF, which the API reads from a private GitHub repository through the same cache.',
     },
     built: [
-      'A portfolio is easy to fill with claims a reader cannot check. I built this one so the claims can be checked from outside: a live projects list that keeps working when its API does not, and a browser suite that gates every deploy.', // PD-09
-      'The project cards read live GitHub data through a Go API with a one-hour cache and a single-flight refresh. If a refresh fails, the API serves the stale copy and the page says so. If the API is unreachable, the section falls back to a hand-written list.', // PD-10
+      'A portfolio is easy to fill with claims a reader cannot check. I built this one so the claims can be checked from outside: a resume that streams from a private repository, a CI list read from the repository that defines it, and a browser suite that runs on every pull request.', // PD-09
+      'The resume and the CI list come from GitHub through a Go API with a cache and a single-flight refresh. If a refresh fails, the API serves the stale copy and flags it. If the API is unreachable, the CI figure falls back to a built-in list and the resume page offers email. The contact form posts to the same API.', // PD-10
     ],
-    facts: [
+    stats: [
       {
-        lead: '10 times lighter, first version',
-        body: 'On the first version of this site the page got 10 times lighter: 4.03 MB down to 397 KB. Resizing eight images to their measured render size did it. Largest paint fell from 4.4 s to 3.2 s.', // PD-12
+        figure: '10×',
+        label:
+          'lighter on the first version of this site, 4.03 MB down to 397 KB. Resizing eight images to their measured render size did it, and largest paint fell from 4.4 s to 3.2 s.', // PD-12
       },
       {
-        lead: '50 requests, 2 calls',
-        body: 'The project list holds up under a traffic spike. 50 simultaneous cold requests cost 2 GitHub calls, not 50, and a cached answer takes 0.3 ms instead of 0.54 s.', // PD-13
+        figure: '50 to 2',
+        label:
+          'GitHub calls when 50 cold requests arrive at once. A cached answer takes 0.3 ms instead of 0.54 s.', // PD-13
       },
       {
-        lead: '502 to 200',
-        body: 'An expired GitHub token turned a working endpoint into a permanent 502. The API now retries once without the token, and the same request returns 200 with all four projects.', // PD-15
-      },
-      {
-        lead: '35 of 40 blocked',
-        body: 'I attacked my own contact-form rate limiter. Rotating a forged header got all 40 requests through. After the fix, 35 of 40 were blocked, and the first 5 are the intended burst.', // PD-15a
+        figure: '35 of 40',
+        label:
+          'requests blocked after I attacked my own contact-form rate limiter and fixed it. Rotating a forged header had let all 40 through, and the first 5 are the intended burst.', // PD-15a
       },
       // PD-16, from the generated test counts
-      ...optionalFact(testCountFact(siteStats)),
+      ...optionalStat(testCountStat(siteStats)),
     ],
   },
 
@@ -248,7 +256,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     kind: 'project',
     name: 'Game Competition Website', // GC-01
     summary:
-      'A web app for running OSRS bingo competitions. Teams race to complete tasks on a shared board, scores update from the live OSRS hiscores, and admins review proof screenshots from Discord.', // GC-02
+      'A web app for running OSRS bingo competitions. Teams race to complete tasks on a shared board, and admins review proof screenshots from Discord. Scores come from a scheduled ETL pipeline that pulls player stats from the OSRS hiscores into Postgres.', // GC-02
     stack: 'React, TypeScript, MUI, Vite, Node.js, Express, Supabase, PostgreSQL, Discord API', // GC-03
     links: [
       { label: 'Open the live site', href: 'https://diamond-dogs-bingo.onrender.com/' },
@@ -259,7 +267,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       src: '/media/bingo-journey.mp4',
       poster: '/media/bingo-journey-poster.webp',
       label:
-        'Recording of the Game Competition Website on demo data: log in, create a bingo event, open the overview with player stats, then the board',
+        'Recording of the Game Competition Website on demo data: the bingo board, the board builder, the team drafter, the hiscores table and the standings by team',
       caption: 'Recorded on demo data',
     },
     diagram: {
@@ -268,10 +276,14 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
         node('api', 'Express API', '', 2, 130),
         node('auth', 'Supabase auth', '', 4, 30),
         node('pg', 'Supabase Postgres', '', 4, 130),
-        node('osrs', 'OSRS hiscores API', '', 4, 260),
+        node('osrs', 'OSRS hiscores API', '', 3, 260),
         node('bot', 'Discord bot', '', 0, 340),
         node('bucket', 'Private screenshot bucket', '', 1, 340),
-        node('admin', 'Admin review page', '', 3, 340),
+        node('admin', 'Admin review page', '', 2, 340),
+        node('snap', 'Snapshot job', 'Every 20 minutes', 4, 260),
+        node('vocab', 'Vocabulary job', 'Once a day', 4, 480),
+        node('wom', 'Wise Old Man', 'Approved renames', 4, 370),
+        node('drift', 'Drift check', 'Health endpoint', 4, 590),
       ],
       edges: [
         link('player', 'r', 'api', 'l', 'Player browser to Express API: requests with a JWT.'),
@@ -280,10 +292,17 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           toAt: 0.5,
         }),
         link('api', 'r', 'pg', 'l', 'Express API to Supabase Postgres: boards, teams and scores.'),
-        link('api', 'r', 'osrs', 'l', 'Express API to OSRS hiscores API: live progress.', {
-          fromAt: 0.8,
-          toAt: 0.5,
-        }),
+        link(
+          'api',
+          'r',
+          'osrs',
+          'l',
+          'Express API to OSRS hiscores API: looks a player up when they register.',
+          {
+            fromAt: 0.8,
+            toAt: 0.5,
+          },
+        ),
         link(
           'bot',
           'r',
@@ -306,26 +325,68 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'Express API to Supabase Postgres: approved drops count toward the team score.',
           { fromAt: 0.7, toAt: 0.3 },
         ),
+        link(
+          'snap',
+          'l',
+          'osrs',
+          'r',
+          "Snapshot job to OSRS hiscores API: extracts every player's stats each 20 minutes, retrying failures and serving a cached copy if the API is down.",
+        ),
+        link(
+          'snap',
+          't',
+          'pg',
+          'b',
+          "Snapshot job to Supabase Postgres: loads each player's skills and activities as a snapshot, which the scoring engine reads.",
+        ),
+        link(
+          'snap',
+          'b',
+          'wom',
+          't',
+          'Snapshot job to Wise Old Man: when a name stops resolving, follows approved renames and checks the new name on the hiscores.',
+        ),
+        link(
+          'vocab',
+          'l',
+          'osrs',
+          'b',
+          'Vocabulary job to OSRS hiscores API: reads the skill and activity names from one hiscores response.',
+        ),
+        link(
+          'vocab',
+          'r',
+          'pg',
+          'r',
+          'Vocabulary job to Supabase Postgres: stores the names the board builder offers.',
+        ),
+        link(
+          'drift',
+          't',
+          'vocab',
+          'b',
+          'Drift check to Vocabulary job: compares the stored names with a fresh hiscores probe and flags any mismatch.',
+        ),
       ],
-      alt: "A player's browser sends requests with a JWT to an Express API, which checks the role through Supabase auth and reads boards, teams and scores from Postgres. The API pulls live progress from the OSRS hiscores API. A Discord bot ingests screenshots from a channel into a private storage bucket. An admin approves or denies each one on a review page, and approved drops count toward the team score.",
+      alt: "A player's browser sends requests with a JWT to an Express API, which checks the role through Supabase auth and reads boards, teams and scores from Postgres. The API looks a player up on the OSRS hiscores API when they register. A Discord bot ingests screenshots from a channel into a private storage bucket. An admin approves or denies each one on a review page, and approved drops count toward the team score. Separately, a snapshot job runs every 20 minutes: it extracts each player's stats from the OSRS hiscores API and loads them into Postgres as snapshots, and when a name stops resolving it follows approved renames on Wise Old Man. A daily vocabulary job stores the skill and activity names from the hiscores, and a drift check compares them with a fresh probe.",
     },
     built: [
       'Admins build boards, draft teams and review evidence from their own panel. Access is role-based, with JWT auth through Supabase.', // GC-05
       'Tile completions arrive as screenshots. A Discord bot ingests them from a channel into a private bucket, an admin approves or denies each one, and approved drops count toward the team score.', // GC-06
-      'The recording logs in, creates a bingo event, opens the overview with player stats, then shows the board. It runs on demo data, not a real competition.', // GC-06a
+      "The scores run on a small ETL pipeline. While a bingo runs, a job extracts each player's stats from the OSRS hiscores API every 20 minutes. It retries failed calls and serves cached data if the API is down. It shapes the response into skills and activities and loads a snapshot into Postgres. The scoring engine reads those snapshots, so a tile clears when the numbers move.", // GC-06b
+      "Two more jobs keep it accurate. A daily job refreshes the skill and activity names, bosses included, that the board builder offers, taken from the same hiscores response the scorer reads, and a health check flags any drift. When a player's name stops resolving, the job follows approved renames on Wise Old Man, checks the new name on the hiscores, then updates the player and logs the change.", // GC-06c
+      'The recording runs on demo data, not a real competition.', // GC-06a
     ],
-    facts: [
+    stats: [
       {
-        lead: '888 tests',
-        body: '888 tests pass: 629 on the backend, run against a real local database, and 259 on the frontend.', // GC-07
+        figure: '888',
+        label:
+          'tests pass: 629 on the backend, run against a real local database, and 259 on the frontend.', // GC-07
       },
       {
-        lead: 'Imgur allowlist',
-        body: 'Screenshot review accepts Imgur links too, behind an https-only allowlist, no redirects, a 10 second timeout, a 20 MiB cap and a file-type check. The security review found nothing.', // GC-08
-      },
-      {
-        lead: '422 KB to 22 KB',
-        body: "A team table that needed sideways scrolling now fits the page. Dropping the data grid cut that page's code from 422 KB to 22 KB.", // GC-08a
+        figure: '422 to 22 KB',
+        label:
+          'of code on the team table page after dropping the data grid. The table used to need sideways scrolling and now fits the page.', // GC-08a
       },
     ],
   },
@@ -335,7 +396,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     kind: 'project',
     name: 'AC Composite Actions', // AC-01
     summary:
-      `${ACTION_COUNT_TITLE} GitHub Actions composite actions that my other repos call from CI. They scan pull requests for secrets, run an accessibility check, spellcheck markdown, score a resume PDF and list the changed files. Each check reports back as one pull request comment that it keeps current.`, // AC-02
+      'Reusable GitHub Actions that my other repos call from CI. They scan pull requests for secrets, run an accessibility check, spellcheck markdown, score a resume PDF and list the changed files. Each check reports back as one pull request comment that it keeps current.', // AC-02
     stack: 'JavaScript, GitHub Actions, Bun, Vitest', // AC-03
     links: [{ label: 'View on GitHub', href: `${GH}ac-composite-actions` }], // AC-04
     // The diagram already names the actions, and the home page lists them.
@@ -405,22 +466,21 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       'The newest action, `security/betterleaks`, scans for secrets. It downloads a pinned Betterleaks release and checks its SHA256 before running it. A finding fails the check and is reported with the secret redacted.', // AC-06a
       "The scan job can only read. A separate reporter job posts the comment, so pull requests from forks and Dependabot get one too. Before posting, the reporter checks that the result belongs to the pull request's latest commit, so a stale scan cannot overwrite a newer one. Consumers pin a reviewed commit for this action instead of `@main`.", // AC-06b
     ],
-    facts: [
+    stats: [
       {
-        lead: '11 repos',
-        body: 'The secret scan runs in the CI of 11 of my repos, including Portfolio, Little-Town and Golem Miners. Each one was added by its own rollout pull request.', // AC-07
+        figure: '11',
+        label:
+          'of my repos run the secret scan in CI, including Portfolio, Little-Town and Golem Miners. Each was added by its own rollout pull request.', // AC-07
       },
       {
-        lead: '26 minutes',
-        body: 'An outside contributor found that the accessibility check never ran, because yarn reserves the word check. The fix merged 26 minutes after they filed it.', // AC-08
+        figure: '26 min',
+        label:
+          "from an outside contributor's report to the merged fix. The accessibility check never ran, because yarn reserves the word check.", // AC-08
       },
       {
-        lead: '33 files, not 30',
-        body: 'Large pull requests were silently cut off at 30 files. The `diff` action now pages through them: a real pull request returned 33 files, where the old version saw 30.', // AC-08a
-      },
-      {
-        lead: '36 tests',
-        body: '36 tests cover the `diff` action. The PR-number tests failed against the first implementation, which is the bug they existed to find.', // AC-08b
+        figure: '36',
+        label:
+          'tests cover the `diff` action. The PR-number tests failed against the first implementation, which is the bug they existed to find.', // AC-08b
       },
     ],
   },
@@ -440,8 +500,8 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       src: '/media/clipper-run.mp4',
       poster: '/media/clipper-run-poster.webp',
       label:
-        'Recording of the Clipper pipeline in a terminal: the run command, clips fetched, formatting and upload logs, then the public Clipper channel page',
-      caption: 'One command, start to upload',
+        'Animation of the Clipper pipeline: a long stream narrows to its best moment, the stages from fetch to upload run, a 9:16 Short builds with a facecam split and captions, then Shorts queue into the 15:00 and 21:00 slots',
+      caption: 'Long streams in, Shorts out',
     },
     diagram: {
       nodes: [
@@ -487,19 +547,20 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       'It fetches candidate clips from a source channel, downloads them with yt-dlp, finds the best engagement window, reformats to 1080x1920 with FFmpeg, burns in captions from faster-whisper and uploads through the YouTube Data API.', // CL-07
       'Facecam detection splits real webcams from IRL streams by crowd density. IRL footage runs 3.7 to 10.2 face detections per frame, against 0.6 to 2.6 for a genuine facecam.', // CL-08
     ],
-    facts: [
+    stats: [
       {
-        lead: '3.0 faces per frame',
-        body: 'It tells webcam streams from IRL streams. A threshold of 3.0 face detections per frame passes all 5 true facecams and rejects all 5 IRL clips, calibrated on 15 real clips.', // CL-09
+        figure: '3.0',
+        label:
+          'face detections per frame is the line between a webcam and an IRL stream. It passes all 5 true facecams and rejects all 5 IRL clips, calibrated on 15 real clips.', // CL-09
       },
       {
-        lead: '58 seconds, 1080x1920',
-        body: 'The output is ready for YouTube: up to 58 seconds, 1080x1920, captions burned in.', // CL-10
+        figure: '387',
+        label: 'tests pass.', // CL-11
       },
-      { lead: '387 tests', body: '387 tests pass.' }, // CL-11
       {
-        lead: '8 of 8',
-        body: 'A caption detector scored 8 of 8 on real clips. Five of the 8 came from repost accounts that had already burned in captions, and Clipper now skips its own burn on those.', // CL-11a
+        figure: '8 of 8',
+        label:
+          'real clips scored right by the caption detector. Five of the 8 came from repost accounts that had already burned in captions, and Clipper now skips its own burn on those.', // CL-11a
       },
     ],
   },
@@ -512,7 +573,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       'Dig deep, get rich, and try not to wake the golems. A co-op mining game for Steam, for one to eight players. Shafted & Sons Mining Co. drops your crew in Scree Hollow with a contract and nothing else. Dig through ground that breaks block by block, fight the stone golems that guard the deep lairs, and haul your gems back to camp to sell.', // GM-02
     status: {
       role: 'Prototype.',
-      text: "Solo play covers digging, crafting, trading, roulette and the golem fights. The Chain, the blast that cracks Golem Prime's armour, is next. Co-op sessions connect, but client digging is off and host edits do not replicate yet.", // GM-03
+      text: "Solo play covers digging, crafting, trading, roulette and the golem fights. The Chain, the blast that cracks Golem Prime's armor, is next. Co-op sessions connect, but client digging is off and host edits do not replicate yet.", // GM-03
     },
     stack: 'Unity 6, C#, Unity Test Framework', // GM-04
     // GM-05a. The build is served from /play/, which the deploy fills in.
@@ -571,24 +632,21 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     built: [
       'You arrive with nothing. Bare hands chop trees but cannot break stone, however long you swing. Wood and loose flint make a flint pickaxe at the camp workbench, and each better pickaxe opens harder rock, down to iron and gem veins. The tier comes from the item in your active hotbar slot, not from what is in your pack.', // GM-06
-      'Golems sleep in lairs on the way down, their gem eyes dark until something wakes them. Awake, they throw rock and aim ahead of a running miner. The Demi fights with smaller golems at its side, so you duck behind the calcite spars of its lair. Its floor stays sealed while it lives. Kill it and the floor opens onto the stair down to Golem Prime, who hears the whole lair and never forgets a miner. Prime takes a tenth of every hit until the Chain blast cracks its armour. Golems drop rough gems, and their health is set by the size of your crew when they wake.', // GM-06a
+      'Golems sleep in lairs on the way down, their gem eyes dark until something wakes them. Awake, they throw rock and aim ahead of a running miner. The Demi fights with smaller golems at its side, so you duck behind the calcite spars of its lair. Its floor stays sealed while it lives. Kill it and the floor opens onto the stair down to Golem Prime, who hears the whole lair and never forgets a miner. Prime takes a tenth of every hit until the Chain blast cracks its armor. Golems drop rough gems, and their health is set by the size of your crew when they wake.', // GM-06a
       'Gemma Weigh buys rough gems at camp for 120 gold each. Then Roland Dyce makes his pitch: a 100% chance to double your money at his roulette table, which he runs from a hideout off the contract route. The wheel is a fair European one. Red or black pays even money, and the green zero takes every outside bet. Stakes run from 1 to 1,000 gold.', // GM-06b
       'Each session picks a new seed. Mountains change place and height, and the dig site and its tunnels rotate around camp. The camp itself stays put: a company gateway, a campfire plaza and six districts whose NPCs buy and sell. More of their stock unlocks as your contract level rises.', // GM-07
       'Every block change goes through one method, `VoxelWorld.SetBlock`. That choke point is what makes co-op workable. A dig can travel as a block position and type, about 13 bytes, instead of a mesh to sync. FishNet sessions already run, and replicated digs are the next milestone.', // GM-08
       "The game's one scene is assembled in code, because a scene file invites merge conflicts and does not review as a diff.", // GM-08b
     ],
-    facts: [
+    stats: [
       {
-        lead: '1,815 tests',
-        body: '1,815 EditMode tests, 0 failing. One manual timing test is skipped.', // GM-09
+        figure: '1,815',
+        label: 'EditMode tests, 0 failing. One manual timing test is skipped.', // GM-09
       },
       {
-        lead: '7 GB to 198 MB',
-        body: 'The browser build ran out of memory while building the world. Each vertex read the mesh normals, and each read copied the whole array, about 7 GB in one frame. Reading them once brought the peak heap to 198 MB and world generation to under a second.', // GM-09a
-      },
-      {
-        lead: '100 seeded layouts',
-        body: 'Managed checks pass for 100 seeded pond and contract layouts, 240 mountain climb models, roulette outcomes, persistence and eight road spawns.', // GM-10
+        figure: '7 GB to 198 MB',
+        label:
+          'of heap while building the world in the browser build. Each vertex read the mesh normals, and each read copied the whole array. Reading them once also brought world generation to under a second.', // GM-09a
       },
     ],
   },
@@ -612,8 +670,8 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       src: '/media/royalty-vscode.mp4',
       poster: '/media/royalty-vscode-poster.webp',
       label:
-        'Recording of VS Code with the Royalty theme: a Go file scrolls, a comment is typed, and a TypeScript file opens',
-      caption: 'VS Code with the Royalty theme',
+        'Animation about the Royalty theme: a keyword color at 2.96 to 1 contrast, the new theme with code typing in, the eight palette colors with their contrast ratios, then 174 color pairs checked with 0 failures',
+      caption: 'From 2.96:1 to 174 passing pairs',
     },
     diagram: {
       nodes: [
@@ -659,22 +717,25 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       'v3.0.0 was an accessibility rebuild. Five of nine syntax colors were below WCAG AA against the editor background, with keywords at 2.96:1 and storage types at 2.45:1.', // RV-05
       'The background was the cause, since nothing reaches AA against a mid-tone gray-purple. I moved it to a deep plum and rebuilt the palette on top. The theme JSON is now generated from one palette module instead of hand-maintained across 2110 lines.', // RV-06
     ],
-    facts: [
+    stats: [
       {
-        lead: '174 of 174 pass AA',
-        body: 'All 174 color pairs pass WCAG AA, and 158 pass AAA. `npm run check` fails the build on any regression.', // RV-07
+        figure: '174 of 174',
+        label:
+          'color pairs pass WCAG AA, and 158 pass AAA. `npm run check` fails the build on any regression.', // RV-07
       },
       {
-        lead: '2.96:1 to 8.1:1',
-        body: 'Keyword text went from 2.96:1 to 8.1:1 against the editor background, and storage types from 2.45:1 to 8.1:1. AA asks for 4.5:1.', // RV-07a
+        figure: '8.1:1',
+        label:
+          'contrast for keyword text and storage types against the editor background, up from below 3:1. AA asks for 4.5:1.', // RV-07a
       },
       {
-        lead: '241 rules to 43',
-        body: '241 per-language token rules down to 43 scope-level ones.', // RV-08
+        figure: '241 to 43',
+        label: 'token rules, from per-language rules down to scope-level ones.', // RV-08
       },
       {
-        lead: '187 installs',
-        body: '187 installs on the Visual Studio Marketplace. The listing still serves version 2.2.0, and v3.0.0 is on GitHub, not yet published.', // RV-10
+        figure: '187',
+        label:
+          'installs on the Visual Studio Marketplace. The listing still serves version 2.2.0, and v3.0.0 is on GitHub, not yet published.', // RV-10
       },
     ],
   },
@@ -691,7 +752,6 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     stack: 'Next.js, Strapi, remark, GitHub Actions, BigQuery, Looker', // NV-04
     links: [],
-    notice: 'The code belongs to NCR.', // NV-05
     media: { kind: 'none' },
     diagram: {
       nodes: [
@@ -756,13 +816,10 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     built: [
       'Product teams kept Markdown in their own GitHub repositories. CI/CD pulls it into Strapi, so documentation ships from the teams that own the products.', // NV-07
-      'Pull requests run checks for spelling, Markdown validity and image alt text. CI reads the changed files from GitHub API diffs, and the review comment updates as new commits arrive.', // NV-08
+      'I extended the static analysis composite GitHub Actions that gate every merge on the Voyix Doc Site. Pull requests run checks for spelling, Markdown validity and image alt text. CI reads the changed files from GitHub API diffs, and the review comment updates as new commits arrive.', // NV-08
       'Content that passes goes through remark into Strapi as HTML. The Next.js site maps selected HTML elements to React design-system components when it renders.', // NV-09
+      'I also restructured and expanded the Commerce Design Docs that product teams build against.', // NV-09a
       'Four analytics pipelines for accessibility, Google Tag Manager, Qualtrics and FullStory feed BigQuery, and Looker reports on them.', // NV-10
-    ],
-    facts: [
-      { lead: '2,300+ pages', body: 'The rebuilt site navigates 2,300+ pages across 23 products.' }, // NV-11
-      { lead: '4 pipelines', body: 'Four analytics pipelines feed BigQuery and Looker.' }, // NV-12
     ],
   },
 
@@ -778,7 +835,6 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     stack: 'React, MUI, Figma, FigJam, Design Systems, Accessibility, Google Tag Manager', // SH-04
     links: [],
-    notice: 'The code belongs to NCR.', // SH-05
     media: { kind: 'none' },
     diagram: {
       nodes: [
@@ -849,15 +905,8 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
       'I interviewed seven Starbucks UK users, one for each persona the team identified, then mapped personas and journeys in FigJam.', // SH-07
       'Designs for the store-to-country views went through several rounds in Figma before I built the React dashboard.', // SH-08
       'The dashboard reads live data from an API. I partnered with the Digital Connected Services team on the design of that API.', // SH-09
-      "Alongside Store Health, I built React components for the NCR Design System with its designers. I also added accessibility scoring to CI, which posts each build's result to PRs and Slack, and set up Google Tag Manager and FullStory.", // SH-10
+      "Alongside Store Health, I built React components for the NCR Design System with its designers. I also added accessibility scoring to CI, which posts each build's result to PRs and Slack, and instrumented digital connected services with Google Tag Manager and FullStory.", // SH-10
       'Before this role I interned at NCR as a Software Engineer, 7/2020 to 9/2020, working on a REST API on Google Cloud Platform.', // SH-11
-    ],
-    facts: [
-      { lead: '7 users', body: 'I interviewed seven users, one for each persona we identified.' }, // SH-13
-      {
-        lead: 'Store to country',
-        body: 'The dashboard covered many store branches across many UK regions, and rolled technology health up from store to country.', // SH-12
-      },
     ],
   },
 };

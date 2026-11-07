@@ -20,9 +20,8 @@ test.describe('/sitemap.xml', () => {
     expect(response.headers()['content-type']).toContain('application/xml');
     const body = await response.text();
     const locs = [...body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    expect(locs).toHaveLength(PROJECTS.length + EXPERIENCE.length + 2);
+    expect(locs).toHaveLength(PROJECTS.length + EXPERIENCE.length + 1);
     expect(locs).toContain(`${baseURL}/`);
-    expect(locs).toContain(`${baseURL}/contact`);
     for (const slug of PROJECTS) expect(locs).toContain(`${baseURL}/projects/${slug}`);
     for (const slug of EXPERIENCE) expect(locs).toContain(`${baseURL}/experience/${slug}`);
   });

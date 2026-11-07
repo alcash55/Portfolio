@@ -1,4 +1,5 @@
 import { Clip, type ClipProps } from './Clip';
+import { CAPTION_ROW, CAPTION_TITLE } from './figureStyles';
 import { WindowFrame } from './WindowFrame';
 
 interface RevealVideoProps extends Pick<ClipProps, 'src' | 'poster' | 'posterSwap' | 'label'> {
@@ -12,13 +13,13 @@ interface RevealVideoProps extends Pick<ClipProps, 'src' | 'poster' | 'posterSwa
 /** A looping recording in a window frame. Alone on a page it carries its own caption row. */
 export function RevealVideo({ name, caption, framed = false, ...clip }: RevealVideoProps) {
   return (
-    <figure className="mfig" aria-label={`${name} recording`}>
+    <figure aria-label={`${name} recording`}>
       <WindowFrame bare={framed}>
         <Clip {...clip} loop />
       </WindowFrame>
       {framed ? null : (
-        <figcaption className="mcap">
-          <strong>{caption}</strong>
+        <figcaption className={CAPTION_ROW}>
+          <strong className={CAPTION_TITLE}>{caption}</strong>
         </figcaption>
       )}
     </figure>

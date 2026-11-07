@@ -17,7 +17,7 @@ export interface ExperienceWriteUp {
   readonly label: string;
 }
 
-export interface ExperienceSpec {
+interface ExperienceBase {
   readonly id: 'experience' | 'ncr-voyix' | 'ncr-store-health';
   /** Position in the chapters index. */
   readonly n: 8 | 9 | 10;
@@ -27,14 +27,26 @@ export interface ExperienceSpec {
   readonly role: string;
   readonly lead: string;
   readonly reverse: boolean;
-  readonly writeUp?: ExperienceWriteUp;
-  /** EX-23g. Shown beside the write-up link when the code belongs to a past employer. */
-  readonly note?: string;
-  /** The bullets behind Read more. */
-  readonly more: readonly string[];
-  readonly stack: string;
   readonly fig: FigSpec;
 }
+
+/**
+ * A role with a write-up keeps its detail there, so the home chapter stops at the lead and the
+ * link. A role with none shows its highlights and stack in the chapter, since nowhere else has them.
+ */
+export type ExperienceSpec = ExperienceBase &
+  (
+    | {
+        readonly writeUp: ExperienceWriteUp;
+        /** EX-23g. Shown beside the write-up link when the code belongs to a past employer. */
+        readonly note?: string;
+      }
+    | {
+        readonly writeUp?: undefined;
+        readonly more: readonly string[];
+        readonly stack: string;
+      }
+  );
 
 // EX-02 to EX-23g.
 export const EXPERIENCE: readonly ExperienceSpec[] = [
@@ -57,7 +69,7 @@ export const EXPERIENCE: readonly ExperienceSpec[] = [
     ],
     stack: 'Go, TypeScript, React, Tailwind CSS, Snowflake, Grafana',
     fig: {
-      n: 7,
+      n: 8,
       label: 'Architecture',
       caption: 'Seven ISO markets, simplified',
       meta: '8/2024 to 9/2026',
@@ -74,17 +86,8 @@ export const EXPERIENCE: readonly ExperienceSpec[] = [
     reverse: false,
     writeUp: { slug: 'ncr-voyix-docs', label: 'Read the write-up' },
     note: 'The code belongs to NCR.',
-    more: [
-      'Built a publishing pipeline from GitHub to Strapi. Product teams kept their Markdown in their own repositories.',
-      'Restructured and expanded the Commerce Design Docs that product teams build against.',
-      'Extended the static analysis composite GitHub Actions that gate every merge on the Voyix Doc Site.',
-      'Added PR checks for spelling, Markdown validity and image alt text. The review comment updates as new commits arrive.',
-      'Passed content through remark into Strapi, and rendered selected HTML as React design-system components.',
-      'Built four analytics pipelines for accessibility, GTM, Qualtrics and FullStory, feeding BigQuery and Looker.',
-    ],
-    stack: 'Next.js, Strapi, remark, GitHub Actions, BigQuery, Looker',
     fig: {
-      n: 8,
+      n: 9,
       label: 'Pipeline',
       caption: 'Docs pipeline, simplified',
       meta: '4/2023 to 6/2024',
@@ -93,7 +96,7 @@ export const EXPERIENCE: readonly ExperienceSpec[] = [
   {
     id: 'ncr-store-health',
     n: 10,
-    title: 'NCR Store Health',
+    title: 'NCR',
     overline: 'NCR · 7/2021 to 4/2023',
     heading: 'Store Health for Starbucks UK',
     role: 'UI Engineer I',
@@ -101,16 +104,8 @@ export const EXPERIENCE: readonly ExperienceSpec[] = [
     reverse: true,
     writeUp: { slug: 'starbucks-store-health', label: 'Read the write-up' },
     note: 'The code belongs to NCR.',
-    more: [
-      'Partnered with the Digital Connected Services team on the design of the API behind the dashboard.',
-      'Built React components for the NCR Design System with its designers.',
-      "Scored accessibility in CI and posted each build's result to PRs and Slack.",
-      'Instrumented digital connected services with Google Tag Manager and FullStory.',
-      'Interned as a Software Engineer from 7/2020 to 9/2020, working on a REST API on Google Cloud Platform.',
-    ],
-    stack: 'React, MUI, Figma, FigJam, Design Systems, Accessibility, Google Tag Manager',
     fig: {
-      n: 9,
+      n: 10,
       label: 'Workflow',
       caption: 'Store Health, simplified',
       meta: '7/2021 to 4/2023',
@@ -132,12 +127,13 @@ export const EDUCATION = {
   n: 11,
   title: 'Education',
   overline: 'Education and coaching',
-  heading: 'Degrees in software, then coaching lacrosse',
+  heading: 'Division I lacrosse, software degrees, then coaching',
   lines: [
+    'Played all five years of Division I lacrosse at Robert Morris University.',
     'M.S. Web and Mobile Information Systems and B.S. Software Engineering, Robert Morris University, 5/2021.',
     'Lacrosse coach, varsity and middle school, Lakota West, 1/2022 to 1/2025.',
   ],
-  fig: { n: 10, label: 'Photos' },
+  fig: { n: 11, label: 'Photos' },
   carouselLabel: 'Education and coaching photos',
   photos: [
     {
@@ -242,7 +238,7 @@ export const CERTIFICATES_CHAPTER = {
   title: 'Certificates',
   overline: 'Certificates',
   heading: 'Four Master.dev courses finished since October',
-  fig: { n: 11, label: 'Certificates' },
+  fig: { n: 12, label: 'Certificates' },
   carouselLabel: 'Master.dev certificates',
 } as const;
 
@@ -272,38 +268,15 @@ export const CONTACT_BAND = {
   title: 'Say hi',
   overline: 'Contact',
   heading: 'Say hi.',
-  line: "Let's work together. Send me a message here.",
-  fig: {
-    n: 12,
-    label: 'Dogs',
-    caption: 'Koda (left) and Troy (right).',
-    src: '/media/koda_and_troy.webp',
-    width: 800,
-    height: 600,
-    alt: 'Koda, a black and white doodle, and Troy, a red-brown doodle, sit side by side on the grass looking up with their tongues out.',
-  },
+  line: 'Send me a message here.',
 } as const;
 
-// CT-01 to CT-16, the `/contact` page.
-export const CONTACT_PAGE = {
-  h1: 'Get in touch.',
-  intro: "Let's work together. Email is the most direct way to reach me.",
-  cta: 'Message Alex',
-  ctaName: 'Message Alex (goes to the contact form)',
-  formHeading: 'Send a message',
-  formIntro: 'The form needs the API, which can take a minute to wake. Email works either way.',
-  preferEmail: 'Prefer email?',
-  email: CONTACT_EMAIL,
-  title: 'Contact, Alex Cash',
-  description: 'Email Alex Cash, view his resume, or send a message.',
-} as const;
-
-// The /resume page when no PDF was fetched at build time.
+// The /resume page when the API could not supply the PDF.
 export const RESUME_PAGE = {
   title: 'Resume, Alex Cash',
   description: 'The resume file is not available right now. Email Alex Cash for a copy.',
   h1: 'The resume is not available right now.',
-  line: 'The file did not load when this site was built. Email me and I will send it.',
+  line: 'The file did not load. Try again in a minute, or email me and I will send it.',
   emailLabel: 'Email Alex',
   homeLink: 'Go to the home page',
 } as const;

@@ -1,22 +1,23 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-import { BackIcon } from '~/components/detail/icons';
+import { Breadcrumb } from '~/components/detail/Breadcrumb';
+import { CLEAR_OF_CHROME, PAGE_FRAME, PILL } from '~/components/detail/pageStyles';
 import { NOT_FOUND } from '~/content/pages';
-// The crumb, .pg frame and .btn pill styles live in the detail stylesheet. Importing it keeps
-// them available when this page is the first one loaded, such as an unknown top-level address.
-import '~/components/detail/detail.css';
-import './pages.css';
+
+// Unlike the write-up page, two short buttons fit on one row at every width, and wrap by
+// themselves when they do not.
+const BUTTON_ROW = 'flex flex-wrap items-stretch gap-[12px] min-[768px]:items-center';
 
 /** NF-01 to NF-04: an address that matches no route. */
 export function NotFoundRoute() {
   return (
     <NotFoundFrame h1={NOT_FOUND.route.h1}>
-      <p className="text-lg">{NOT_FOUND.route.line}</p>
-      <div className="acts">
-        <Link to="/" className="btn btn-primary">
+      <p className="text-lg text-ink-2">{NOT_FOUND.route.line}</p>
+      <div className={BUTTON_ROW}>
+        <Link to="/" className={PILL.primary}>
           {NOT_FOUND.route.homeLink}
         </Link>
-        <Link to="/" hash="projects" className="btn btn-2">
+        <Link to="/" hash="projects" className={PILL.secondary}>
           {NOT_FOUND.route.projectsLink}
         </Link>
       </div>
@@ -29,22 +30,13 @@ export function NotFoundSlug() {
   return (
     <NotFoundFrame
       h1={NOT_FOUND.slug.h1}
-      crumb={
-        <nav className="crumb" aria-label="Breadcrumb">
-          <div className="crumb-in">
-            <Link to="/" hash="projects">
-              <BackIcon />
-              <span>All projects</span>
-            </Link>
-          </div>
-        </nav>
-      }
+      crumb={<Breadcrumb hash="projects" backLabel="All projects" />}
     >
-      <div className="acts">
-        <Link to="/" hash="projects" className="btn btn-primary">
+      <div className={BUTTON_ROW}>
+        <Link to="/" hash="projects" className={PILL.primary}>
           {NOT_FOUND.slug.allLink}
         </Link>
-        <Link to="/" className="btn btn-2">
+        <Link to="/" className={PILL.secondary}>
           {NOT_FOUND.slug.homeLink}
         </Link>
       </div>
@@ -61,15 +53,19 @@ function NotFoundFrame({
   crumb?: ReactNode;
   children: ReactNode;
 }) {
+  // With no crumb above it, the block needs the room the crumb band would have given.
+  const topPadding = crumb ? 'pt-[48px]' : 'pt-[64px]';
   return (
     <>
       {/* React 19 hoists this into <head>. There is no route head to set it on a 404. */}
       <title>{NOT_FOUND.title}</title>
       <meta name="description" content={NOT_FOUND.description} />
       {crumb}
-      <div className="pg">
-        <div className={crumb ? 'nf' : 'nf nf-solo'}>
-          <h1 tabIndex={-1}>{h1}</h1>
+      <div className={`${PAGE_FRAME} ${CLEAR_OF_CHROME}`}>
+        <div className={`grid justify-items-start gap-[16px] pb-[24px] ${topPadding}`}>
+          <h1 tabIndex={-1} className="font-display text-display">
+            {h1}
+          </h1>
           {children}
         </div>
       </div>

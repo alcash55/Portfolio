@@ -24,6 +24,7 @@ function useScrollReveal() {
       },
       { rootMargin: '0px 0px -10% 0px', threshold: 0.15 },
     );
+    // `.rv` marks what reveals. The styles for the states are in styles.css.
     const targets = document.querySelectorAll<HTMLElement>('.rv');
     targets.forEach((el) => {
       if (el.getBoundingClientRect().top <= window.innerHeight * REVEAL_BELOW_FOLD) return;
@@ -62,7 +63,8 @@ function useInPageLinks() {
       const link = event.target.closest<HTMLAnchorElement>('a[href]');
       if (!link) return;
 
-      // The chapter index handles its own rows, and Message Alex focuses the form field instead.
+      // The chapter index handles its own rows (`.cidx` is the hook ChapterNav puts on it), and
+      // Message Alex focuses the form field instead.
       if (link.closest('.cidx') || link.hasAttribute('data-msg')) return;
       const url = new URL(link.href, window.location.href);
       if (url.origin !== window.location.origin || url.pathname !== window.location.pathname)

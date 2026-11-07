@@ -25,10 +25,10 @@ describe('Home', () => {
     ]);
   });
 
-  it('numbers the figure frames 0 to 6 and leaves each project body as a slot', async () => {
+  it('numbers the figure frames 0 to 7 and leaves each project body as a slot', async () => {
     const { container } = await renderInRouter(<Home />);
     const figs = screen.getAllByRole('figure');
-    expect(figs).toHaveLength(7);
+    expect(figs).toHaveLength(8);
     expect(figs.map((f) => within(f).getByText(/^Fig \d$/).textContent)).toEqual([
       'Fig 0',
       'Fig 1',
@@ -37,6 +37,7 @@ describe('Home', () => {
       'Fig 4',
       'Fig 5',
       'Fig 6',
+      'Fig 7',
     ]);
     expect(container.querySelectorAll('[data-slot="figure"]')).toHaveLength(6);
   });

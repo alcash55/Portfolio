@@ -89,29 +89,6 @@ describe('Message Alex on a page that has the form', () => {
     await vi.waitFor(() => expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus());
   });
 
-  it('finds the form under the contact page heading too', async () => {
-    setMotion(false);
-    const user = userEvent.setup();
-    render(
-      <Page
-        withForm={
-          <>
-            <h2 id="message">Send a message</h2>
-            <form aria-label="Message Alex">
-              <label>
-                Name
-                <input name="name" />
-              </label>
-            </form>
-          </>
-        }
-      />,
-    );
-    await user.click(screen.getByRole('link', { name: 'Message Alex' }));
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
-    await vi.waitFor(() => expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus());
-  });
-
   it('leaves a modified click to the browser', async () => {
     const user = userEvent.setup();
     render(<Page />);

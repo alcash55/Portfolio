@@ -1,14 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { ContactPage } from '~/components/contact/ContactPage';
-import { CONTACT_PAGE } from '~/content/people';
-import { pageHead } from '~/lib/seo';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
+// The form lives in the home page's last chapter. /contact was a second page with the same form,
+// so a permanent redirect keeps old links, the sitemap entry and search results working.
 export const Route = createFileRoute('/contact')({
-  head: () =>
-    pageHead({
-      title: CONTACT_PAGE.title,
-      description: CONTACT_PAGE.description,
-      path: '/contact',
-    }),
-  component: ContactPage,
+  beforeLoad: () => {
+    throw redirect({ href: '/#contact', statusCode: 301 });
+  },
 });
