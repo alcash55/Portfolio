@@ -324,10 +324,9 @@ backend.
 One more workflow runs outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
 stop the Render free plan from spinning down (see below). It doesn't block a deploy.
 
-> `.github/workflows/deploy.yml` still publishes the frontend to GitHub Pages on a push to `main`.
-> The production site deploys to Cloudflare Workers by hand, so that workflow no longer ships it.
-> It also serves the [old v1 site](https://alcash55.github.io/Portfolio/), so a push to `main`
-> would replace v1 with the new frontend. Remove it or replace it with a `wrangler deploy` job.
+> The production site deploys to Cloudflare Workers by hand. The [old v1 site](https://alcash55.github.io/Portfolio/)
+> lives on the protected `v1` branch, whose own `deploy.yml` publishes it to GitHub Pages on a push to `v1`.
+> This branch has no Pages workflow, so a push here never touches v1.
 
 The old `check-resume.yml` ATS check is gone: the resume is served live from the Resume repo (see
 "Live resume data" below), and the same ATS check runs in that repo's own `resume-analysis.yml`

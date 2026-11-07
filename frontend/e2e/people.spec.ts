@@ -239,6 +239,13 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
         await formReady(page);
         await send(page).click();
         await page.getByRole('heading', { name: 'Check these fields before sending.' }).waitFor();
+        // The contact chapter fades in once the click scrolls it into view. axe reads a half-faded
+        // color as low contrast.
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll<HTMLElement>('[data-rv="in"]')].every(
+            (el) => getComputedStyle(el).opacity === '1',
+          ),
+        );
         const results = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
           .analyze();

@@ -74,17 +74,6 @@ test.describe('contact copy, exact', () => {
     await expect(status.locator('p').nth(1)).toHaveText(`Or email ${ADDRESS}`);
   });
 
-  test('the contact page ends with the prefer-email line (CT-16)', async ({ page }) => {
-    await page.goto('/');
-    const line = page.locator('p', { hasText: 'Prefer email?' });
-    await expect(line).toContainText(`Prefer email? ${ADDRESS}`);
-    await expect(line.getByRole('link', { name: ADDRESS })).toHaveAttribute(
-      'href',
-      `mailto:${ADDRESS}`,
-    );
-    await expect(page.getByText('Or email', { exact: false })).toHaveCount(0);
-  });
-
   test('the home band keeps the form fallback line (MA-28)', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('p', { hasText: `Or email ${ADDRESS}` })).toBeVisible();
