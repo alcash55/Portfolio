@@ -3,7 +3,7 @@ import { chapterTitle, type ProjectChapterSpec } from '~/content/home';
 import { Chapter } from './Chapter';
 import { ChapterLinks } from './ChapterLinks';
 import { Fig } from './Fig';
-import { PROOF } from './homeStyles';
+import { DESKTOP_ONLY, PROOF } from './homeStyles';
 
 /** A project chapter. `figure` is the body of the Fig frame. */
 export function ProjectChapter({ spec, figure }: { spec: ProjectChapterSpec; figure: ReactNode }) {
@@ -29,7 +29,17 @@ export function ProjectChapter({ spec, figure }: { spec: ProjectChapterSpec; fig
         </p>
       ))}
       <ChapterLinks links={spec.links} note={spec.note} />
-      {spec.afterLinks ? <p>{spec.afterLinks}</p> : null}
+      {spec.afterLinks ? (
+        <p
+          className={
+            spec.links.some((l) => l.kind === 'external' && l.desktopOnly)
+              ? DESKTOP_ONLY
+              : undefined
+          }
+        >
+          {spec.afterLinks}
+        </p>
+      ) : null}
     </Chapter>
   );
 }

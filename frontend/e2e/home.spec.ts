@@ -177,3 +177,45 @@ test.describe('home, narrow screens', () => {
     });
   }
 });
+
+// A chapter is one screen tall only from 900px. On a phone it runs 0.9 to 1.6 screens, and
+// mandatory snapping there jumped past text. The Golem Miners build needs a keyboard and mouse.
+test.describe('home on a phone and a small tablet', () => {
+  for (const [label, viewport] of [
+    ['phone', VIEWPORTS.phone],
+    ['small tablet', { width: 820, height: 1180 }],
+  ] as const) {
+    test.describe(label, () => {
+      test.use({ viewport });
+
+      test('scrolls freely and offers no Golem Miners play link', async ({ page }) => {
+        await page.goto('/');
+        const snap = await page.evaluate(
+          () => getComputedStyle(document.documentElement).scrollSnapType,
+        );
+        expect(snap).toBe('none');
+        const golem = page.locator('#golem-miners');
+        await expect(golem.getByRole('link', { name: /Play in your browser/ })).toBeHidden();
+        await expect(golem.getByText(/^Single-player, about 62 MB/)).toBeHidden();
+        await expect(golem.getByRole('link', { name: 'Read the write-up' })).toBeVisible();
+      });
+
+      test('keeps the play link off the write-up too', async ({ page }) => {
+        await page.goto('/projects/golem-miners');
+        await expect(page.getByRole('link', { name: /Play/ })).toBeHidden();
+      });
+    });
+  }
+
+  test('desktop still snaps and shows the play link', async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.desktop);
+    await page.goto('/');
+    const snap = await page.evaluate(
+      () => getComputedStyle(document.documentElement).scrollSnapType,
+    );
+    expect(snap).toBe('y mandatory');
+    await expect(
+      page.locator('#golem-miners').getByRole('link', { name: /Play in your browser/ }),
+    ).toBeVisible();
+  });
+});

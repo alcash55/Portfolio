@@ -104,7 +104,13 @@ export type Paragraph =
 
 export type ChapterLinkSpec =
   | { readonly kind: 'write-up'; readonly slug: ProjectSlug; readonly label: string }
-  | { readonly kind: 'external'; readonly label: string; readonly href: string };
+  | {
+      readonly kind: 'external';
+      readonly label: string;
+      readonly href: string;
+      /** Hidden below 1024px, for a link that needs a keyboard and mouse. */
+      readonly desktopOnly?: boolean;
+    };
 
 export interface FigSpec {
   /** Figure number shown in the frame header, "Fig 3". */
@@ -124,7 +130,7 @@ export interface ProjectChapterSpec {
   readonly paragraphs: readonly Paragraph[];
   readonly links: readonly ChapterLinkSpec[];
   readonly note?: string;
-  /** A short line under the links, used for the Golem Miners play note. */
+  /** A short line under the links, used for the Golem Miners play note. It hides with a desktop-only link. */
   readonly afterLinks?: string;
   readonly fig: FigSpec;
   /** True when the figure sits on the left. */
@@ -274,7 +280,12 @@ export const PROJECT_CHAPTERS: readonly ProjectChapterSpec[] = [
     ],
     links: [
       { kind: 'write-up', slug: 'golem-miners', label: WRITE_UP },
-      { kind: 'external', label: 'Play in your browser', href: '/play/golem-miners/' },
+      {
+        kind: 'external',
+        label: 'Play in your browser',
+        href: '/play/golem-miners/',
+        desktopOnly: true,
+      },
     ],
     note: PRIVATE,
     afterLinks:

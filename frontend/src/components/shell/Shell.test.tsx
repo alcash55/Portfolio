@@ -135,10 +135,10 @@ describe('Footer', () => {
     ).toEqual(NAV.map(([label]) => label));
   });
 
-  it('shows the address, the copyright and the colophon', async () => {
+  it('shows the copyright and the colophon, and no email address', async () => {
     await renderShell();
     const footer = screen.getByRole('contentinfo');
-    expect(within(footer).getByText('alex.e.cash28@gmail.com')).toBeInTheDocument();
+    expect(footer).not.toHaveTextContent('@');
     expect(within(footer).getByText('© 2026 Alex Cash')).toBeInTheDocument();
     expect(
       within(footer).getByText('Built with TanStack Start and Tailwind. Hosted on Cloudflare.'),

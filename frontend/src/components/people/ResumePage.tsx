@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { PageFrame } from '~/components/pages/PageFrame';
-import { CONTACT_EMAIL, RESUME_PAGE } from '~/content/people';
+import { LINKEDIN_URL, RESUME_PAGE } from '~/content/people';
 
 const linkClass =
   'inline-flex min-h-11 items-center text-[0.9375rem] font-medium underline underline-offset-4';
@@ -14,8 +14,9 @@ export function ResumePage() {
       </h1>
       <p className="text-ink-2 mt-4 max-w-[52ch] text-lg">{RESUME_PAGE.line}</p>
       <div className="mt-8 flex flex-wrap gap-x-6">
-        <a className={linkClass} href={`mailto:${CONTACT_EMAIL}`}>
-          {RESUME_PAGE.emailLabel}
+        <a className={linkClass} href={LINKEDIN_URL} target="_blank" rel="noopener">
+          {RESUME_PAGE.linkedinLabel}
+          <span className="sr"> (opens in a new tab)</span>
         </a>
         <Link to="/" className={linkClass}>
           {RESUME_PAGE.homeLink}

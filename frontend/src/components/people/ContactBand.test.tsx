@@ -23,20 +23,20 @@ describe('ContactBand', () => {
     expect(within(band).getByText('Send me a message here.')).toBeInTheDocument();
   });
 
-  it('puts the form before the fold and leaves out the dogs and the link row', async () => {
+  it('puts the form before the fold and leaves out the dogs and the resume link', async () => {
     const band = await setup();
     expect(within(band).queryByRole('figure')).not.toBeInTheDocument();
     expect(within(band).queryByRole('img')).not.toBeInTheDocument();
-    expect(within(band).queryByRole('link', { name: /^LinkedIn/ })).not.toBeInTheDocument();
     expect(within(band).queryByRole('link', { name: /^View resume/ })).not.toBeInTheDocument();
   });
 
-  it('holds the message form and the fallback address', async () => {
+  it('holds the message form and the LinkedIn fallback', async () => {
     const band = await setup();
     expect(within(band).getByRole('form', { name: 'Message Alex' })).toBeInTheDocument();
-    expect(within(band).getByRole('link', { name: 'alex.e.cash28@gmail.com' })).toHaveAttribute(
+    expect(within(band).getByRole('link', { name: /^LinkedIn/ })).toHaveAttribute(
       'href',
-      'mailto:alex.e.cash28@gmail.com',
+      'https://www.linkedin.com/in/alexander-cash/',
     );
+    expect(band.querySelector('a[href^="mailto:"]')).toBeNull();
   });
 });

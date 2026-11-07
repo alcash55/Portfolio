@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
-import { CONTACT_EMAIL } from '~/content/people';
-import { CopyEmailButton } from './CopyEmailButton';
+import { LINKEDIN_URL } from '~/content/people';
 import { FIELDS, LABELS, failureCopy, isRetryable, submitLabel } from './contactCopy';
 import type { SendDeps } from './sendContact';
 import { useContactForm } from './useContactForm';
@@ -104,14 +103,7 @@ function ErrorIcon() {
   );
 }
 
-export function ContactForm({
-  deps,
-  emailLead = 'Or email',
-}: {
-  deps?: SendDeps;
-  /** The words before the address under the form. The contact page ends with "Prefer email?". */
-  emailLead?: string;
-}) {
+export function ContactForm({ deps }: { deps?: SendDeps }) {
   const {
     ids,
     hydrated,
@@ -150,7 +142,7 @@ export function ContactForm({
         <button type="button" className={`${BUTTON} ${BUTTON_SECONDARY}`} onClick={sendAnother}>
           Send another message
         </button>
-        <EmailLine lead={emailLead} />
+        <LinkedInLine />
       </div>
     );
   }
@@ -273,12 +265,7 @@ export function ContactForm({
               {isRetryable(failure) ? (
                 <p className={BANNER_LINE}>Your message is still in the form.</p>
               ) : null}
-              <p>
-                Or email{' '}
-                <a className={INLINE_LINK} href={`mailto:${CONTACT_EMAIL}`}>
-                  {CONTACT_EMAIL}
-                </a>
-              </p>
+              <LinkedInLine />
             </div>
           ) : null}
         </div>
@@ -291,12 +278,7 @@ export function ContactForm({
           {slow ? (
             <>
               <p>Waking the server. This can take up to a minute.</p>
-              <p>
-                Or email{' '}
-                <a className={INLINE_LINK} href={`mailto:${CONTACT_EMAIL}`}>
-                  {CONTACT_EMAIL}
-                </a>
-              </p>
+              <LinkedInLine />
             </>
           ) : null}
         </div>
@@ -316,19 +298,20 @@ export function ContactForm({
           {submitLabel(sending, failure)}
         </button>
       </form>
-      <EmailLine lead={emailLead} />
+      <LinkedInLine />
     </div>
   );
 }
 
-function EmailLine({ lead }: { lead: string }) {
+/** The way in that needs no server: LinkedIn. The site shows no email address. */
+function LinkedInLine() {
   return (
-    <p className="text-[0.9375rem] text-ink-2 wrap-anywhere">
-      {lead}{' '}
-      <a className={INLINE_LINK} href={`mailto:${CONTACT_EMAIL}`}>
-        {CONTACT_EMAIL}
+    <p className="text-[0.9375rem] text-ink-2">
+      Or message me on{' '}
+      <a className={INLINE_LINK} href={LINKEDIN_URL} target="_blank" rel="noopener">
+        LinkedIn<span className="sr"> (opens in a new tab)</span>
       </a>
-      <CopyEmailButton address={CONTACT_EMAIL} />
+      .
     </p>
   );
 }

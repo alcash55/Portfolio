@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ContactForm } from './ContactForm';
 
-const EMAIL = 'alex.e.cash28@gmail.com';
+const LINKEDIN = 'https://www.linkedin.com/in/alexander-cash/';
+const LINKEDIN_NAME = /^LinkedIn/;
 
 type Stub = ReturnType<typeof vi.fn<typeof fetch>>;
 
@@ -12,12 +13,12 @@ function reply(status: number): Response {
   return new Response('{}', { status, headers: { 'Content-Type': 'application/json' } });
 }
 
-function setup(fetchStub: Stub, emailLead?: string) {
+function setup(fetchStub: Stub) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const user = userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) });
   render(
     <QueryClientProvider client={client}>
-      <ContactForm deps={{ fetch: fetchStub, apiUrl: 'https://api.test' }} emailLead={emailLead} />
+      <ContactForm deps={{ fetch: fetchStub, apiUrl: 'https://api.test' }} />
     </QueryClientProvider>,
   );
   return { user };
@@ -56,22 +57,15 @@ describe('ContactForm', () => {
     expect(field.message()).toBeRequired();
     expect(screen.getByText('0 of 1500')).toBeInTheDocument();
     expect(field.send()).toHaveTextContent('Send message');
-    expect(screen.getByRole('link', { name: EMAIL })).toHaveAttribute('href', `mailto:${EMAIL}`);
+    expect(screen.getByRole('link', { name: LINKEDIN_NAME })).toHaveAttribute('href', LINKEDIN);
   });
 
-  it('leads the fallback line with "Or email" unless the page asks for other words', () => {
-    const { unmount } = render(
-      <QueryClientProvider client={new QueryClient()}>
-        <ContactForm />
-      </QueryClientProvider>,
-    );
-    expect(screen.getByText('Or email')).toBeInTheDocument();
-    unmount();
-
-    setup(vi.fn<typeof fetch>(), 'Prefer email?');
-    expect(screen.getByText('Prefer email?')).toBeInTheDocument();
-    expect(screen.queryByText('Or email')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: EMAIL })).toHaveAttribute('href', `mailto:${EMAIL}`);
+  it('shows no email address anywhere in the form', () => {
+    setup(vi.fn<typeof fetch>());
+    const container = document.body;
+    expect(container.querySelector('a[href^="mailto:"]')).toBeNull();
+    expect(container).not.toHaveTextContent(/@\w+\.\w+/);
+    expect(screen.getByText(/^Or message me on/)).toBeInTheDocument();
   });
 
   it('adds no inline error while the pointer is pressing Send', async () => {
@@ -179,7 +173,7 @@ describe('ContactForm', () => {
     expect(screen.getByText('0 of 1500')).toBeInTheDocument();
   });
 
-  it('says the server is waking after 4 seconds and offers the address', async () => {
+  it('says the server is waking after 4 seconds and offers LinkedIn', async () => {
     const fetchStub = vi.fn<typeof fetch>(() => new Promise<Response>(() => undefined));
     const { user } = setup(fetchStub);
     await fillValid(user);
@@ -197,7 +191,10 @@ describe('ContactForm', () => {
       await vi.advanceTimersByTimeAsync(2500);
     });
     expect(status).toHaveTextContent('Waking the server. This can take up to a minute.');
-    expect(within(status).getByRole('link', { name: EMAIL })).toBeInTheDocument();
+    expect(within(status).getByRole('link', { name: LINKEDIN_NAME })).toHaveAttribute(
+      'href',
+      LINKEDIN,
+    );
   });
 
   it.each([
@@ -205,7 +202,7 @@ describe('ContactForm', () => {
     [400, 'Please check your details and try again.', 'Send message'],
     [502, "Couldn't send that. Try again in a minute.", 'Try again'],
   ])(
-    'on HTTP %i shows an alert, keeps the typing and offers the address',
+    'on HTTP %i shows an alert, keeps the typing and offers LinkedIn',
     async (status, copy, label) => {
       const { user } = setup(vi.fn<typeof fetch>().mockResolvedValue(reply(status)));
       await fillValid(user);
@@ -213,9 +210,9 @@ describe('ContactForm', () => {
 
       const alert = await screen.findByRole('alert');
       expect(alert).toHaveTextContent(copy);
-      expect(within(alert).getByRole('link', { name: EMAIL })).toHaveAttribute(
+      expect(within(alert).getByRole('link', { name: LINKEDIN_NAME })).toHaveAttribute(
         'href',
-        `mailto:${EMAIL}`,
+        LINKEDIN,
       );
       expect(field.name()).toHaveValue('Ada Lovelace');
       expect(field.message()).toHaveValue('Hello there.');
@@ -232,9 +229,9 @@ describe('ContactForm', () => {
     await user.click(field.send());
 
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent("Couldn't reach the server. Email works.");
+    expect(alert).toHaveTextContent("Couldn't reach the server. LinkedIn works.");
     expect(alert).not.toHaveTextContent('Try again in a minute');
-    expect(within(alert).getByRole('link', { name: EMAIL })).toBeInTheDocument();
+    expect(within(alert).getByRole('link', { name: LINKEDIN_NAME })).toBeInTheDocument();
   });
 
   it('after a server error says the message is kept, and "Try again" sends it once more', async () => {

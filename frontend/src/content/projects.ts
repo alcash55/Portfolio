@@ -61,6 +61,8 @@ export interface Diagram {
 export interface ExternalLink {
   readonly label: string;
   readonly href: string;
+  /** Hidden below 1024px, for a link that needs a keyboard and mouse. */
+  readonly desktopOnly?: boolean;
 }
 
 /** One measured number. Read aloud, the figure and label make a sentence: "387 tests pass." */
@@ -228,7 +230,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     built: [
       'A portfolio is easy to fill with claims a reader cannot check. I built this one so the claims can be checked from outside: a resume that streams from a private repository, a CI list read from the repository that defines it, and a browser suite that runs on every pull request.', // PD-09
-      'The resume and the CI list come from GitHub through a Go API with a cache and a single-flight refresh. If a refresh fails, the API serves the stale copy and flags it. If the API is unreachable, the CI figure falls back to a built-in list and the resume page offers email. The contact form posts to the same API.', // PD-10
+      'The resume and the CI list come from GitHub through a Go API with a cache and a single-flight refresh. If a refresh fails, the API serves the stale copy and flags it. If the API is unreachable, the CI figure falls back to a built-in list and the resume page offers LinkedIn. The contact form posts to the same API.', // PD-10
     ],
     stats: [
       {
@@ -577,7 +579,7 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
     },
     stack: 'Unity 6, C#, Unity Test Framework', // GM-04
     // GM-05a. The build is served from /play/, which the deploy fills in.
-    links: [{ label: 'Play in your browser', href: '/play/golem-miners/' }],
+    links: [{ label: 'Play in your browser', href: '/play/golem-miners/', desktopOnly: true }],
     playNote:
       'Single-player, about 62 MB, for a computer with a keyboard and mouse. Steam co-op does not run in a browser.',
     notice: 'The code is private.', // GM-05
