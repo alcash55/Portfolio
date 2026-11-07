@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"bytes"
@@ -241,5 +241,40 @@ func TestFileExists(t *testing.T) {
 				t.Errorf("fileExists(%q) = %v, want %v", tt.path, got, tt.want)
 			}
 		})
+	}
+}
+
+// TestLoad_ReadsEnvFileFoundAboveWorkingDirectory pins the contract main
+// relies on: Load() finds the .env itself, so main needs no separate setup
+// step, and a variable already set in the real environment wins over the file.
+func TestLoad_ReadsEnvFileFoundAboveWorkingDirectory(t *testing.T) {
+	// t.Setenv registers a cleanup that restores the original state, so the
+	// Unsetenv that follows it leaves each key absent now and put back as it
+	// was afterwards, even when godotenv sets it mid-test.
+	for _, key := range []string{"PORT", "WEBHOOK_URL"} {
+		t.Setenv(key, "")
+		os.Unsetenv(key)
+	}
+	t.Setenv("WEBHOOK_URL", "https://example.com/from-real-env")
+
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "go.mod"), "module fixture\n")
+	writeFile(t, filepath.Join(root, ".env"), "PORT=9191\nWEBHOOK_URL=https://example.com/from-file\n")
+	cwd := filepath.Join(root, "cmd", "app")
+	if err := os.MkdirAll(cwd, 0o755); err != nil {
+		t.Fatalf("MkdirAll(%q): %v", cwd, err)
+	}
+	chdir(t, cwd)
+	captureLog(t)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() from %q with a .env above it: %v", cwd, err)
+	}
+	if cfg.Port != 9191 {
+		t.Errorf("Load().Port = %d, want 9191 from the .env above the working directory", cfg.Port)
+	}
+	if cfg.WebhookURL != "https://example.com/from-real-env" {
+		t.Errorf("Load().WebhookURL = %q, want %q (a variable already in the environment must beat the .env)", cfg.WebhookURL, "https://example.com/from-real-env")
 	}
 }

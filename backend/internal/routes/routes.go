@@ -6,6 +6,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/alcash55/Portfolio/internal/handlers/ciactions"
 	"github.com/alcash55/Portfolio/internal/handlers/contact"
 	"github.com/alcash55/Portfolio/internal/handlers/projects"
 	"github.com/alcash55/Portfolio/internal/handlers/resume"
@@ -97,6 +98,7 @@ func New(cfg config.Config) *gin.Engine {
 
 	contactHandler := contact.New(cfg)
 	projectsHandler := projects.New(cfg)
+	ciActionsHandler := ciactions.New(cfg)
 	resumeHandler := resume.New(cfg)
 
 	// One instance on Render, so an in-process limiter needs no shared
@@ -133,6 +135,12 @@ func New(cfg config.Config) *gin.Engine {
 			// flight onto that one call, so there's no per-request cost for
 			// a limiter to protect against here.
 			v1.GET("/projects", projectsHandler.GetProjects)
+
+			// /api/v1/ci-actions - not rate limited, same reasoning as
+			// /projects: a refresh (one tree call plus one raw-file call per
+			// action) happens at most once an hour in ciactions.Handler's
+			// cache, however many requests arrive.
+			v1.GET("/ci-actions", ciActionsHandler.GetCIActions)
 
 			// /api/v1/resume[/:variant] - deliberately not behind the rate
 			// limiter, same reasoning as /projects: its real cost (a GitHub

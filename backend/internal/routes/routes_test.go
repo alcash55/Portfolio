@@ -3,9 +3,11 @@ package routes
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -157,6 +159,59 @@ func TestResumeStatusRoute_Mounted(t *testing.T) {
 	}
 	if body.TokenConfigured {
 		t.Errorf("tokenConfigured = true, want false (testConfig sets no RESUME_GH_TOKEN or GH_TOKEN)")
+	}
+}
+
+// stubGitHub points every outbound http.DefaultTransport request, which is
+// what the handlers' own clients use, at a canned two-file ac-composite-actions
+// repo. routes.New builds its handlers internally, so this is the one seam for
+// keeping a route test off the real GitHub API.
+func stubGitHub(t *testing.T) {
+	t.Helper()
+	prev := http.DefaultTransport
+	http.DefaultTransport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		body := ""
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/git/trees/main"):
+			body = `{"sha":"abc","tree":[{"path":"diff/action.yml","type":"blob"}]}`
+		case strings.HasSuffix(r.URL.Path, "/diff/action.yml"):
+			body = "name: diff\ndescription: Lists the changed files. More.\n"
+		}
+		status := http.StatusOK
+		if body == "" {
+			status = http.StatusNotFound
+		}
+		return &http.Response{
+			StatusCode: status,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(body)),
+			Request:    r,
+		}, nil
+	})
+	t.Cleanup(func() { http.DefaultTransport = prev })
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+// TestCIActionsRoute_Mounted proves GET /api/v1/ci-actions is registered and
+// wired to the ci-actions handler, answering with the JSON shape the frontend
+// renders.
+func TestCIActionsRoute_Mounted(t *testing.T) {
+	stubGitHub(t)
+	router := New(testConfig([]string{"https://example.com"}, false))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/ci-actions", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /api/v1/ci-actions: status = %d, want %d; body: %s", rec.Code, http.StatusOK, rec.Body.String())
+	}
+	want := `{"actions":[{"name":"diff","description":"Lists the changed files."}],"treeSha":"abc","stale":false}`
+	if got := rec.Body.String(); got != want {
+		t.Errorf("GET /api/v1/ci-actions body = %s, want %s", got, want)
 	}
 }
 
