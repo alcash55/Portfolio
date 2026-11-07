@@ -1,5 +1,4 @@
 import { ABOUT } from '~/content/home';
-import { CONTACT_EMAIL } from '~/content/people';
 import { SITE_NAME } from '~/content/pages';
 
 export type MetaTag =
@@ -71,7 +70,6 @@ export function personJsonLd(origin: string | undefined = SITE_ORIGIN): string {
     '@type': 'Person',
     name: SITE_NAME,
     jobTitle: 'Software engineer',
-    email: CONTACT_EMAIL,
     ...(origin ? { url: `${origin}/` } : {}),
     sameAs: ABOUT.social.map((link) => link.href),
   });

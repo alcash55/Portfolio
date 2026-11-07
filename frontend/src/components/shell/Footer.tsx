@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { ResumeLink } from '~/components/people/ResumeLink';
-import { CONTACT_EMAIL } from '~/content/people';
 import { SectionLinks } from './SectionLinks';
 
 type FooterLayout = 'page' | 'home';
@@ -15,7 +14,6 @@ const FOOTER: Record<FooterLayout, string> = {
 };
 const SECTIONS = 'flex flex-wrap gap-x-[28px]';
 const TEXT = 'text-[0.9375rem] text-ink-2';
-const EMAIL = `${TEXT} select-all [overflow-wrap:anywhere]`;
 const BASE = [
   'flex flex-wrap items-center justify-between gap-x-[24px] gap-y-[8px]',
   'border-t border-line pt-[20px]',
@@ -85,7 +83,6 @@ export function Footer({ isHome = false }: { isHome?: boolean }) {
         </ExternalLink>
         <ResumeLink location="footer" className={link.plain} />
       </div>
-      <p className={EMAIL}>{CONTACT_EMAIL}</p>
       <div className={BASE}>
         <p className={TEXT}>Built with TanStack Start and Tailwind. Hosted on Cloudflare.</p>
         <p className={TEXT}>&copy; 2026 Alex Cash</p>

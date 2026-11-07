@@ -1,7 +1,8 @@
 import { fail, fillForm, ok, send, stubContact } from './contactStub';
 import { expect, test, VIEWPORTS } from './fixtures';
 
-const ADDRESS = 'alex.e.cash28@gmail.com';
+const LINKEDIN = 'https://www.linkedin.com/in/alexander-cash/';
+const FALLBACK = /^Or message me on LinkedIn/;
 
 // These run in a real browser because the sources build the strings from parts
 // (a template, JSX text next to a variable), so a text search of the source
@@ -48,16 +49,15 @@ test.describe('contact copy, exact', () => {
     ['rate limit', 429],
     ['server error', 502],
   ] as const) {
-    test(`${label} shows the email fallback with a mailto link (MA-27)`, async ({ page }) => {
+    test(`${label} shows the LinkedIn fallback (MA-27)`, async ({ page }) => {
       await stubContact(page, fail(status));
       await page.goto('/');
       await fillForm(page);
       await send(page).click();
-      const fallback = page.getByRole('alert').locator('p', { hasText: /^Or email / });
-      await expect(fallback).toHaveText(`Or email ${ADDRESS}`);
-      await expect(fallback.getByRole('link', { name: ADDRESS })).toHaveAttribute(
+      const fallback = page.getByRole('alert').locator('p', { hasText: FALLBACK });
+      await expect(fallback.getByRole('link', { name: /^LinkedIn/ })).toHaveAttribute(
         'href',
-        `mailto:${ADDRESS}`,
+        LINKEDIN,
       );
     });
   }
@@ -71,38 +71,20 @@ test.describe('contact copy, exact', () => {
     await fillForm(page);
     await send(page).click();
     const status = page.getByRole('status', { name: 'Send status' });
-    await expect(status.locator('p').nth(1)).toHaveText(`Or email ${ADDRESS}`);
+    await expect(status.locator('p', { hasText: FALLBACK })).toBeVisible();
   });
 
   test('the home band keeps the form fallback line (MA-28)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('p', { hasText: `Or email ${ADDRESS}` })).toBeVisible();
-  });
-});
-
-test.describe('copy email address button', () => {
-  test.use({ viewport: VIEWPORTS.phone });
-
-  test('says Copied, then goes back', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.goto('/');
-    const button = page.getByRole('button', { name: 'Copy email address' });
-    await button.click();
-    await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(ADDRESS);
-    await expect(page.getByRole('button', { name: 'Copy email address' })).toBeVisible();
+    await expect(page.locator('p', { hasText: FALLBACK })).toBeVisible();
   });
 
-  test('says what to do when the clipboard refuses', async ({ page }) => {
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'clipboard', {
-        value: { writeText: () => Promise.reject(new Error('denied')) },
-      });
-    });
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Copy email address' }).click();
-    await expect(
-      page.getByRole('button', { name: "Couldn't copy. Select the address instead." }),
-    ).toBeVisible();
+  test('no page shows an email address or a mailto link', async ({ page }) => {
+    for (const path of ['/', '/contact', '/projects/clipper', '/resume']) {
+      await page.goto(path);
+      await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+      expect(await page.locator('body').innerText()).not.toMatch(/gmail\.com/);
+      expect(await page.content()).not.toMatch(/alex\.e\.cash28@/);
+    }
   });
 });

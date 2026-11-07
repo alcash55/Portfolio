@@ -102,7 +102,9 @@ describe('project and experience data', () => {
     const golem = DETAILS['golem-miners'];
     expect(golem.status?.role).toBe('Prototype.');
     expect(golem.playNote).toMatch(/^Single-player, about 62 MB/);
-    expect(golem.links).toEqual([{ label: 'Play in your browser', href: '/play/golem-miners/' }]);
+    expect(golem.links).toEqual([
+      { label: 'Play in your browser', href: '/play/golem-miners/', desktopOnly: true },
+    ]);
     expect(golem.media.kind).toBe('gallery');
     if (golem.media.kind === 'gallery') {
       expect(golem.media.slides.map((s) => s.caption)).toEqual(['Camp']);

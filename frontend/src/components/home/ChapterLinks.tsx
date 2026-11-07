@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { ChapterLinkSpec } from '~/content/home';
 import { analytics } from '~/lib/analytics';
-import { GO_ARROW, GO_LINK, LINK_ROW, NOTE, TEXT_LINK } from './homeStyles';
+import { DESKTOP_ONLY, GO_ARROW, GO_LINK, LINK_ROW, NOTE, TEXT_LINK } from './homeStyles';
 
 function assertNever(value: never): never {
   throw new Error(`Unhandled chapter link: ${JSON.stringify(value)}`);
@@ -25,7 +25,12 @@ function LinkItem({ link }: { link: ChapterLinkSpec }) {
       );
     case 'external':
       return (
-        <a className={TEXT_LINK} href={link.href} target="_blank" rel="noopener">
+        <a
+          className={link.desktopOnly ? `${TEXT_LINK} ${DESKTOP_ONLY}` : TEXT_LINK}
+          href={link.href}
+          target="_blank"
+          rel="noopener"
+        >
           {link.label} <span className="sr">(opens in a new tab)</span>
         </a>
       );

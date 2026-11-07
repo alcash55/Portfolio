@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-import { CONTACT_EMAIL } from '~/content/people';
+import { LINKEDIN_URL } from '~/content/people';
 import { CLEAR_OF_CHROME, PAGE_FRAME, PILL } from './pageStyles';
 
 // The dband class is a hook, not a style. ContactForm restyles itself inside it with in-[.dband].
@@ -17,7 +17,7 @@ const BAND_INNER = [
 const HEADING = 'font-display text-band-title tracking-[-0.015em] [word-spacing:0.06em]';
 
 interface MessageBandProps {
-  /** The contact form. Without one, the band offers a link to the home page's form and the address. */
+  /** The contact form. Without one, the band offers a link to the home page's form and LinkedIn. */
   form?: ReactNode;
 }
 
@@ -34,8 +34,8 @@ export function MessageBand({ form }: MessageBandProps) {
             <Link className={PILL.primary} to="/" hash="contact" data-msg>
               Message Alex
             </Link>
-            <a className="text-ink-2 wrap-anywhere" href={`mailto:${CONTACT_EMAIL}`}>
-              {CONTACT_EMAIL}
+            <a className="text-ink-2" href={LINKEDIN_URL} target="_blank" rel="noopener">
+              LinkedIn<span className="sr"> (opens in a new tab)</span>
             </a>
           </div>
         )}
