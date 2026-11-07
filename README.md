@@ -324,7 +324,7 @@ backend.
 One more workflow runs outside that path: `keep-alive.yml` pings `/healthz` every 10 minutes to
 stop the Render free plan from spinning down (see below). It doesn't block a deploy.
 
-> The production site deploys to Cloudflare Workers by hand. The [old v1 site](https://alcash55.github.io/Portfolio/)
+> The production site deploys to Cloudflare Workers when `main` changes. The [old v1 site](https://alcash55.github.io/Portfolio/)
 > lives on the protected `v1` branch, whose own `deploy.yml` publishes it to GitHub Pages on a push to `v1`.
 > This branch has no Pages workflow, so a push here never touches v1.
 
@@ -338,12 +338,12 @@ The two halves deploy independently:
 
 | Part        | Host                                                | Address                                                        | Trigger                                  |
 | ----------- | --------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------- |
-| `frontend/` | [Cloudflare Workers](https://workers.cloudflare.com/) | <https://portfolio-website.alex-e-cash28.workers.dev>          | `wrangler deploy` from `frontend/`, by hand |
+| `frontend/` | [Cloudflare Workers](https://workers.cloudflare.com/) | <https://portfolio-website.alex-e-cash28.workers.dev>          | Push to `main` → Workers Builds           |
 | `backend/`  | [Render](https://render.com)                        | <https://portfolio-api-0mta.onrender.com>                      | Push to `main` → `render.yaml` blueprint |
 
 ### Deploying the frontend
 
-Build with the production values, then deploy. The worker is named `portfolio-website` in
+Cloudflare Workers Builds runs `bun install && bun run build` in `frontend/` and then `npx wrangler deploy` on every push to `main`. The four `VITE_*` values below are build variables in the Cloudflare dashboard. To deploy from your machine instead, build with the production values and deploy. The worker is named `portfolio-website` in
 `frontend/wrangler.jsonc`.
 
 ```sh
