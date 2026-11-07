@@ -36,9 +36,13 @@ How the pieces fit:
   `e2e/home-full.spec.ts` checks it.
 - Project and role write-ups live at `/projects/:slug` and `/experience/:slug`. Their breadcrumb
   returns to the chapter you opened them from.
-- The build runs three scripts first (`fetch-resume`, `generate-site-stats`, `generate-ci-actions`).
-  They write the resume PDF and the numbers shown on the site into gitignored files, so no count
-  on the page is typed by hand. None of them fails a build over missing data.
+- The build runs one script first, `generate-site-stats`. It writes the test counts shown on the
+  site into a gitignored file, so no count on the page is typed by hand. It never fails a build
+  over missing data.
+- The frontend asks the Go API for anything that needs a token. `/resume` is a Worker route that
+  fetches `GET /api/v1/resume` and streams the PDF back, or renders an explanation page when the
+  API cannot supply it. The AC Composite Actions figure renders a fixed list on the server and,
+  after hydration, swaps in `GET /api/v1/ci-actions` if the figure is still below the screen.
 - `/play/golem-miners/` is a launcher page. The Unity build is not in the repo or the deploy, so
   the Worker streams it from a GitHub release (see below).
 
@@ -69,6 +73,7 @@ at compile time.
 | `GET`  | `/healthz`         | –                              | `200 {"status":"ok"}`                                                                                    |
 | `POST` | `/api/v1/contact`  | `{"name","email","message"}`  | `200` ok · `400` validation · `413` >64 KiB · `429` rate limited · `502` webhook unreachable/rejected     |
 | `GET`  | `/api/v1/projects` | –                              | `200 {"projects":[...],"stale":bool}` · `502` if every configured repo failed to fetch                   |
+| `GET`  | `/api/v1/ci-actions` | –                            | `200 {"actions":[{"name","description"}],"treeSha":"...","stale":bool}` · `502` if the repo tree could not be read and nothing is cached |
 | `GET`  | `/api/v1/resume`   | –                              | `200` PDF, fullstack variant · `502` upstream fetch failed and nothing is cached · `503` no `RESUME_GH_TOKEN`/`GH_TOKEN` configured |
 | `GET`  | `/api/v1/resume/:variant` | –                        | `200` PDF (`:variant` is `fullstack`, `frontend`, or `backend`) · `404` unknown variant · `502` upstream fetch failed and nothing is cached · `503` no token configured |
 | `GET`  | `/api/v1/resume/status` | –                          | `200` diagnostic: token presence, per-variant cache state, last success/failure. See "Diagnosing a broken resume link" below |
@@ -149,9 +154,9 @@ stage=resolve_release status=404: unexpected status 404 fetching latest release`
 token nor the `Authorization` header value is ever part of that line, a response body, or a
 response header.
 
-The frontend build downloads the PDF from `/api/v1/resume/fullstack` (set through `RESUME_PDF_URL`)
-and ships it as `/resume.pdf`, so a resume edit reaches the site on the next deploy. If the file
-is missing, `/resume` shows an explanation instead of an error.
+The frontend's `/resume` route fetches `/api/v1/resume` on each visit and streams the PDF back,
+so a new release reaches the site without a deploy. If the API answers anything but a PDF, or
+takes longer than 35 seconds, `/resume` shows an explanation page instead of an error.
 
 #### Diagnosing a broken resume link
 
@@ -175,7 +180,8 @@ Check `GET /api/v1/resume/status` before opening the Render dashboard:
 ```
 
 - `tokenConfigured: false` means no `RESUME_GH_TOKEN` or `GH_TOKEN` was ever set on the service.
-  That's the whole fix: run `scripts/resume-token-wizard.sh` and redeploy. This is what actually
+  That's the whole fix: create a fine-grained PAT with read-only Contents access to
+  `alcash55/Resume`, set it as `RESUME_GH_TOKEN` in the Render dashboard, and redeploy. This is what actually
   broke the endpoint on 2026-09-16, and finding it took a Render dashboard visit because the
   endpoint's only external signal was a 502 indistinguishable from a GitHub outage.
 - `tokenConfigured: true` but a variant's `cached: false` with a populated `lastFailureReason`
@@ -198,7 +204,7 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
-| `GH_TOKEN`        | no       | GitHub token `GET /api/v1/projects` sends when calling the GitHub API. Optional, see below     |
+| `GH_TOKEN`        | no       | GitHub token that `/api/v1/projects` and `/api/v1/ci-actions` send to the GitHub API. Optional, see below |
 | `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 503 until it's set (check `GET /api/v1/resume/status`) |
 | `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
 | `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
@@ -213,7 +219,7 @@ either. The handler retries that one refresh unauthenticated instead.
 repo is a bigger grant than `GH_TOKEN`'s job of raising a public-repo rate limit. When unset, it
 falls back to `GH_TOKEN` instead of failing outright, since that token currently carries the `repo`
 scope and already reads the Resume repo too (see "Live resume data" above for what happens if both
-are missing). Set a dedicated token with `scripts/resume-token-wizard.sh` to keep the two
+are missing). Set a dedicated token in the Render dashboard to keep the two
 endpoints' access separate again.
 
 `.env` is read by [godotenv](https://github.com/joho/godotenv) at startup. Go
@@ -223,11 +229,11 @@ so deployed environments are unaffected.
 CORS has two modes, chosen by whether `ALLOWED_ORIGINS` is set:
 
 - **Unset (local development).** Any `localhost` / `127.0.0.1` / `::1` origin is
-  allowed **on any port**, plus `https://alcash55.github.io`. Dev servers drift
+  allowed **on any port**, plus the v1 site's origin, `https://alcash55.github.io`. Dev servers drift
   to another port when theirs is taken (Vite does this silently unless
   `strictPort` is set), and pinning exact ports turns into whack-a-mole.
 - **Set (deployments).** Exact matching against that list only, and localhost is
-  not special. `render.yaml` sets it to `https://alcash55.github.io`.
+  not special. `render.yaml` sets it to the Workers origin, `https://portfolio-website.alex-e-cash28.workers.dev`.
 
 Setting `ALLOWED_ORIGINS` **replaces** the defaults rather than adding to them.
 
@@ -259,12 +265,10 @@ Frontend env files live in `frontend/`. Copy `frontend/.env.example` to
 
 | Variable                     | Required | Purpose                                                                                |
 | ----------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| `VITE_API_URL`                | no       | Go API base URL, used by the contact form. Defaults to `http://localhost:8080` in dev. A production build without it fails visibly instead of posting to the wrong place |
+| `VITE_API_URL`                | no       | Go API base URL, used by the contact form, the `/resume` route and the CI actions figure. Defaults to `http://localhost:8080` in dev. A production build without it fails visibly instead of posting to the wrong place |
 | `VITE_SITE_ORIGIN`            | no       | Public origin of the site, such as `https://example.com`. Sets canonical links, social cards and the sitemap. Unset, the sitemap uses the request's own origin and canonical links are left off |
 | `VITE_POSTHOG_PROJECT_TOKEN`  | no       | PostHog project token, a write-only ingest key, not a secret. Unset disables analytics  |
 | `VITE_POSTHOG_HOST`           | no       | PostHog ingest host. Defaults to `https://us.i.posthog.com`. Use the EU host for an EU project |
-| `RESUME_PDF_URL`              | no       | Where `fetch-resume` downloads the PDF from. Defaults to the Resume repo's latest release. The Resume repo is private, so deploys point it at `<API>/api/v1/resume/fullstack` |
-| `RESUME_REQUIRED`             | no       | Set to `1` to fail the build when no PDF can be fetched. Set it for production builds |
 
 The build fails if any `VITE_` value looks like a credential, because Vite inlines every one of
 them into the client bundle.
@@ -285,12 +289,11 @@ bun run dev     # http://localhost:3005
 Other scripts:
 
 ```sh
-bun run build        # production build, runs the three generator scripts first
+bun run build        # production build, writes the site stats first
 bun run preview      # serve the production build locally
 bun run lint         # ESLint
 bun run typecheck    # tsc --noEmit
 bun run format       # Prettier
-bun run lighthouse   # build, then Lighthouse CI for mobile and desktop
 ```
 
 Tests:
@@ -322,8 +325,9 @@ One more workflow runs outside that path: `keep-alive.yml` pings `/healthz` ever
 stop the Render free plan from spinning down (see below). It doesn't block a deploy.
 
 > `.github/workflows/deploy.yml` still publishes the frontend to GitHub Pages on a push to `main`.
-> The production site now deploys to Cloudflare Workers, so that workflow is out of date and needs
-> replacing with a `wrangler deploy` job before it is trusted again.
+> The production site deploys to Cloudflare Workers by hand, so that workflow no longer ships it.
+> It also serves the [old v1 site](https://alcash55.github.io/Portfolio/), so a push to `main`
+> would replace v1 with the new frontend. Remove it or replace it with a `wrangler deploy` job.
 
 The old `check-resume.yml` ATS check is gone: the resume is served live from the Resume repo (see
 "Live resume data" below), and the same ATS check runs in that repo's own `resume-analysis.yml`
@@ -346,8 +350,6 @@ Build with the production values, then deploy. The worker is named `portfolio-we
 ```sh
 cd frontend
 export VITE_API_URL=https://portfolio-api-0mta.onrender.com
-export RESUME_PDF_URL=$VITE_API_URL/api/v1/resume/fullstack
-export RESUME_REQUIRED=1
 export VITE_SITE_ORIGIN=https://portfolio-website.alex-e-cash28.workers.dev
 export VITE_POSTHOG_HOST=$(gh variable get VITE_POSTHOG_HOST -R alcash55/Portfolio)
 export VITE_POSTHOG_PROJECT_TOKEN=$(gh variable get VITE_POSTHOG_PROJECT_TOKEN -R alcash55/Portfolio)
@@ -356,8 +358,8 @@ bunx vite build
 bunx wrangler deploy
 ```
 
-`RESUME_REQUIRED=1` stops a production build from shipping without a resume. Cloudflare serves the
-built assets and runs the worker for server rendering, the sitemap and the Golem build proxy.
+Cloudflare serves the built assets and runs the worker for server rendering, the sitemap, the
+`/resume` proxy and the Golem build proxy.
 
 To roll back, redeploy the previous commit or use `wrangler rollback`.
 
@@ -367,8 +369,8 @@ Three places hold the address. Change all three together, in this order:
 
 1. **Backend CORS.** Add the new origin to `ALLOWED_ORIGINS` in the Render dashboard. Setting it
    replaces the defaults, so keep the current origin in the list until the switch is done. Without
-   this the browser blocks the contact form with a CORS error. `render.yaml` still names only the
-   old GitHub Pages origin, so update it to match.
+   this the browser blocks the contact form with a CORS error. `render.yaml` names the current
+   Workers origin, so update it to match.
 2. **Build variable.** Set `VITE_SITE_ORIGIN` to the new origin and redeploy. This moves canonical
    links, social cards and the sitemap.
 3. **Hosting.** Attach the domain to the `portfolio-website` worker in the Cloudflare dashboard
@@ -409,7 +411,8 @@ dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub. 
 is also `sync: false`; unlike `GH_TOKEN`, leaving it unset means `/api/v1/resume[/:variant]` return
 `503` rather than degrading gracefully, since the Resume repo has no public, unauthenticated path
 to fall back to. `GET /api/v1/resume/status` reports the missing token directly, without a
-dashboard visit. `scripts/resume-token-wizard.sh` walks through creating and setting it.
+dashboard visit. Create the token as a fine-grained PAT with read-only Contents access to
+`alcash55/Resume`, then set it in the Render dashboard.
 
 Two things Render handles that the app relies on:
 
@@ -441,10 +444,10 @@ succeeds; analytics just stays off, since `frontend/src/lib/analytics.ts`
 never loads the SDK without a token. Both values are read at build time, so changing
 one needs a rebuild.
 
-`ALLOWED_ORIGINS` is set to `https://alcash55.github.io` in the blueprint. That
+`ALLOWED_ORIGINS` is set to the Workers origin, `https://portfolio-website.alex-e-cash28.workers.dev`, in the blueprint. That
 **replaces** the local-development defaults rather than adding to them, so the
 deployed API accepts only the origins listed. The Render dashboard value overrides the
-blueprint and also lists the Workers address. Keep the two in step, and add any new site address
+blueprint and is the one that runs in production. Keep the two in step, and add any new site address
 before you switch to it (see "Changing the site URL").
 
 ### Building the backend image locally
