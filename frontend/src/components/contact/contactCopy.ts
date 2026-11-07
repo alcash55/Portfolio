@@ -25,7 +25,7 @@ export function failureCopy(kind: ContactErrorKind): string {
     case 'timeout':
       return "Couldn't send that. Try again in a minute.";
     case 'network':
-      return "Couldn't reach the server. Email works.";
+      return "Couldn't reach the server. LinkedIn works.";
     default: {
       const unhandled: never = kind;
       return unhandled;

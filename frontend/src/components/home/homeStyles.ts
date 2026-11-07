@@ -66,6 +66,10 @@ export const ABOUT_HEADING = [
 
 // ---------- Links and buttons ----------
 
+// For a link to something that needs a keyboard and mouse, like the Golem Miners browser build.
+// max-[1023px] leaves the element's own display alone from 1024px up.
+export const DESKTOP_ONLY = 'max-[1023px]:hidden';
+
 // Only the link text is a click target. The prose beside it and the figure are not.
 export const LINK_ROW = 'mt-[8px] flex flex-wrap items-center gap-x-[20px] gap-y-[4px]';
 

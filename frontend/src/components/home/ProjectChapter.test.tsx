@@ -71,6 +71,17 @@ describe('ProjectChapter', () => {
     expect(play.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('hides the Golem Miners play link and its note below 1024px', async () => {
+    await renderInRouter(<ProjectChapter spec={spec('golem-miners')} figure={<p>slot</p>} />);
+    expect(screen.getByRole('link', { name: /^Play in your browser/ })).toHaveClass(
+      'max-[1023px]:hidden',
+    );
+    expect(screen.getByText(/^Single-player, about 62 MB/)).toHaveClass('max-[1023px]:hidden');
+    expect(screen.getByRole('link', { name: /^Read the write-up/ })).not.toHaveClass(
+      'max-[1023px]:hidden',
+    );
+  });
+
   // jsdom loads no stylesheet, so the column template is the visible sign that the spec's two
   // flags reached the layout. Portfolio is reversed and big, Game Competition is big only, and
   // Golem Miners is reversed only.

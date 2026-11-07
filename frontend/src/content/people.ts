@@ -2,8 +2,6 @@
 // and MA-01 tag where each string came from. Where the written copy and the
 // approved design disagreed, the design won.
 
-export const CONTACT_EMAIL = 'alex.e.cash28@gmail.com';
-
 export interface FigSpec {
   readonly n: number;
   readonly label: string;
@@ -274,9 +272,10 @@ export const CONTACT_BAND = {
 // The /resume page when the API could not supply the PDF.
 export const RESUME_PAGE = {
   title: 'Resume, Alex Cash',
-  description: 'The resume file is not available right now. Email Alex Cash for a copy.',
+  description:
+    'The resume file is not available right now. Message Alex Cash on LinkedIn for a copy.',
   h1: 'The resume is not available right now.',
-  line: 'The file did not load. Try again in a minute, or email me and I will send it.',
-  emailLabel: 'Email Alex',
+  line: 'The file did not load. Try again in a minute, or message me on LinkedIn and I will send it.',
+  linkedinLabel: 'Message Alex on LinkedIn',
   homeLink: 'Go to the home page',
 } as const;

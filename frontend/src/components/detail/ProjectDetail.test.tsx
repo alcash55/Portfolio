@@ -64,7 +64,11 @@ describe('ProjectDetail header', () => {
     await renderDetail('ncr-voyix-docs');
     expect(await screen.findByText(/the site and its code belong to NCR/)).toBeInTheDocument();
     expect(screen.queryByText('The code belongs to NCR.')).toBeNull();
-    expect(screen.queryByRole('link', { name: /opens in a new tab/ })).toBeNull();
+    // The closing band's LinkedIn link is the one outside link this page keeps.
+    const outside = screen
+      .queryAllByRole('link', { name: /opens in a new tab/ })
+      .filter((a) => !/^LinkedIn/.test(a.textContent ?? ''));
+    expect(outside).toEqual([]);
   });
 
   it('shows the play note beside the Golem Miners play link, which stays on this site', async () => {
@@ -210,10 +214,11 @@ describe('ProjectDetail message band', () => {
       'href',
       '/#contact',
     );
-    expect(within(band).getByRole('link', { name: 'alex.e.cash28@gmail.com' })).toHaveAttribute(
+    expect(within(band).getByRole('link', { name: /^LinkedIn/ })).toHaveAttribute(
       'href',
-      'mailto:alex.e.cash28@gmail.com',
+      'https://www.linkedin.com/in/alexander-cash/',
     );
+    expect(band.querySelector('a[href^="mailto:"]')).toBeNull();
   });
 
   it('shows the supplied form in place of the fallback links', async () => {

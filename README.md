@@ -13,7 +13,7 @@ The public address is set in one place, the `VITE_SITE_ORIGIN` build variable (s
 ```
 frontend/   TanStack Start app, built with Vite and deployed to Cloudflare Workers
 backend/    Go + Gin API: contact form, plus GitHub repo and resume proxies
-scripts/    One-off tooling: Golem build publishing, token and webhook wizards
+scripts/    One-off tooling: Golem build publishing
 ```
 
 ## Architecture

@@ -439,16 +439,23 @@
   /* ---------- Home: scroll snap ----------
      One wheel tick moves one chapter. A chapter taller than the viewport scrolls freely
      inside. The offset is scroll-margin on the chapter, not scroll-padding on <html>, so
-     focusing a header control never makes the browser scroll to reveal it. */
-  html:has(.home) {
-    scroll-snap-type: y mandatory;
-  }
+     focusing a header control never makes the browser scroll to reveal it. It applies at every
+     width because anchor links need it to clear the header. Snapping starts at 900px, where a
+     chapter is one screen tall: on a phone a chapter runs 0.9 to 1.6 screens, and mandatory
+     snapping there jumps past text and leaves gaps. */
   .home .chapter {
-    scroll-snap-align: start;
     scroll-margin-top: var(--hdr);
   }
-  html:has(.home) footer {
-    scroll-snap-align: end;
+  @media (min-width: 900px) {
+    html:has(.home) {
+      scroll-snap-type: y mandatory;
+    }
+    .home .chapter {
+      scroll-snap-align: start;
+    }
+    html:has(.home) footer {
+      scroll-snap-align: end;
+    }
   }
 
   /* ---------- Home: section reveal ----------

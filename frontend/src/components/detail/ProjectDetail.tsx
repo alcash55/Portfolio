@@ -36,7 +36,9 @@ const ACTIONS = [
 ].join(' ');
 const NOTICE =
   'inline-flex min-h-11 flex-wrap items-center gap-x-[0.5em] gap-y-[0.25em] text-ink-2';
-const PLAY_NOTE = 'basis-full text-[0.9375rem] text-ink-2';
+// The play note describes the browser build, which hides below 1024px with its link.
+const PLAY_NOTE = 'basis-full text-[0.9375rem] text-ink-2 max-[1023px]:hidden';
+const DESKTOP_ONLY = 'max-[1023px]:hidden';
 
 // Every section sets its h2 from above, because the Diagram renders its own heading inside one.
 const SECTION_HEADING =
@@ -180,7 +182,7 @@ function Actions({ detail }: { detail: Detail }) {
       {detail.links.map((link, i) => (
         <a
           key={link.href}
-          className={i === 0 ? PILL.primary : PILL.secondary}
+          className={`${i === 0 ? PILL.primary : PILL.secondary}${link.desktopOnly ? ` ${DESKTOP_ONLY}` : ''}`}
           href={link.href}
           target="_blank"
           rel="noopener"
