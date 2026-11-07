@@ -45,15 +45,15 @@ func TestLoad_MissingPort(t *testing.T) {
 	unsetEnv(t, "PORT")
 	t.Setenv("WEBHOOK_URL", "https://discord.com/api/webhooks/x/y")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err == nil {
-		t.Fatalf("Load() with PORT unset: got nil error, want error mentioning PORT")
+		t.Fatalf("fromEnv() with PORT unset: got nil error, want error mentioning PORT")
 	}
 	if !strings.Contains(err.Error(), "PORT") {
-		t.Errorf("Load() with PORT unset: error = %q, want it to mention PORT", err.Error())
+		t.Errorf("fromEnv() with PORT unset: error = %q, want it to mention PORT", err.Error())
 	}
 	if !isZeroConfig(cfg) {
-		t.Errorf("Load() with PORT unset: cfg = %+v, want zero Config{} (pinning current behavior: PORT failure returns a zero Config, unlike the WEBHOOK_URL failure below which returns a populated one)", cfg)
+		t.Errorf("fromEnv() with PORT unset: cfg = %+v, want zero Config{} (pinning current behavior: PORT failure returns a zero Config, unlike the WEBHOOK_URL failure below which returns a populated one)", cfg)
 	}
 }
 
@@ -72,12 +72,12 @@ func TestLoad_NonNumericPort(t *testing.T) {
 			t.Setenv("PORT", tt.port)
 			t.Setenv("WEBHOOK_URL", "https://discord.com/api/webhooks/x/y")
 
-			_, err := Load()
+			_, err := fromEnv()
 			if err == nil {
-				t.Fatalf("Load() with PORT=%q: got nil error, want error", tt.port)
+				t.Fatalf("fromEnv() with PORT=%q: got nil error, want error", tt.port)
 			}
 			if !strings.Contains(err.Error(), "PORT") {
-				t.Errorf("Load() with PORT=%q: error = %q, want it to mention PORT", tt.port, err.Error())
+				t.Errorf("fromEnv() with PORT=%q: error = %q, want it to mention PORT", tt.port, err.Error())
 			}
 		})
 	}
@@ -87,20 +87,20 @@ func TestLoad_MissingWebhookURL(t *testing.T) {
 	t.Setenv("PORT", "8080")
 	unsetEnv(t, "WEBHOOK_URL")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err == nil {
-		t.Fatalf("Load() with WEBHOOK_URL unset: got nil error, want error mentioning WEBHOOK_URL")
+		t.Fatalf("fromEnv() with WEBHOOK_URL unset: got nil error, want error mentioning WEBHOOK_URL")
 	}
 	if !strings.Contains(err.Error(), "WEBHOOK_URL") {
-		t.Errorf("Load() with WEBHOOK_URL unset: error = %q, want it to mention WEBHOOK_URL", err.Error())
+		t.Errorf("fromEnv() with WEBHOOK_URL unset: error = %q, want it to mention WEBHOOK_URL", err.Error())
 	}
-	// Every error path in Load() must return a zero Config{}, matching the
+	// Every error path in fromEnv() must return a zero Config{}, matching the
 	// PORT-missing case above. This used to return a populated cfg (PORT had
 	// already parsed successfully before the WEBHOOK_URL check ran), which
 	// was a trap for any future caller that reads the config on a non-nil
 	// error.
 	if !isZeroConfig(cfg) {
-		t.Errorf("Load() with WEBHOOK_URL unset: cfg = %+v, want zero Config{} on error", cfg)
+		t.Errorf("fromEnv() with WEBHOOK_URL unset: cfg = %+v, want zero Config{} on error", cfg)
 	}
 }
 
@@ -108,15 +108,15 @@ func TestLoad_AllowedOriginsUnset(t *testing.T) {
 	baseEnv(t)
 	unsetEnv(t, "ALLOWED_ORIGINS")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with ALLOWED_ORIGINS unset: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with ALLOWED_ORIGINS unset: unexpected error: %v", err)
 	}
 	if !slices.Equal(cfg.AllowedOrigins, defaultAllowedOrigins) {
-		t.Errorf("Load() with ALLOWED_ORIGINS unset: AllowedOrigins = %v, want package defaults %v", cfg.AllowedOrigins, defaultAllowedOrigins)
+		t.Errorf("fromEnv() with ALLOWED_ORIGINS unset: AllowedOrigins = %v, want package defaults %v", cfg.AllowedOrigins, defaultAllowedOrigins)
 	}
 	if !cfg.AllowAnyLocalhost {
-		t.Errorf("Load() with ALLOWED_ORIGINS unset: AllowAnyLocalhost = false, want true")
+		t.Errorf("fromEnv() with ALLOWED_ORIGINS unset: AllowAnyLocalhost = false, want true")
 	}
 }
 
@@ -124,17 +124,17 @@ func TestLoad_AllowedOriginsSet(t *testing.T) {
 	baseEnv(t)
 	t.Setenv("ALLOWED_ORIGINS", "https://example.com,https://foo.example.com")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with ALLOWED_ORIGINS set: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with ALLOWED_ORIGINS set: unexpected error: %v", err)
 	}
 
 	want := []string{"https://example.com", "https://foo.example.com"}
 	if !slices.Equal(cfg.AllowedOrigins, want) {
-		t.Errorf("Load() with ALLOWED_ORIGINS=%q: AllowedOrigins = %v, want %v", "https://example.com,https://foo.example.com", cfg.AllowedOrigins, want)
+		t.Errorf("fromEnv() with ALLOWED_ORIGINS=%q: AllowedOrigins = %v, want %v", "https://example.com,https://foo.example.com", cfg.AllowedOrigins, want)
 	}
 	if cfg.AllowAnyLocalhost {
-		t.Errorf("Load() with ALLOWED_ORIGINS set: AllowAnyLocalhost = true, want false (explicit origins mean exact matching only)")
+		t.Errorf("fromEnv() with ALLOWED_ORIGINS set: AllowAnyLocalhost = true, want false (explicit origins mean exact matching only)")
 	}
 }
 
@@ -143,26 +143,26 @@ func TestLoad_AllowedOriginsWhitespaceAndEmptyEntries(t *testing.T) {
 	raw := " a , , b "
 	t.Setenv("ALLOWED_ORIGINS", raw)
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with ALLOWED_ORIGINS=%q: unexpected error: %v", raw, err)
+		t.Fatalf("fromEnv() with ALLOWED_ORIGINS=%q: unexpected error: %v", raw, err)
 	}
 
 	want := []string{"a", "b"}
 	if !slices.Equal(cfg.AllowedOrigins, want) {
-		t.Errorf("Load() with ALLOWED_ORIGINS=%q: AllowedOrigins = %v, want %v (whitespace trimmed, empty entries dropped)", raw, cfg.AllowedOrigins, want)
+		t.Errorf("fromEnv() with ALLOWED_ORIGINS=%q: AllowedOrigins = %v, want %v (whitespace trimmed, empty entries dropped)", raw, cfg.AllowedOrigins, want)
 	}
 	if cfg.AllowAnyLocalhost {
-		t.Errorf("Load() with ALLOWED_ORIGINS=%q: AllowAnyLocalhost = true, want false (non-empty explicit list was provided)", raw)
+		t.Errorf("fromEnv() with ALLOWED_ORIGINS=%q: AllowAnyLocalhost = true, want false (non-empty explicit list was provided)", raw)
 	}
 }
 
 // TestLoad_AllowedOriginsSetButUnusable covers the fix for the bug pinned by
 // the previous version of this test: when ALLOWED_ORIGINS is explicitly set
-// but parses to zero usable origins (e.g. " , , "), Load() used to be unable
+// but parses to zero usable origins (e.g. " , , "), fromEnv() used to be unable
 // to distinguish that from "unset" and would silently fall back to the
 // package defaults AND flip AllowAnyLocalhost to true, downgrading a
-// misconfigured production deploy to dev-permissive CORS. Load() now uses
+// misconfigured production deploy to dev-permissive CORS. fromEnv() now uses
 // os.LookupEnv to tell "set" apart from "unset" and returns an error (and a
 // zero Config) whenever the variable is set but useless, including the empty
 // string.
@@ -182,15 +182,15 @@ func TestLoad_AllowedOriginsSetButUnusable(t *testing.T) {
 			baseEnv(t)
 			t.Setenv("ALLOWED_ORIGINS", tt.raw)
 
-			cfg, err := Load()
+			cfg, err := fromEnv()
 			if err == nil {
-				t.Fatalf("Load() with ALLOWED_ORIGINS=%q: got nil error, want error mentioning ALLOWED_ORIGINS", tt.raw)
+				t.Fatalf("fromEnv() with ALLOWED_ORIGINS=%q: got nil error, want error mentioning ALLOWED_ORIGINS", tt.raw)
 			}
 			if !strings.Contains(err.Error(), "ALLOWED_ORIGINS") {
-				t.Errorf("Load() with ALLOWED_ORIGINS=%q: error = %q, want it to mention ALLOWED_ORIGINS", tt.raw, err.Error())
+				t.Errorf("fromEnv() with ALLOWED_ORIGINS=%q: error = %q, want it to mention ALLOWED_ORIGINS", tt.raw, err.Error())
 			}
 			if !isZeroConfig(cfg) {
-				t.Errorf("Load() with ALLOWED_ORIGINS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
+				t.Errorf("fromEnv() with ALLOWED_ORIGINS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
 			}
 		})
 	}
@@ -204,12 +204,12 @@ func TestLoad_ProjectReposUnset(t *testing.T) {
 	baseEnv(t)
 	unsetEnv(t, "PROJECT_REPOS")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with PROJECT_REPOS unset: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with PROJECT_REPOS unset: unexpected error: %v", err)
 	}
 	if !slices.Equal(cfg.ProjectRepos, defaultProjectRepos) {
-		t.Errorf("Load() with PROJECT_REPOS unset: ProjectRepos = %v, want package defaults %v", cfg.ProjectRepos, defaultProjectRepos)
+		t.Errorf("fromEnv() with PROJECT_REPOS unset: ProjectRepos = %v, want package defaults %v", cfg.ProjectRepos, defaultProjectRepos)
 	}
 }
 
@@ -217,14 +217,14 @@ func TestLoad_ProjectReposSet(t *testing.T) {
 	baseEnv(t)
 	t.Setenv("PROJECT_REPOS", "Foo, Bar ,Baz")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with PROJECT_REPOS set: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with PROJECT_REPOS set: unexpected error: %v", err)
 	}
 
 	want := []string{"Foo", "Bar", "Baz"}
 	if !slices.Equal(cfg.ProjectRepos, want) {
-		t.Errorf("Load() with PROJECT_REPOS=%q: ProjectRepos = %v, want %v (whitespace trimmed, order preserved)", "Foo, Bar ,Baz", cfg.ProjectRepos, want)
+		t.Errorf("fromEnv() with PROJECT_REPOS=%q: ProjectRepos = %v, want %v (whitespace trimmed, order preserved)", "Foo, Bar ,Baz", cfg.ProjectRepos, want)
 	}
 }
 
@@ -249,15 +249,15 @@ func TestLoad_ProjectReposSetButUnusable(t *testing.T) {
 			baseEnv(t)
 			t.Setenv("PROJECT_REPOS", tt.raw)
 
-			cfg, err := Load()
+			cfg, err := fromEnv()
 			if err == nil {
-				t.Fatalf("Load() with PROJECT_REPOS=%q: got nil error, want error mentioning PROJECT_REPOS", tt.raw)
+				t.Fatalf("fromEnv() with PROJECT_REPOS=%q: got nil error, want error mentioning PROJECT_REPOS", tt.raw)
 			}
 			if !strings.Contains(err.Error(), "PROJECT_REPOS") {
-				t.Errorf("Load() with PROJECT_REPOS=%q: error = %q, want it to mention PROJECT_REPOS", tt.raw, err.Error())
+				t.Errorf("fromEnv() with PROJECT_REPOS=%q: error = %q, want it to mention PROJECT_REPOS", tt.raw, err.Error())
 			}
 			if !isZeroConfig(cfg) {
-				t.Errorf("Load() with PROJECT_REPOS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
+				t.Errorf("fromEnv() with PROJECT_REPOS=%q: cfg = %+v, want zero Config{} on error", tt.raw, cfg)
 			}
 		})
 	}
@@ -273,9 +273,9 @@ func TestLoad_ResumeGHTokenFallsBackToGHToken(t *testing.T) {
 	unsetEnv(t, "RESUME_GH_TOKEN")
 	t.Setenv("GH_TOKEN", "gh-token-value")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load(): unexpected error: %v", err)
+		t.Fatalf("fromEnv(): unexpected error: %v", err)
 	}
 	if cfg.ResumeGHToken != "gh-token-value" {
 		t.Errorf("ResumeGHToken = %q, want the GH_TOKEN value", cfg.ResumeGHToken)
@@ -289,9 +289,9 @@ func TestLoad_ResumeGHTokenWinsOverGHToken(t *testing.T) {
 	t.Setenv("GH_TOKEN", "gh-token-value")
 	t.Setenv("RESUME_GH_TOKEN", "resume-token-value")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load(): unexpected error: %v", err)
+		t.Fatalf("fromEnv(): unexpected error: %v", err)
 	}
 	if cfg.ResumeGHToken != "resume-token-value" {
 		t.Errorf("ResumeGHToken = %q, want the RESUME_GH_TOKEN value", cfg.ResumeGHToken)
@@ -301,7 +301,7 @@ func TestLoad_ResumeGHTokenWinsOverGHToken(t *testing.T) {
 	}
 }
 
-// TestLoad_GHTokenOptional pins that an absent GH_TOKEN does not fail Load()
+// TestLoad_GHTokenOptional pins that an absent GH_TOKEN does not fail fromEnv()
 // - the whole point of B4's "GH_TOKEN must remain optional" requirement,
 // since render.yaml does not set it today and the projects handler is built
 // to degrade cleanly without one.
@@ -309,19 +309,19 @@ func TestLoad_GHTokenOptional(t *testing.T) {
 	baseEnv(t)
 	unsetEnv(t, "GH_TOKEN")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with GH_TOKEN unset: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with GH_TOKEN unset: unexpected error: %v", err)
 	}
 	if cfg.GHToken != "" {
-		t.Errorf("Load() with GH_TOKEN unset: GHToken = %q, want empty", cfg.GHToken)
+		t.Errorf("fromEnv() with GH_TOKEN unset: GHToken = %q, want empty", cfg.GHToken)
 	}
 }
 
 // TestLoad_ResumeGHTokenOptional pins the same "must not fail boot" rule as
 // TestLoad_GHTokenOptional, for the separate RESUME_GH_TOKEN variable the
-// resume handler reads (internal/handlers/resume). Until Alex runs
-// scripts/resume-token-wizard.sh, this is unset in every environment, and
+// resume handler reads (internal/handlers/resume). Until it is set in the
+// Render dashboard, this is unset in every environment, and
 // that must never stop the API from starting - it should just leave
 // /api/v1/resume returning 502.
 func TestLoad_ResumeGHTokenOptional(t *testing.T) {
@@ -329,12 +329,12 @@ func TestLoad_ResumeGHTokenOptional(t *testing.T) {
 	unsetEnv(t, "RESUME_GH_TOKEN")
 	unsetEnv(t, "GH_TOKEN")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with RESUME_GH_TOKEN unset: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with RESUME_GH_TOKEN unset: unexpected error: %v", err)
 	}
 	if cfg.ResumeGHToken != "" {
-		t.Errorf("Load() with RESUME_GH_TOKEN unset: ResumeGHToken = %q, want empty", cfg.ResumeGHToken)
+		t.Errorf("fromEnv() with RESUME_GH_TOKEN unset: ResumeGHToken = %q, want empty", cfg.ResumeGHToken)
 	}
 }
 
@@ -345,14 +345,14 @@ func TestLoad_ResumeGHTokenSet(t *testing.T) {
 	unsetEnv(t, "GH_TOKEN")
 	t.Setenv("RESUME_GH_TOKEN", "resume-token-value")
 
-	cfg, err := Load()
+	cfg, err := fromEnv()
 	if err != nil {
-		t.Fatalf("Load() with RESUME_GH_TOKEN set: unexpected error: %v", err)
+		t.Fatalf("fromEnv() with RESUME_GH_TOKEN set: unexpected error: %v", err)
 	}
 	if cfg.ResumeGHToken != "resume-token-value" {
-		t.Errorf("Load() with RESUME_GH_TOKEN set: ResumeGHToken = %q, want %q", cfg.ResumeGHToken, "resume-token-value")
+		t.Errorf("fromEnv() with RESUME_GH_TOKEN set: ResumeGHToken = %q, want %q", cfg.ResumeGHToken, "resume-token-value")
 	}
 	if cfg.GHToken != "" {
-		t.Errorf("Load() with RESUME_GH_TOKEN set and GH_TOKEN unset: GHToken = %q, want empty (the two tokens must not leak into each other)", cfg.GHToken)
+		t.Errorf("fromEnv() with RESUME_GH_TOKEN set and GH_TOKEN unset: GHToken = %q, want empty (the two tokens must not leak into each other)", cfg.GHToken)
 	}
 }

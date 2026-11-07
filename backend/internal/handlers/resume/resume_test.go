@@ -628,7 +628,7 @@ func TestGetResume_AssetBodyNotPDF_502(t *testing.T) {
 }
 
 // TestGetResume_NoTokenConfigured_503WithoutCallingUpstream pins the state
-// the endpoint is in until Alex runs scripts/resume-token-wizard.sh: no
+// the endpoint is in until RESUME_GH_TOKEN is set in the Render dashboard: no
 // RESUME_GH_TOKEN, no cached data yet. It answers 503, not 502 - a missing
 // token is a misconfiguration the deploy can fix, not an upstream failure -
 // and the handler never bothers dialing a private repo it has no credential

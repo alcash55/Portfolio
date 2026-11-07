@@ -7,7 +7,7 @@
 //
 // Matched against the *value*, not the variable name. VITE_POSTHOG_PROJECT_TOKEN
 // is a write-only ingest key that is meant to ship in the bundle (see
-// frontend/src/.env.example) -- a name-based check ("contains TOKEN") would
+// frontend/.env.example) -- a name-based check ("contains TOKEN") would
 // flag it on every build and train everyone to ignore the guard.
 export const CREDENTIAL_SHAPED_VALUE = [
   // Chat-platform incoming webhooks. The URL itself is the bearer credential

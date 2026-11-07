@@ -1,182 +1,193 @@
-// Writes src/generated/siteStats.ts with the *real* number of unit tests and
-// browser tests in this repo, counted at build time.
+// Counts the repo's tests and writes src/generated/siteStats.ts, so the number on
+// the Portfolio Website page is read from the runners instead of typed by hand.
 //
-// Why this exists: the Portfolio card's dialog copy quotes those counts as
-// evidence ("102 unit tests, 9 browser tests gate every deploy"). A
-// hand-typed number is wrong the moment somebody writes a test, and nothing
-// would ever fail to tell us -- so the number that ships is the one the test
-// runners themselves report.
+// Both counts come from the runners' own list modes, which expand every
+// parameterised test the way a real run does. A source scan would miss them:
+// counting `it(` calls in the unit suite gives 317 where the run gives 390.
+// Nothing here executes a test or opens a browser.
 //
-// Deliberately *not* the same shape as generate-sitemap.mjs, which writes
-// straight into `dist/`. This output is imported by application source, so it
-// has to exist before `tsc` and `vite build` run, and it is committed to git:
-// a fresh clone must typecheck and `bun run dev` must work without anyone
-// having run this script first. Treat the committed file as a cache of the
-// last build's answer, not as hand-editable source.
-//
-// Counting method, and why each half is a subprocess rather than a regex over
-// the test files:
-//
-//   - Unit tests: `vitest list` collects (but does not run) every spec and
-//     prints one line per test. That is the only count that survives
-//     `it.each([...])` -- this repo has five of those, and a regex over `it(`
-//     reports 75 where the runner reports 102. Slow (~30-70s on this /mnt/c
-//     mount, a few seconds on a CI runner) because collection has to transform
-//     every test file.
-//   - Browser tests: `playwright test --list --reporter=json`. Fast, and it
-//     does NOT start the `webServer` from playwright.config.ts, so this cannot
-//     recurse into `bun run build`.
-//
-// Lighthouse scores are NOT here on purpose: they need a real audit run
-// against a deployed page, so they stay a hand-maintained constant with a
-// "last measured" date next to the copy that quotes them -- see
-// LIGHTHOUSE_SCORES in src/components/Pages/Projects/projectDetails.ts.
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
+// A count that cannot be derived is written as null and the page leaves it out.
+// The script never fails a build over it and never writes a guess.
+import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 
-const frontendDir = fileURLToPath(new URL('..', import.meta.url));
-const OUT_PATH = path.join(frontendDir, 'src', 'generated', 'siteStats.ts');
+const run = promisify(execFile);
+const here = dirname(fileURLToPath(import.meta.url));
 
-// Local escape hatch. Collecting the unit tests costs ~70s on this /mnt/c
-// mount, and `bun run test:e2e` rebuilds the site on every run -- which turns a
-// two-minute browser loop into a four-minute one for a number that has not
-// changed. CI never sets this, so the deployed build is always freshly counted.
-if (process.env.SKIP_SITE_STATS === '1' && existsSync(OUT_PATH)) {
-  console.log('[generate-site-stats] SKIP_SITE_STATS=1, keeping the committed counts');
-  process.exit(0);
+// Everything a test count can depend on. Build output and the generated file itself
+// are left out, so writing the result does not invalidate it.
+const TREES = ['src', 'e2e', 'scripts'];
+const ROOT_FILES = [
+  'package.json',
+  'vitest.config.ts',
+  'vitest.list.config.ts',
+  'playwright.config.ts',
+  'playwright.analytics.config.ts',
+];
+const SKIPPED_DIRS = /^(generated|test-results.*|playwright-report.*|node_modules)$/;
+
+/** `vitest list --json` prints an array with one entry per test. */
+export function countVitestTests(output) {
+  const list = JSON.parse(output);
+  if (!Array.isArray(list)) throw new Error('vitest list did not print a list of tests');
+  return list.length;
 }
 
-/**
- * Runs a command and returns its stdout, or `null` if it fails for any reason.
- * Every failure here is non-fatal by design: a missing dev dependency or a
- * broken collection must not take the production build down over a number in
- * a paragraph. The previous committed count is kept instead, and the warning
- * says so.
- */
-const tryRun = (command, args) => {
+/** `playwright test --list --reporter=json` nests suites. A spec holds one test per project. */
+export function countPlaywrightTests(output) {
+  const report = JSON.parse(output);
+  if (!report || !Array.isArray(report.suites)) {
+    throw new Error('playwright list did not print a suites array');
+  }
+  const walk = (suite) =>
+    (suite.specs ?? []).reduce((sum, spec) => sum + (spec.tests?.length ?? 0), 0) +
+    (suite.suites ?? []).reduce((sum, child) => sum + walk(child), 0);
+  return report.suites.reduce((sum, suite) => sum + walk(suite), 0);
+}
+
+export function renderSiteStats({ unitTests, browserTests }, fingerprint) {
+  return [
+    '// Written by scripts/generate-site-stats.mjs before every dev, build and test run.',
+    '// Do not edit. It is gitignored.',
+    'export default {',
+    `  unitTests: ${unitTests},`,
+    `  browserTests: ${browserTests},`,
+    `  fingerprint: ${JSON.stringify(fingerprint)},`,
+    '};',
+    '',
+  ].join('\n');
+}
+
+async function filesUnder(dir) {
+  let entries;
   try {
-    return execFileSync(command, args, {
-      cwd: frontendDir,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      maxBuffer: 32 * 1024 * 1024,
-    });
-  } catch (error) {
-    console.warn(`[generate-site-stats] \`${command} ${args.join(' ')}\` failed: ${error.message}`);
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const nested = await Promise.all(
+    entries
+      .filter((entry) => !(entry.isDirectory() && SKIPPED_DIRS.test(entry.name)))
+      .map((entry) =>
+        entry.isDirectory() ? filesUnder(join(dir, entry.name)) : [join(dir, entry.name)],
+      ),
+  );
+  return nested.flat().sort();
+}
+
+/** A hash of every file a test count can depend on. */
+export async function fingerprintTree(root) {
+  const files = [
+    ...ROOT_FILES.map((name) => join(root, name)),
+    ...(await Promise.all(TREES.map((tree) => filesUnder(join(root, tree))))).flat(),
+  ];
+  const hash = createHash('sha256');
+  for (const file of files) {
+    let body;
+    try {
+      body = await readFile(file);
+    } catch {
+      continue; // an optional root file that this checkout does not have
+    }
+    hash.update(`${relative(root, file)}\0`);
+    hash.update(body);
+  }
+  return hash.digest('hex').slice(0, 16);
+}
+
+async function recordedFingerprint(out) {
+  try {
+    return /fingerprint: "([0-9a-f]+)"/.exec(await readFile(out, 'utf8'))?.[1] ?? null;
+  } catch {
     return null;
   }
-};
+}
 
-/**
- * One line per collected test, in `file > suite > name` form. Blank lines and
- * any stray tool chatter that isn't a test path are dropped -- a count that
- * silently absorbs a warning line is worse than no count.
- */
-const countUnitTests = () => {
-  const stdout = tryRun('bunx', ['vitest', 'list']);
-  if (stdout === null) return null;
-  const lines = stdout
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => /^src[/\\].+\.test\.tsx?\s>\s/.test(line));
-  return lines.length > 0 ? lines.length : null;
-};
-
-/** Recursively counts `specs` across Playwright's nested suite JSON. */
-const countSpecs = (suites) =>
-  suites.reduce(
-    (total, suite) =>
-      total + (suite.specs?.length ?? 0) + (suite.suites ? countSpecs(suite.suites) : 0),
-    0,
+const fileExists = (path) =>
+  access(path).then(
+    () => true,
+    () => false,
   );
 
-const countBrowserTests = () => {
-  const stdout = tryRun('bunx', [
-    'playwright',
-    'test',
-    '--config',
-    'e2e/playwright.config.ts',
-    '--list',
-    '--reporter=json',
+/** Runs one runner's list mode and returns what it printed. */
+export function defaultRun(root) {
+  const timeout = 180_000;
+  const options = { cwd: root, timeout, maxBuffer: 64 * 1024 * 1024 };
+  const commands = {
+    unit: [
+      'node_modules/vitest/vitest.mjs',
+      ['list', '--json', '--no-staticParse', '-c', 'vitest.list.config.ts'],
+    ],
+    e2e: ['node_modules/@playwright/test/cli.js', ['test', '--list', '--reporter=json']],
+    analytics: [
+      'node_modules/@playwright/test/cli.js',
+      ['test', '--list', '--reporter=json', '-c', 'playwright.analytics.config.ts'],
+    ],
+  };
+  return async (kind) => {
+    const [script, args] = commands[kind];
+    if (!(await fileExists(join(root, script)))) throw new Error(`${script} is not installed`);
+    const { stdout } = await run(process.execPath, [script, ...args], options);
+    return stdout;
+  };
+}
+
+const describeError = (error) =>
+  error instanceof Error ? error.message.split('\n')[0] : String(error);
+
+/**
+ * @param {object} options
+ * @param {string} [options.root] the frontend directory
+ * @param {string} [options.out] where to write the module
+ * @param {(kind: 'unit' | 'e2e' | 'analytics') => Promise<string>} [options.run]
+ * @param {(message: string) => void} [options.log]
+ */
+export async function generateSiteStats({
+  root = resolve(here, '..'),
+  out = join(root, 'src', 'generated', 'siteStats.ts'),
+  run: runner = defaultRun(root),
+  log = console.warn,
+} = {}) {
+  const fingerprint = await fingerprintTree(root);
+  if ((await recordedFingerprint(out)) === fingerprint) return { status: 'unchanged' };
+
+  const attempt = async (kinds, count) => {
+    try {
+      const counts = await Promise.all(kinds.map(async (kind) => count(await runner(kind))));
+      return counts.reduce((sum, n) => sum + n, 0);
+    } catch (error) {
+      log(`site stats: could not count ${kinds.join(' and ')} tests (${describeError(error)})`);
+      return null;
+    }
+  };
+  // Browser tests are two Playwright configs. One alone would be a wrong total, so both or null.
+  const [unitTests, browserTests] = await Promise.all([
+    attempt(['unit'], countVitestTests),
+    attempt(['e2e', 'analytics'], countPlaywrightTests),
   ]);
-  if (stdout === null) return null;
-  try {
-    const report = JSON.parse(stdout);
-    const count = countSpecs(report.suites ?? []);
-    return count > 0 ? count : null;
-  } catch (error) {
-    console.warn(
-      `[generate-site-stats] could not parse the Playwright list JSON: ${error.message}`,
-    );
-    return null;
-  }
-};
 
-/**
- * Pulls a number back out of the committed file so a failed collection keeps
- * the last known-good count instead of writing a zero. Returns `null` when
- * the file does not exist yet (first run) or has been reformatted beyond
- * recognition.
- */
-const previousValue = (key) => {
-  if (!existsSync(OUT_PATH)) return null;
-  const match = new RegExp(`${key}:\\s*(\\d+)`).exec(readFileSync(OUT_PATH, 'utf8'));
-  return match ? Number(match[1]) : null;
-};
-
-const unitTests = countUnitTests() ?? previousValue('unitTests');
-const browserTests = countBrowserTests() ?? previousValue('browserTests');
-
-if (unitTests === null || browserTests === null) {
-  // Nothing to fall back on: this is the first run and collection failed.
-  // Fail loudly rather than emit a file claiming zero tests.
-  console.error(
-    '[generate-site-stats] no counts available and no previous file to fall back on. ' +
-      'Run `bun install` and try again.',
-  );
-  process.exit(1);
+  // An incomplete result gets an empty fingerprint so the next run tries again.
+  const complete = unitTests !== null && browserTests !== null;
+  await mkdir(dirname(out), { recursive: true });
+  await writeFile(out, renderSiteStats({ unitTests, browserTests }, complete ? fingerprint : ''));
+  return { unitTests, browserTests, status: 'written' };
 }
 
-const file = `// GENERATED FILE -- do not edit by hand.
-//
-// Written by \`frontend/scripts/generate-site-stats.mjs\`, which runs from the
-// \`build\` script before \`tsc\`. Committed to git on purpose: it is imported by
-// application source, so a fresh clone has to typecheck and run without anyone
-// having built first.
-//
-// Edit the generator, not this file. Anything typed here is overwritten on the
-// next build.
-
-/** Test counts as reported by the runners themselves, not by hand. */
-export interface SiteStats {
-  /** Tests collected by \`vitest list\` -- \`it.each\` tables counted per case. */
-  unitTests: number;
-  /** Playwright specs collected by \`playwright test --list\`. */
-  browserTests: number;
-}
-
-export const siteStats: SiteStats = {
-  unitTests: ${unitTests},
-  browserTests: ${browserTests},
-};
-
-export default siteStats;
-`;
-
-// Deliberately no build timestamp in the output, and deliberately a no-op
-// write when nothing changed. A file that differs on every build is a file
-// that leaves `git status` dirty after every build and conflicts between two
-// branches that both ran one -- for a number that did not move.
-if (existsSync(OUT_PATH) && readFileSync(OUT_PATH, 'utf8') === file) {
-  console.log(
-    `[generate-site-stats] unchanged: ${unitTests} unit tests, ${browserTests} browser tests`,
-  );
-} else {
-  mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-  writeFileSync(OUT_PATH, file);
-  console.log(
-    `[generate-site-stats] wrote ${OUT_PATH}: ${unitTests} unit tests, ${browserTests} browser tests`,
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  generateSiteStats().then(
+    (result) =>
+      console.log(
+        result.status === 'unchanged'
+          ? 'site stats: unchanged'
+          : `site stats: ${result.unitTests ?? 'unknown'} unit, ${result.browserTests ?? 'unknown'} browser`,
+      ),
+    (error) => {
+      // A failed count costs one fact on one page. It never stops a build.
+      console.warn(`site stats: skipped (${describeError(error)})`);
+    },
   );
 }

@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alcash55/Portfolio/internal/ttlcache"
 	"github.com/alcash55/Portfolio/pkg/config"
 	"github.com/gin-gonic/gin"
 )
@@ -130,10 +131,10 @@ type Handler struct {
 	client  *http.Client
 	baseURL string
 
-	// caches holds one *cache per variant rather than one cache shared
+	// caches holds one cache per variant rather than one cache shared
 	// across all three, so a cold-cache fetch for one variant can never
 	// block a concurrent request for a different, already-cached one.
-	caches map[string]*cache
+	caches map[string]*ttlcache.Cache[resumeAsset]
 }
 
 // Option configures a Handler beyond its config.Config. Production code
@@ -157,7 +158,7 @@ func WithHTTPClient(client *http.Client) Option {
 func WithNow(now func() time.Time) Option {
 	return func(h *Handler) {
 		for _, c := range h.caches {
-			c.now = now
+			c.SetNow(now)
 		}
 	}
 }
@@ -169,10 +170,10 @@ func New(cfg config.Config, opts ...Option) *Handler {
 		cfg:     cfg,
 		client:  &http.Client{Timeout: githubTimeout},
 		baseURL: defaultBaseURL,
-		caches:  make(map[string]*cache, len(variants)),
+		caches:  make(map[string]*ttlcache.Cache[resumeAsset], len(variants)),
 	}
 	for variant := range variants {
-		h.caches[variant] = newCache(cacheTTL, time.Now)
+		h.caches[variant] = ttlcache.New[resumeAsset](cacheTTL, time.Now)
 	}
 	for _, opt := range opts {
 		opt(h)
@@ -206,22 +207,26 @@ func (h *Handler) GetResumeVariant(c *gin.Context) {
 func (h *Handler) GetResumeStatus(c *gin.Context) {
 	variantStatus := make(gin.H, len(variants))
 	for variant := range variants {
-		st := h.caches[variant].status()
+		st := h.caches[variant].State()
 
-		entry := gin.H{
-			"cached":            st.cached,
-			"releaseTag":        st.releaseTag,
-			"lastFailureReason": st.lastFailure,
+		lastFailureReason := ""
+		if st.LastFailure != nil {
+			lastFailureReason = failureReason(st.LastFailure)
 		}
-		if st.lastSuccessAt.IsZero() {
+		entry := gin.H{
+			"cached":            st.Cached,
+			"releaseTag":        st.Value.tag,
+			"lastFailureReason": lastFailureReason,
+		}
+		if st.FetchedAt.IsZero() {
 			entry["lastSuccessAt"] = nil
 		} else {
-			entry["lastSuccessAt"] = st.lastSuccessAt.UTC().Format(time.RFC3339)
+			entry["lastSuccessAt"] = st.FetchedAt.UTC().Format(time.RFC3339)
 		}
-		if st.lastFailureAt.IsZero() {
+		if st.LastFailureAt.IsZero() {
 			entry["lastFailureAt"] = nil
 		} else {
-			entry["lastFailureAt"] = st.lastFailureAt.UTC().Format(time.RFC3339)
+			entry["lastFailureAt"] = st.LastFailureAt.UTC().Format(time.RFC3339)
 		}
 		variantStatus[variant] = entry
 	}
@@ -243,11 +248,11 @@ func (h *Handler) serveVariant(c *gin.Context, variant string) {
 	// requests via variantCache, so it must not be canceled just because
 	// this particular caller disconnects. Matches
 	// internal/handlers/projects's GetProjects.
-	asset, _, err := variantCache.get(func() (resumeAsset, error) {
+	asset, _, err := variantCache.Get(func() (resumeAsset, error) {
 		result, fetchErr := h.fetchVariant(context.Background(), variant)
 		if fetchErr != nil {
 			// Logged at the point of failure, not only when it reaches the
-			// caller below: a stale cache entry can make get() return this
+			// caller below: a stale cache entry can make Get() return this
 			// same failure as a 200 with old data instead, and that path
 			// must not go silent just because a visitor never saw it.
 			// failureReason is built only from fetchFailure's stage/status
@@ -307,7 +312,8 @@ type ghAsset struct {
 // token configured, this returns an error immediately instead of making a
 // request that can only fail - the cache then either serves a previous
 // successful fetch as stale, or the handler returns 502 until the token is
-// set (see scripts/resume-token-wizard.sh).
+// set (a fine-grained PAT with read-only Contents on alcash55/Resume, set as
+// RESUME_GH_TOKEN in the Render dashboard).
 func (h *Handler) fetchVariant(ctx context.Context, variant string) (resumeAsset, error) {
 	if h.cfg.ResumeGHToken == "" {
 		return resumeAsset{}, errTokenNotConfigured

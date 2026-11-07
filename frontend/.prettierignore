@@ -1,0 +1,9 @@
+dist
+.wrangler
+.tanstack
+src/routeTree.gen.ts
+bun.lock
+e2e/test-results
+e2e/playwright-report
+e2e/test-results-analytics
+e2e/playwright-report-analytics

@@ -1,0 +1,479 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/newsreader/opsz.css';
+
+/*
+ * Design tokens. The values are the ones in the approved comps (the stone
+ * palette with one green accent), not the earlier draft in visual.md. Light is
+ * the default. Dark applies for [data-theme='dark'], and also for visitors on
+ * "system" whose OS prefers dark, so a no-JavaScript visitor gets the right
+ * colors. The dark block below is written twice for that reason: CSS cannot
+ * share a declaration list between an attribute selector and a media query.
+ */
+:root {
+  --paper: #fafaf9;
+  --wash: #e9e8e4;
+  --band: #f2f1ee;
+  --text: #1c1917;
+  --text-2: #4a4540;
+  --text-3: #59534d;
+  --line: #1c19171a;
+  --line-soft: #1c19170d;
+  --line-strong: #85807a;
+  --fill: #1c19170d;
+  --fill-2: #1c19171a;
+  --accent: #1e5b3a;
+  --accent-hover: #144a2d;
+  --on-accent: #ffffff;
+  --error: #b42318;
+  --ring: #1c1917;
+  --scrim: #1c191766;
+  --surface: #ffffff;
+  --surface-2: #f2f1ee;
+  --shadow-1: 0 10px 40px #1c191714;
+  color-scheme: light;
+
+  /* Layout. --hdr is the sticky header height and feeds the scroll-margin rule below. */
+  --gutter: 1rem;
+  --hdr: 3.75rem;
+  --panel-gap: 0.75rem;
+  /* Height of the sticky breadcrumb on write-up pages. It joins --hdr in their scroll-margin. */
+  --crumb: 3.25rem;
+}
+
+:root[data-theme='dark'] {
+  --paper: #141412;
+  --wash: #1f1e1b;
+  --band: #1a1917;
+  --text: #f2f1ee;
+  --text-2: #bfbcb6;
+  --text-3: #bfbcb6;
+  --line: #f2f1ee1a;
+  --line-soft: #f2f1ee0d;
+  --line-strong: #85817b;
+  --fill: #f2f1ee0d;
+  --fill-2: #f2f1ee1a;
+  --accent: #7fd1a0;
+  --accent-hover: #9fe0b8;
+  --on-accent: #0d1a12;
+  --error: #ff8f85;
+  --ok: #6fd99a;
+  --ring: #f2f1ee;
+  --scrim: #f2f1ee99;
+  --surface: #1c1b19;
+  --surface-2: #262522;
+  --shadow-1: none;
+  --veil: #0a0a09;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #141412;
+    --wash: #1f1e1b;
+    --band: #1a1917;
+    --text: #f2f1ee;
+    --text-2: #bfbcb6;
+    --text-3: #bfbcb6;
+    --line: #f2f1ee1a;
+    --line-soft: #f2f1ee0d;
+    --line-strong: #85817b;
+    --fill: #f2f1ee0d;
+    --fill-2: #f2f1ee1a;
+    --accent: #7fd1a0;
+    --accent-hover: #9fe0b8;
+    --on-accent: #0d1a12;
+    --error: #ff8f85;
+    --ok: #6fd99a;
+    --ring: #f2f1ee;
+    --scrim: #f2f1ee99;
+    --surface: #1c1b19;
+    --surface-2: #262522;
+    --shadow-1: none;
+    --veil: #0a0a09;
+    color-scheme: dark;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 2rem;
+    --hdr: 4.25rem;
+  }
+}
+
+/* Narrowest phones: the display size drops to a fixed value, as in the comps. */
+@media (max-width: 359px) {
+  :root {
+    --text-display: 2.125rem;
+  }
+}
+
+/* Colors, fonts, radii, type and layout as Tailwind utilities. Colors point at
+   the variables above, so a theme switch needs no utility changes. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-wash: var(--wash);
+  --color-band: var(--band);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-line-strong: var(--line-strong);
+  --color-fill: var(--fill);
+  --color-fill-2: var(--fill-2);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-error: var(--error);
+  --color-ring: var(--ring);
+  --color-scrim: var(--scrim);
+  --shadow-card: var(--shadow-1);
+}
+
+@theme {
+  --font-display:
+    'Newsreader Variable', 'Newsreader Fallback', 'Newsreader Fallback Linux', Georgia,
+    'Times New Roman', serif;
+  --font-sans:
+    'Geist Variable', 'Geist Fallback', 'Geist Fallback Linux', system-ui, -apple-system,
+    'Segoe UI', Roboto, sans-serif;
+
+  /* Width of the header row in the comps. */
+  --container-shell: 90rem;
+
+  /* Type scale, one token per role in the comps. Pair each display size with its
+     own line height and tracking where it is used. */
+  --text-hero: clamp(2.75rem, 1.5rem + 5vw, 5.5rem); /* home h1 */
+  --text-hero--line-height: 1;
+  --text-display: clamp(2.5rem, 1rem + 3.9vw, 4.5rem); /* 404 and large statements */
+  --text-display--line-height: 1.04;
+  --text-page: clamp(2rem, 1.4rem + 2.2vw, 3.25rem); /* project and experience h1 */
+  --text-page--line-height: 1.06;
+  --text-contact: clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem); /* contact chapter h2 */
+  --text-contact--line-height: 1.05;
+  /* Contact band h2. Not named --text-band: text-band would read as the band color. */
+  --text-band-title: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  --text-band-title--line-height: 1.08;
+  --text-about: clamp(2.25rem, 1.4rem + 3vw, 3.75rem); /* About chapter h1 */
+  --text-about--line-height: 1.05;
+  --text-section: clamp(1.625rem, 1.3rem + 1vw, 2rem); /* page section h2 */
+  --text-section--line-height: 1.1;
+  --text-claim: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  --text-claim--line-height: 1.2;
+  --text-next: clamp(1.25rem, 1rem + 0.8vw, 1.625rem);
+  --text-next--line-height: 1.15;
+
+  /* Radii the comps use for cards and stages. */
+  --radius-card: 24px;
+  --radius-stage: 28px;
+
+  /* The reading line under the header grows with the page scroll (see ReadingLine). */
+  --animate-prog: prog linear both;
+  /* The chapter index slides down as it opens. It moves the translate property, because the
+     popover's centering is a transform. */
+  --animate-cidx-in: cidx-in 200ms var(--ease-lift);
+
+  @keyframes prog {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes cidx-in {
+    from {
+      opacity: 0;
+      translate: 0 -8px;
+    }
+  }
+}
+
+/* Figure animations (components/figures). Inline, because the delays read --i and --t from the
+   element each one runs on. A plain theme variable would resolve them on :root, where they do
+   not exist. The figures start them with motion-safe:in-data-run:, so a figure only plays once
+   it has set data-run, and never under reduced motion. */
+@theme inline {
+  /* Diagram: each edge fades in from a dim start. `backwards` holds that start through the delay
+     and lets the edge settle on its normal style afterwards. */
+  --animate-dg-edge: dg-edge-in 500ms var(--ease-color) calc(var(--i) * 380ms) backwards;
+  /* Home diagram: each edge draws in accent green, thick, then settles to the normal stroke. */
+  --animate-hd-line: hd-line 1500ms ease calc(var(--i) * 520ms) backwards;
+  --animate-hd-head: hd-head 1500ms ease calc(var(--i) * 520ms) backwards;
+  /* Checks: every row is passed in the HTML. The spinner shows only while its row waits its turn,
+     for --t, then the tick and the "Passed" label appear. */
+  --animate-ck-tick: ck-in 320ms var(--ease-lift) var(--t) backwards;
+  --animate-ck-passed: ck-st 240ms linear var(--t) backwards;
+  --animate-ck-spinner: ck-spin 700ms linear infinite, ck-vis var(--t) linear;
+
+  @keyframes dg-edge-in {
+    from {
+      opacity: 0.15;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes hd-line {
+    0% {
+      opacity: 0.2;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+    45% {
+      opacity: 1;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke: var(--text-3);
+      stroke-width: 2;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes hd-head {
+    0%,
+    30% {
+      opacity: 0.2;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+    }
+    60% {
+      opacity: 1;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+    }
+    100% {
+      stroke: var(--text-3);
+      stroke-width: 2;
+    }
+  }
+  @keyframes ck-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes ck-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes ck-st {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* Holds the spinner at full opacity for the length of --t. After that it falls back to its
+     resting opacity of 0. */
+  @keyframes ck-vis {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Motion tokens (motion.md). Static so they are always emitted: components read
+   them through var() and no utility class names them. */
+@theme static {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-flow: linear;
+  --ease-reveal: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-lift: cubic-bezier(0, 0, 0.5, 1);
+  --ease-color: cubic-bezier(0.4, 0, 0.6, 1);
+  --duration-press: 100ms;
+  --duration-fast: 200ms;
+  --duration-base: 280ms;
+  --duration-slow: 420ms;
+  --duration-sheet: 480ms;
+  --duration-route: 240ms;
+  --duration-flow: 1600ms;
+  --stagger-flow: 400ms;
+  --duration-draw: 600ms;
+  --reveal-rise: 30px;
+  --duration-reveal: 900ms;
+  --stagger-reveal: 150ms;
+  --beat-rise: 10px;
+  --duration-lift: 300ms;
+  --scale-lift: 1.016;
+  --duration-color: 320ms;
+}
+
+/* Fallback faces sized to the web fonts, so the swap does not move the layout.
+   The Linux faces cover machines without Arial or Times. */
+@font-face {
+  font-family: 'Newsreader Fallback';
+  src: local('Times New Roman'), local('Liberation Serif'), local('Times');
+  size-adjust: 109.6%;
+}
+@font-face {
+  font-family: 'Newsreader Fallback Linux';
+  src: local('DejaVu Serif');
+  size-adjust: 86.7%;
+}
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 102%;
+}
+@font-face {
+  font-family: 'Geist Fallback Linux';
+  src: local('DejaVu Sans');
+  size-adjust: 91%;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* 16px up to 1440px wide, about 18px at 1920 and 20px at 2560. 100% keeps the
+     visitor's own font size as the floor. */
+  html {
+    font-size: clamp(100%, calc(100% + (100vw - 1440px) * 0.0045), 125%);
+    -webkit-text-size-adjust: 100%;
+    /* Reserve the scrollbar so opening the menu dialog does not shift the page. */
+    scrollbar-gutter: stable;
+  }
+
+  /* Keeps focused and linked page content clear of the sticky header (SC 2.4.11).
+     This is scroll-margin on the targets, not scroll-padding on <html>. Padding
+     reserves the band under the header for the whole page, so focusing a header
+     control (which sits inside that band) made the browser scroll to "reveal"
+     it, and the page jumped. The header's own controls get no margin. */
+  main,
+  :is(a[href], button, input, select, textarea, summary, [tabindex], [id]):not(header *) {
+    scroll-margin-top: calc(var(--hdr) + 16px);
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font: 400 1rem/1.5 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  img,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* One focus ring everywhere (a11y.md): 3px ink outline, 3px offset, and a 2px
+     paper halo in the gap so the ring reads on any surface. Appears at 0ms. */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px var(--paper);
+    transition: none;
+  }
+
+  /* Headings that take programmatic focus on route change show no ring for a
+     pointer-driven move. <main> is a scroll target for the skip link, not a
+     control, so it never shows one. */
+  :is(h1, h2)[tabindex='-1']:focus:not(:focus-visible) {
+    outline: none;
+  }
+  main:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* The menu dialog locks page scroll while open. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+/* Rules that stay global. The skip link and .sr are used by every page. The scroll snap and
+   the reveal below select by page state ([data-rv], the .home root), which a utility on one
+   element cannot express. The shell, the home chapters and the rest are Tailwind utilities
+   in their components. */
+@layer components {
+  .skip {
+    position: absolute;
+    left: 12px;
+    top: -80px;
+    z-index: 50;
+    background: var(--text);
+    color: var(--paper);
+    padding: 10px 16px;
+    border-radius: 999px;
+  }
+  .skip:focus {
+    top: 8px;
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ---------- Home: scroll snap ----------
+     One wheel tick moves one chapter. A chapter taller than the viewport scrolls freely
+     inside. The offset is scroll-margin on the chapter, not scroll-padding on <html>, so
+     focusing a header control never makes the browser scroll to reveal it. */
+  html:has(.home) {
+    scroll-snap-type: y mandatory;
+  }
+  .home .chapter {
+    scroll-snap-align: start;
+    scroll-margin-top: var(--hdr);
+  }
+  html:has(.home) footer {
+    scroll-snap-align: end;
+  }
+
+  /* ---------- Home: section reveal ----------
+     The server HTML is the final state. Script marks only elements below the fold, and only
+     when motion is allowed, so a failed script or reduced motion leaves everything visible. */
+  @media (prefers-reduced-motion: no-preference) {
+    .home [data-rv='wait'] {
+      opacity: 0;
+      transform: translateY(var(--reveal-rise));
+    }
+    .home [data-rv='in'] {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity var(--duration-reveal) var(--ease-reveal),
+        transform var(--duration-reveal) var(--ease-reveal);
+    }
+    .home .fig[data-rv='in'] {
+      transition-delay: var(--stagger-reveal);
+    }
+  }
+  @media print {
+    .home [data-rv] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+}

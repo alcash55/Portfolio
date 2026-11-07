@@ -39,3 +39,9 @@ frontend/test-results
 TEAM-BRIEF.md
 SPRINT-STATUS.md
 .playwright-cli/
+
+# UI/UX design comps and sprint research (static reference files, not app code)
+.design-comps/
+
+# Isolated project checkouts stay inside the primary checkout.
+/.worktrees/

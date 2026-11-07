@@ -9,12 +9,14 @@ import (
 )
 
 // defaultAllowedOrigins is used when ALLOWED_ORIGINS is unset: the Vite dev
-// server (port 3005, see frontend/vite.config.ts), `vite preview`, and the
-// GitHub Pages deployment.
+// server (port 3005, see frontend/vite.config.ts), `vite preview`, the
+// Cloudflare Workers site, and the v1 site. v1 still serves from GitHub Pages
+// at alcash55.github.io, so its requests to this API need that origin.
 var defaultAllowedOrigins = []string{
 	"http://localhost:3005",
 	"http://127.0.0.1:3005",
 	"http://localhost:4173",
+	"https://portfolio-website.alex-e-cash28.workers.dev",
 	"https://alcash55.github.io",
 }
 
@@ -45,7 +47,18 @@ type Config struct {
 	AllowAnyLocalhost bool
 }
 
+// Load reads configuration from the environment, first filling it from a
+// local .env file if one exists (see loadEnv). Variables already set in the
+// environment win over the file.
 func Load() (Config, error) {
+	loadEnv()
+	return fromEnv()
+}
+
+// fromEnv parses and validates the environment as it stands, without
+// touching any .env file. Split from Load so the parsing tests stay
+// independent of whatever .env sits in the developer's checkout.
+func fromEnv() (Config, error) {
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		return Config{}, fmt.Errorf("PORT is required: %w", err)
@@ -78,7 +91,8 @@ func Load() (Config, error) {
 	//
 	// RESUME_GH_TOKEN falls back to GH_TOKEN when unset, because GH_TOKEN
 	// already carries read access to the private Resume repo. A dedicated,
-	// narrower-scoped token is still preferred; see scripts/resume-token-wizard.sh.
+	// narrower-scoped token is still preferred: a fine-grained PAT with read-only
+	// Contents on alcash55/Resume, set in the Render dashboard.
 	if cfg.ResumeGHToken == "" {
 		cfg.ResumeGHToken = cfg.GHToken
 	}
