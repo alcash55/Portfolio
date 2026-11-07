@@ -3,7 +3,9 @@ name: Deploy static content to Pages
 
 on:
   push:
-    branches: ['main']
+    # This branch is the archived v1 site. main now holds the redesign, which deploys
+    # to Cloudflare Workers, so this workflow keeps the old site up at the Pages URL.
+    branches: ['v1']
 
   workflow_dispatch:
 
