@@ -78,24 +78,25 @@ export const ABOUT = {
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/alexander-cash/' },
     { label: 'GitHub', href: 'https://github.com/alcash55' },
   ],
-  fig: {
-    n: 0,
-    label: 'Portrait',
-    caption: 'Joshua Tree',
-    alt: 'Alex at Joshua Tree.',
-    src: '/images/joshua_tree.webp',
-    width: 565,
-    height: 424,
-  },
-  dogs: {
-    n: 1,
-    label: 'Dogs',
-    caption: 'Koda (left) and Troy (right).',
-    src: '/media/koda_and_troy.webp',
-    width: 800,
-    height: 600,
-    alt: 'Koda, a black and white doodle, and Troy, a red-brown doodle, sit side by side on the grass looking up with their tongues out.',
-  },
+  // One carousel in Fig 0. Both photos are 4:3, so the frame shows each whole.
+  fig: { n: 0, label: 'Photos' },
+  carouselLabel: 'About me photos',
+  photos: [
+    {
+      src: '/images/joshua_tree.webp',
+      width: 565,
+      height: 424,
+      alt: 'Alex at Joshua Tree.',
+      caption: 'Joshua Tree',
+    },
+    {
+      src: '/media/koda_and_troy.webp',
+      width: 800,
+      height: 600,
+      alt: 'Koda, a black and white doodle, and Troy, a red-brown doodle, sit side by side on the grass looking up with their tongues out.',
+      caption: 'Koda (left) and Troy (right).',
+    },
+  ],
 } as const;
 
 export type Paragraph =

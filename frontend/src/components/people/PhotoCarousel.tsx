@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Photo } from '~/content/people';
-import { Fig } from '~/components/home/Fig';
+import { Fig, type FigVariant } from '~/components/home/Fig';
 import { usePhotoCarousel } from './usePhotoCarousel';
 
 export interface PhotoCarouselProps {
@@ -16,6 +16,10 @@ export interface PhotoCarouselProps {
    * `natural` lets the image set its own height, so nothing crops and no bands show around it.
    */
   fit?: Fit;
+  /** The figure's placement. About passes `portrait`, so its carousel is not revealed on scroll. */
+  variant?: FigVariant;
+  /** Load the first photo now, for a carousel that sits on the first screen. */
+  eagerFirst?: boolean;
 }
 
 type Fit = 'frame' | 'natural';
@@ -51,11 +55,8 @@ const CAPTION = 'px-[1.1rem] pt-3 text-[0.9375rem] text-ink-2';
 
 const BUTTON = [
   'grid size-11 place-items-center rounded-[50%]',
-  'border-[1.5px] border-line-strong bg-surface text-ink',
+  'cursor-pointer border-[1.5px] border-line-strong bg-surface text-ink hover:bg-fill',
 ].join(' ');
-const BUTTON_ENABLED = 'cursor-pointer hover:bg-fill';
-// Dimmed and not clickable, but still focusable, so it stays in the tab order.
-const BUTTON_DISABLED = 'cursor-default opacity-40';
 
 /** A numbered figure holding the strip. The count and buttons sit in its caption. */
 export function PhotoCarousel({
@@ -64,8 +65,10 @@ export function PhotoCarousel({
   photos,
   noun = 'photo',
   fit = 'frame',
+  variant,
+  eagerFirst = false,
 }: PhotoCarouselProps) {
-  const { trackRef, current, last, interactive, goTo, onScroll, onKeyDown } = usePhotoCarousel(
+  const { trackRef, current, interactive, goTo, onScroll, onKeyDown } = usePhotoCarousel(
     photos.length,
   );
 
@@ -73,26 +76,19 @@ export function PhotoCarousel({
     <Fig
       n={fig.n}
       label={fig.label}
+      variant={variant}
       caption={
         <span role="status" aria-live="polite">
           {current + 1} of {photos.length}
         </span>
       }
       meta={
-        interactive ? (
+        interactive && photos.length > 1 ? (
           <span className="flex items-center gap-[8px]">
-            <CarButton
-              label={`Previous ${noun}`}
-              disabled={current === 0}
-              onClick={() => goTo(current - 1)}
-            >
+            <CarButton label={`Previous ${noun}`} onClick={() => goTo(current - 1)}>
               <path d="M11 3L5 9l6 6" />
             </CarButton>
-            <CarButton
-              label={`Next ${noun}`}
-              disabled={current === last}
-              onClick={() => goTo(current + 1)}
-            >
+            <CarButton label={`Next ${noun}`} onClick={() => goTo(current + 1)}>
               <path d="M7 3l6 6-6 6" />
             </CarButton>
           </span>
@@ -125,7 +121,8 @@ export function PhotoCarousel({
                 src={photo.src}
                 width={photo.width}
                 height={photo.height}
-                loading="lazy"
+                loading={eagerFirst && i === 0 ? undefined : 'lazy'}
+                fetchPriority={eagerFirst && i === 0 ? 'high' : undefined}
                 alt={photo.alt}
               />
             </div>
@@ -139,23 +136,15 @@ export function PhotoCarousel({
 
 function CarButton({
   label,
-  disabled,
   onClick,
   children,
 }: {
   label: string;
-  disabled: boolean;
   onClick: () => void;
   children: ReactNode;
 }) {
   return (
-    <button
-      className={`${BUTTON} ${disabled ? BUTTON_DISABLED : BUTTON_ENABLED}`}
-      type="button"
-      aria-label={label}
-      aria-disabled={disabled || undefined}
-      onClick={disabled ? undefined : onClick}
-    >
+    <button className={BUTTON} type="button" aria-label={label} onClick={onClick}>
       <svg
         width="18"
         height="18"

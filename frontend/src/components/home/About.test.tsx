@@ -55,25 +55,20 @@ describe('About', () => {
     }
   });
 
-  it('frames the portrait as Fig 0 with its alt text and caption', () => {
+  it('shows Joshua Tree and then Koda and Troy in one Fig 0 carousel', () => {
     render(<About />);
     const fig = figure(0);
-    expect(within(fig).getByText('Fig 0')).toBeInTheDocument();
-    expect(within(fig).getByText('Portrait')).toBeInTheDocument();
-    const img = within(fig).getByRole('img', { name: 'Alex at Joshua Tree.' });
-    expect(img).toHaveAttribute('width', '565');
-    expect(img).toHaveAttribute('height', '424');
-    expect(img).not.toHaveAttribute('loading', 'lazy');
-    expect(within(fig).getByText('Joshua Tree')).toBeInTheDocument();
-  });
-
-  it('shows Koda and Troy as a lazy Fig 1 with alt text that names both', () => {
-    render(<About />);
-    const fig = figure(1);
-    expect(within(fig).getByText('Fig 1')).toBeInTheDocument();
-    const photo = within(fig).getByRole('img', { name: /^Koda, a black and white doodle/ });
-    expect(photo).toHaveAttribute('src', '/media/koda_and_troy.webp');
-    expect(photo).toHaveAttribute('loading', 'lazy');
-    expect(within(fig).getByText('Koda (left) and Troy (right).')).toBeInTheDocument();
+    expect(within(fig).getByText('Photos')).toBeInTheDocument();
+    expect(screen.queryByText('Fig 1')).not.toBeInTheDocument();
+    const region = within(fig).getByRole('region', { name: 'About me photos' });
+    const portrait = within(region).getByRole('img', { name: 'Alex at Joshua Tree.' });
+    expect(portrait).toHaveAttribute('width', '565');
+    expect(portrait).toHaveAttribute('height', '424');
+    expect(portrait).not.toHaveAttribute('loading', 'lazy');
+    expect(within(region).getByText('Joshua Tree')).toBeInTheDocument();
+    const dogs = within(region).getByRole('img', { name: /^Koda, a black and white doodle/ });
+    expect(dogs).toHaveAttribute('src', '/media/koda_and_troy.webp');
+    expect(dogs).toHaveAttribute('loading', 'lazy');
+    expect(within(region).getByText('Koda (left) and Troy (right).')).toBeInTheDocument();
   });
 });
