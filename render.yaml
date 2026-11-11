@@ -18,6 +18,10 @@ services:
         sync: false # secret, set in the Render dashboard
       - key: RESUME_GH_TOKEN
         sync: false # secret, set in the Render dashboard - fine-grained PAT, read-only Contents access to alcash55/Resume only
+      - key: GOLEM_GH_TOKEN
+        sync: false # secret, set in the Render dashboard - fine-grained PAT, read-only Contents access to alcash55/Golem-Miners only
+      # Optional rollback pin (a webgl-v... release tag). Leave it unset to
+      # follow the newest release; set it in the dashboard, not here.
       # The production site's origin, on Cloudflare Workers. The value that runs
       # in production lives in the Render dashboard and overrides this one, so
       # keep the two in step (see README, "Changing the site URL").

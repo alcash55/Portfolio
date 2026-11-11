@@ -8,6 +8,7 @@ import (
 
 	"github.com/alcash55/Portfolio/internal/handlers/ciactions"
 	"github.com/alcash55/Portfolio/internal/handlers/contact"
+	"github.com/alcash55/Portfolio/internal/handlers/golem"
 	"github.com/alcash55/Portfolio/internal/handlers/projects"
 	"github.com/alcash55/Portfolio/internal/handlers/resume"
 	"github.com/alcash55/Portfolio/internal/ratelimit"
@@ -100,6 +101,7 @@ func New(cfg config.Config) *gin.Engine {
 	projectsHandler := projects.New(cfg)
 	ciActionsHandler := ciactions.New(cfg)
 	resumeHandler := resume.New(cfg)
+	golemHandler := golem.New(cfg)
 
 	// One instance on Render, so an in-process limiter needs no shared
 	// store. Built fresh per call to New() rather than as a package-level
@@ -155,6 +157,18 @@ func New(cfg config.Config) *gin.Engine {
 			resumeRoutes.GET("", resumeHandler.GetResume)
 			resumeRoutes.GET("/status", resumeHandler.GetResumeStatus)
 			resumeRoutes.GET("/:variant", resumeHandler.GetResumeVariant)
+
+			// /api/v1/golem-miners - the Worker is the only intended caller.
+			// /latest costs at most one GitHub call a minute. /builds/:tag/:file
+			// serves files from disk, and the Worker caches them for a year
+			// under the tag in the URL, so Render sends each file about once
+			// per build. A per-IP limiter would not help here: every Worker
+			// request arrives from a shared Cloudflare address, and a direct
+			// caller can already pull whole files in one request. Bounding
+			// direct callers needs a secret shared with the Worker.
+			golemRoutes := v1.Group("/golem-miners")
+			golemRoutes.GET("/latest", golemHandler.GetLatest)
+			golemRoutes.GET("/builds/:tag/:file", golemHandler.GetFile)
 		}
 	}
 
