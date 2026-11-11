@@ -52,12 +52,12 @@ describe('PhotoCarousel', () => {
     expect(within(region).getByText(EDUCATION.photos[2].caption)).toBeInTheDocument();
   });
 
-  it('starts at the first photo with Previous disabled', () => {
+  it('starts at the first photo with both buttons live', () => {
     const { status, prev, next } = setup();
     expect(status()).toHaveTextContent(`1 of ${TOTAL}`);
     expect(status()).toHaveAttribute('aria-live', 'polite');
-    expect(prev()).toHaveAttribute('aria-disabled', 'true');
-    expect(next()).toBeEnabled();
+    expect(prev()).not.toHaveAttribute('aria-disabled');
+    expect(next()).not.toHaveAttribute('aria-disabled');
   });
 
   it('moves one photo with Next and updates the count', async () => {
@@ -68,11 +68,31 @@ describe('PhotoCarousel', () => {
     expect(prev()).toBeEnabled();
   });
 
-  it('disables Next on the last photo', async () => {
+  it('loops from the last photo back to the first with Next', async () => {
     const { user, status, next } = setup();
     for (let i = 1; i < TOTAL; i++) await user.click(next());
     expect(status()).toHaveTextContent(`${TOTAL} of ${TOTAL}`);
-    expect(next()).toHaveAttribute('aria-disabled', 'true');
+    await user.click(next());
+    expect(status()).toHaveTextContent(`1 of ${TOTAL}`);
+    expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ left: 0 }));
+  });
+
+  it('loops from the first photo to the last with Previous', async () => {
+    const { user, status, prev } = setup();
+    await user.click(prev());
+    expect(status()).toHaveTextContent(`${TOTAL} of ${TOTAL}`);
+    expect(scrollTo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ left: WIDTH * (TOTAL - 1) }),
+    );
+  });
+
+  it('loops with the arrow keys too', async () => {
+    const { user, region, status } = setup();
+    region.focus();
+    await user.keyboard('{ArrowLeft}');
+    expect(status()).toHaveTextContent(`${TOTAL} of ${TOTAL}`);
+    await user.keyboard('{ArrowRight}');
+    expect(status()).toHaveTextContent(`1 of ${TOTAL}`);
   });
 
   it('follows the arrow, Home and End keys while the region has focus', async () => {
