@@ -33,11 +33,12 @@ export function usePhotoCarousel(count: number) {
 
   function goTo(target: number) {
     const track = trackRef.current;
-    const index = Math.max(0, Math.min(last, target));
+    // Past either end wraps to the other, so Next on the last photo returns to the first.
+    const index = ((target % count) + count) % count;
     if (!track) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // A jump of more than one photo snaps. Smooth scrolling across several
-    // slides would flash each of them past.
+    // slides would flash each of them past. That includes the wrap from last to first.
     const behavior = reduced || Math.abs(index - current) > 1 ? 'auto' : 'smooth';
     track.scrollTo({ left: index * track.clientWidth, behavior });
     setCurrent(index);
@@ -63,5 +64,5 @@ export function usePhotoCarousel(count: number) {
     event.preventDefault();
   }
 
-  return { trackRef, current, last, interactive, goTo, onScroll, onKeyDown };
+  return { trackRef, current, interactive, goTo, onScroll, onKeyDown };
 }

@@ -169,15 +169,19 @@ test.describe('experience and education', () => {
     await region.scrollIntoViewIfNeeded();
     const status = page.locator('#education').getByRole('status');
     await expect(status).toHaveText('1 of 4');
-    await expect(page.getByRole('button', { name: 'Previous photo' })).toBeDisabled();
+    const education = page.locator('#education');
 
-    await page.getByRole('button', { name: 'Next photo' }).click();
+    await education.getByRole('button', { name: 'Next photo' }).click();
     await expect(status).toHaveText('2 of 4');
 
     await region.focus();
     await page.keyboard.press('End');
     await expect(status).toHaveText('4 of 4');
-    await expect(page.getByRole('button', { name: 'Next photo' })).toBeDisabled();
+    await education.getByRole('button', { name: 'Next photo' }).click();
+    await expect(status).toHaveText('1 of 4');
+    await education.getByRole('button', { name: 'Previous photo' }).click();
+    await expect(status).toHaveText('4 of 4');
+    await region.focus();
     await page.keyboard.press('Home');
     await expect(status).toHaveText('1 of 4');
   });
@@ -195,7 +199,8 @@ test.describe('experience and education', () => {
     await region.focus();
     await page.keyboard.press('End');
     await expect(status).toHaveText('4 of 4');
-    await expect(page.getByRole('button', { name: 'Next certificate' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Next certificate' }).click();
+    await expect(status).toHaveText('1 of 4');
 
     const href = await page
       .getByRole('link', { name: /^Vite \(certificate image/ })
@@ -211,7 +216,7 @@ test.describe('experience and education', () => {
     await page
       .getByRole('region', { name: 'Education and coaching photos' })
       .scrollIntoViewIfNeeded();
-    await page.getByRole('button', { name: 'Next photo' }).click();
+    await page.locator('#education').getByRole('button', { name: 'Next photo' }).click();
     await expect(page.locator('#education').getByRole('status')).toHaveText('2 of 4');
   });
 });
