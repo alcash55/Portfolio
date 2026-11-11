@@ -26,7 +26,7 @@ scripts/    Legacy tooling: manual Golem build publishing
 - [Vite](https://vite.dev/) with the Cloudflare plugin, and [Tailwind CSS 4](https://tailwindcss.com/)
 - [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/) for unit tests,
   [Playwright](https://playwright.dev/) with axe for browser and accessibility tests
-- [PostHog](https://posthog.com/), cookieless, loaded only when a project token is set at build time
+- [PostHog](https://posthog.com/), cookieless, loaded only when a project token is set at build time. Every event carries `traffic_type`: `owner`, `ai` or `visitor`. Open the live site once with `?owner=1` in your own browser to mark it as yours, and `?owner=0` to clear the mark
 
 How the pieces fit:
 

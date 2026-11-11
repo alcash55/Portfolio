@@ -29,14 +29,16 @@ function decode(request: Request): CapturedEvent[] {
 }
 
 /** Answers every PostHog host, records what the page sends, and sends nothing onward. */
-async function interceptPostHog(page: Page) {
-  // The SDK drops every event from a browser that looks automated: navigator.webdriver,
-  // a HeadlessChrome brand or user agent. Real visitors are unaffected, so the test
-  // browser presents as an ordinary one.
-  await page.addInitScript(() => {
-    Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false });
-    Object.defineProperty(Navigator.prototype, 'userAgentData', { get: () => undefined });
-  });
+async function interceptPostHog(page: Page, { automated = false } = {}) {
+  // Playwright drives the browser, so it reports navigator.webdriver and a HeadlessChrome
+  // brand. The site labels that `ai`. Tests that are not about the label present as an
+  // ordinary visitor, so they check what a real person's visit sends.
+  if (!automated) {
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false });
+      Object.defineProperty(Navigator.prototype, 'userAgentData', { get: () => undefined });
+    });
+  }
   const events: CapturedEvent[] = [];
   const hosts: string[] = [];
   await page.route('**/*.posthog.com/**', async (route) => {
@@ -228,5 +230,45 @@ test.describe('analytics with a token', () => {
   test('server HTML carries no PostHog script', async ({ request }) => {
     const html = await (await request.get('/')).text();
     expect(html).not.toMatch(/<script[^>]+posthog/i);
+  });
+});
+
+test.describe('traffic type', () => {
+  const trafficTypes = (events: CapturedEvent[]) => [
+    ...new Set(ours(events).map((e) => e.properties.traffic_type)),
+  ];
+
+  test('labels an ordinary visit as a visitor', async ({ page }) => {
+    const { events } = await interceptPostHog(page);
+    await page.goto('/');
+    await expect.poll(() => pageviewUrls(events), { timeout: 15_000 }).toHaveLength(1);
+    expect(trafficTypes(events)).toEqual(['visitor']);
+  });
+
+  test('labels an automated browser as ai and still sends its events', async ({ page }) => {
+    const { events } = await interceptPostHog(page, { automated: true });
+    await page.goto('/');
+    await expect.poll(() => pageviewUrls(events), { timeout: 15_000 }).toHaveLength(1);
+    expect(trafficTypes(events)).toEqual(['ai']);
+  });
+
+  test('labels the browser marked with ?owner=1 as owner, and ?owner=0 clears it', async ({
+    page,
+  }) => {
+    const { events } = await interceptPostHog(page);
+    await page.goto('/?owner=1');
+    await expect.poll(() => pageviewUrls(events), { timeout: 15_000 }).toHaveLength(1);
+    expect(trafficTypes(events)).toEqual(['owner']);
+
+    // The mark outlives the URL: the next visit needs no query.
+    events.length = 0;
+    await page.goto('/');
+    await expect.poll(() => pageviewUrls(events), { timeout: 15_000 }).toHaveLength(1);
+    expect(trafficTypes(events)).toEqual(['owner']);
+
+    events.length = 0;
+    await page.goto('/?owner=0');
+    await expect.poll(() => pageviewUrls(events), { timeout: 15_000 }).toHaveLength(1);
+    expect(trafficTypes(events)).toEqual(['visitor']);
   });
 });
