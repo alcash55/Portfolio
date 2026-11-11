@@ -70,26 +70,43 @@ var canvas=document.getElementById('unity-canvas'),gate=document.getElementById(
 if(touchOnly){
   document.getElementById('loadui').innerHTML='<p class="stat">Golem Miners needs a keyboard and a mouse, so it does not load on a phone or tablet. Open this page on a computer to play, or <a href="/projects/golem-miners">watch the gameplay recording</a>.</p>';
 }else{
-  var config={
-    dataUrl:'Build/WebGL.data.unityweb',
-    frameworkUrl:'Build/WebGL.framework.js.unityweb',
-    codeUrl:'Build/WebGL.wasm.unityweb',
-    streamingAssetsUrl:'StreamingAssets',
-    companyName:'Alex Cash',productName:'Golem Miners',productVersion:'1.0',
-    showBanner:function(msg,type){if(type==='error'){stat.textContent=msg;stat.classList.add('err')}}
-  };
-  var s=document.createElement('script');
-  s.src='Build/WebGL.loader.js';
-  s.onload=function(){
-    createUnityInstance(canvas,config,function(p){pbar.style.width=Math.round(p*100)+'%';stat.textContent='Loading the game, '+Math.round(p*100)+'%'})
-    .then(function(inst){
-      pbar.style.width='100%';stat.textContent='Ready.';play.disabled=false;play.focus();
-      fs.hidden=false;fs.onclick=function(){inst.SetFullscreen(1)};
-    })
-    .catch(function(e){stat.textContent='The game could not start: '+e;stat.classList.add('err')});
-  };
-  s.onerror=function(){stat.textContent='The game files did not load. Reload the page to try again.';stat.classList.add('err')};
-  document.body.appendChild(s);
+  /* The newest build is chosen by the server, so a new release needs no site deploy. Every
+     file URL carries the release tag, which keeps the data, framework and wasm files from
+     one build even when a release lands while this page is open. */
+  var waking=setTimeout(function(){stat.textContent='The game server is waking up. This can take up to a minute.'},4000);
+  var giveUp=new AbortController(),timer=setTimeout(function(){giveUp.abort()},100000);
+  var failed=function(msg){clearTimeout(waking);stat.textContent=msg;stat.classList.add('err')};
+  fetch('latest.json',{signal:giveUp.signal})
+  .then(function(r){if(!r.ok)throw new Error('status '+r.status);return r.json()})
+  .then(function(latest){
+    clearTimeout(timer);clearTimeout(waking);
+    if(!latest||typeof latest.tag!=='string'||!/^webgl-v[A-Za-z0-9._-]+$/.test(latest.tag))throw new Error('bad build tag');
+    stat.textContent='Loading the game';
+    start('Build/'+latest.tag+'/',typeof latest.version==='string'?latest.version:'');
+  })
+  .catch(function(){clearTimeout(timer);failed('The game files are not available right now. Reload the page in a minute.')});
+  function start(dir,version){
+    var config={
+      dataUrl:dir+'WebGL.data.unityweb',
+      frameworkUrl:dir+'WebGL.framework.js.unityweb',
+      codeUrl:dir+'WebGL.wasm.unityweb',
+      streamingAssetsUrl:'StreamingAssets',
+      companyName:'Alex Cash',productName:'Golem Miners',productVersion:version||'1.0',
+      showBanner:function(msg,type){if(type==='error'){stat.textContent=msg;stat.classList.add('err')}}
+    };
+    var s=document.createElement('script');
+    s.src=dir+'WebGL.loader.js';
+    s.onload=function(){
+      createUnityInstance(canvas,config,function(p){pbar.style.width=Math.round(p*100)+'%';stat.textContent='Loading the game, '+Math.round(p*100)+'%'})
+      .then(function(inst){
+        pbar.style.width='100%';stat.textContent='Ready.';play.disabled=false;play.focus();
+        fs.hidden=false;fs.onclick=function(){inst.SetFullscreen(1)};
+      })
+      .catch(function(e){stat.textContent='The game could not start: '+e;stat.classList.add('err')});
+    };
+    s.onerror=function(){failed('The game files did not load. Reload the page to try again.')};
+    document.body.appendChild(s);
+  }
   play.onclick=function(){gate.hidden=true;canvas.focus()};
 }
 </script>

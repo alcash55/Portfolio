@@ -38,6 +38,7 @@ func unsetEnv(t *testing.T, key string) {
 // field instead.
 func isZeroConfig(cfg Config) bool {
 	return cfg.WebhookURL == "" && cfg.Port == 0 && cfg.GHToken == "" && cfg.ResumeGHToken == "" &&
+		cfg.GolemGHToken == "" && cfg.GolemPinTag == "" &&
 		len(cfg.AllowedOrigins) == 0 && len(cfg.ProjectRepos) == 0 && !cfg.AllowAnyLocalhost
 }
 
@@ -354,5 +355,69 @@ func TestLoad_ResumeGHTokenSet(t *testing.T) {
 	}
 	if cfg.GHToken != "" {
 		t.Errorf("fromEnv() with RESUME_GH_TOKEN set and GH_TOKEN unset: GHToken = %q, want empty (the two tokens must not leak into each other)", cfg.GHToken)
+	}
+}
+
+// GOLEM_GH_TOKEN stays optional at boot, like RESUME_GH_TOKEN: the Golem
+// routes answer 503 until it is set, and the contact form keeps working.
+func TestLoad_GolemTokenOptionalAndIndependent(t *testing.T) {
+	baseEnv(t)
+	unsetEnv(t, "GOLEM_GH_TOKEN")
+	t.Setenv("GH_TOKEN", "general-token")
+
+	cfg, err := fromEnv()
+	if err != nil {
+		t.Fatalf("fromEnv() with GOLEM_GH_TOKEN unset: unexpected error: %v", err)
+	}
+	if cfg.GolemGHToken != "" {
+		t.Errorf("GolemGHToken = %q, want empty: GH_TOKEN must not stand in for the Golem Miners token", cfg.GolemGHToken)
+	}
+
+	t.Setenv("GOLEM_GH_TOKEN", "golem-token")
+	cfg, err = fromEnv()
+	if err != nil {
+		t.Fatalf("fromEnv() with GOLEM_GH_TOKEN set: unexpected error: %v", err)
+	}
+	if cfg.GolemGHToken != "golem-token" {
+		t.Errorf("GolemGHToken = %q, want %q", cfg.GolemGHToken, "golem-token")
+	}
+}
+
+func TestLoad_GolemPinTag(t *testing.T) {
+	tests := []struct {
+		name    string
+		pin     string
+		want    string
+		wantErr bool
+	}{
+		{name: "unset means follow the latest release", pin: "", want: ""},
+		{name: "valid tag", pin: "webgl-v1.0.6-8ae0558d8559-42903441642.1", want: "webgl-v1.0.6-8ae0558d8559-42903441642.1"},
+		{name: "surrounding whitespace is trimmed", pin: "  webgl-v1.0.5-abc.1 ", want: "webgl-v1.0.5-abc.1"},
+		{name: "wrong prefix", pin: "v1.0.6", wantErr: true},
+		{name: "path traversal", pin: "webgl-v1/../../x", wantErr: true},
+		{name: "prefix alone", pin: "webgl-v", wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseEnv(t)
+			t.Setenv("GOLEM_PIN_TAG", tt.pin)
+
+			cfg, err := fromEnv()
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("fromEnv() with GOLEM_PIN_TAG=%q: want an error, got GolemPinTag=%q", tt.pin, cfg.GolemPinTag)
+				}
+				if !isZeroConfig(cfg) {
+					t.Errorf("fromEnv() returned a non-zero Config alongside an error: %+v", cfg)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("fromEnv() with GOLEM_PIN_TAG=%q: unexpected error: %v", tt.pin, err)
+			}
+			if cfg.GolemPinTag != tt.want {
+				t.Errorf("GolemPinTag = %q, want %q", cfg.GolemPinTag, tt.want)
+			}
+		})
 	}
 }

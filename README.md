@@ -12,8 +12,8 @@ The public address is set in one place, the `VITE_SITE_ORIGIN` build variable (s
 
 ```
 frontend/   TanStack Start app, built with Vite and deployed to Cloudflare Workers
-backend/    Go + Gin API: contact form, plus GitHub repo and resume proxies
-scripts/    One-off tooling: Golem build publishing
+backend/    Go + Gin API: contact form, plus GitHub repo, resume and Golem build proxies
+scripts/    Legacy tooling: manual Golem build publishing
 ```
 
 ## Architecture
@@ -43,8 +43,10 @@ How the pieces fit:
   fetches `GET /api/v1/resume` and streams the PDF back, or renders an explanation page when the
   API cannot supply it. The AC Composite Actions figure renders a fixed list on the server and,
   after hydration, swaps in `GET /api/v1/ci-actions` if the figure is still below the screen.
-- `/play/golem-miners/` is a launcher page. The Unity build is not in the repo or the deploy, so
-  the Worker streams it from a GitHub release (see below).
+- `/play/golem-miners/` is a launcher page. The Unity build is not in the repo or the deploy. The
+  launcher reads `/play/golem-miners/latest.json` to learn the newest release tag, then loads the
+  four build files from `/play/golem-miners/Build/<tag>/`. The Worker streams those from the Go
+  API (see "Golem Miners browser build" below).
 
 ### Backend
 
@@ -77,6 +79,8 @@ at compile time.
 | `GET`  | `/api/v1/resume`   | –                              | `200` PDF, fullstack variant · `502` upstream fetch failed and nothing is cached · `503` no `RESUME_GH_TOKEN`/`GH_TOKEN` configured |
 | `GET`  | `/api/v1/resume/:variant` | –                        | `200` PDF (`:variant` is `fullstack`, `frontend`, or `backend`) · `404` unknown variant · `502` upstream fetch failed and nothing is cached · `503` no token configured |
 | `GET`  | `/api/v1/resume/status` | –                          | `200` diagnostic: token presence, per-variant cache state, last success/failure. See "Diagnosing a broken resume link" below |
+| `GET`  | `/api/v1/golem-miners/latest` | –                    | `200` newest verified Golem Miners build (`tag`, `version`, `gitSha`, `builtAt`, `files`, `stale`) · `400` bad `?tag=` · `404` `?tag=` not among the 30 newest releases · `429` a second non-default build requested within a minute (`Retry-After`) · `502` GitHub failed, a check failed, and no good build is held · `503` no `GOLEM_GH_TOKEN` |
+| `GET`  | `/api/v1/golem-miners/builds/:tag/:file` | –         | `200` one of the four build files, byte ranges and `If-None-Match` supported · `404` tag or file name not allowed · same `429`, `502`, `503` as above |
 
 ### Contact form
 
@@ -206,6 +210,8 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
 | `GH_TOKEN`        | no       | GitHub token that `/api/v1/projects` and `/api/v1/ci-actions` send to the GitHub API. Optional, see below |
 | `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 503 until it's set (check `GET /api/v1/resume/status`) |
+| `GOLEM_GH_TOKEN`  | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Golem-Miners` repo. Powers `GET /api/v1/golem-miners/*`. Optional at boot, but those routes 503 until it's set. It never falls back to `GH_TOKEN` |
+| `GOLEM_PIN_TAG`   | no       | A `webgl-v...` release tag to serve instead of the newest one. Unset follows the newest release. A value that is not a `webgl-v` tag stops the server at boot |
 | `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
 | `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
 
@@ -358,7 +364,8 @@ bunx wrangler deploy
 ```
 
 Cloudflare serves the built assets and runs the worker for server rendering, the sitemap, the
-`/resume` proxy and the Golem build proxy.
+`/resume` proxy and the Golem build proxy (`/play/golem-miners/latest.json` and
+`/play/golem-miners/Build/<tag>/<file>`).
 
 To roll back, redeploy the previous commit or use `wrangler rollback`.
 
@@ -382,19 +389,49 @@ The old `workers.dev` address keeps working unless you turn it off in the same s
 
 `/play/golem-miners/` is a launcher page in `frontend/public/play/golem-miners/`. The Unity files
 are not in the repo or the deploy. The 51 MB data file is over the 25 MiB Workers asset limit, so
-the Worker (`frontend/src/lib/golemBuild.ts`) streams four files from the Portfolio release tagged
-`golem-miners-webgl-latest` and adds the `Content-Encoding: gzip` header Unity needs. Edge and
-browser caches hold a file for an hour.
+the game's own release is the source and nothing is uploaded by hand.
 
-To ship a new build, make a WebGL build with Gzip compression, then run:
+A push to `main` in `alcash55/Golem-Miners` runs its `Production WebGL` workflow, which publishes a
+release tagged `webgl-v<version>-<sha>-<run>` and marked Latest. It carries
+`golem-miners-webgl.zip`, `webgl-manifest.json` and `SHA256SUMS`. That repo is private, so only the
+Go API reads it, with `GOLEM_GH_TOKEN`. The token never reaches the browser.
 
-```sh
-scripts/publish-golem-build.sh path/to/Builds/WebGL/Build <golem-miners-commit>
-```
+How a new build reaches a player:
 
-It checks that all four files exist and that the `.unityweb` files are gzip, replaces the release
-assets, and needs no Portfolio deploy. It needs a checkout of Portfolio for the script, `gh`, and a
-fine-grained token with contents write on this repo, passed as `GH_TOKEN`.
+1. The launcher fetches `/play/golem-miners/latest.json`. The Worker
+   (`frontend/src/lib/golemBuild.ts`) asks `GET /api/v1/golem-miners/latest` and keeps the answer
+   in the Workers Cache for a minute. If the API fails, it serves the last answer it saw.
+2. The API reads `releases/latest` once per minute, keeps only a tag that starts with `webgl-v`, and
+   then downloads the zip from that exact tag, so a release landing mid-download cannot mix two
+   builds.
+3. The API checks the zip against `SHA256SUMS` and the manifest, extracts the four files to disk,
+   and serves them. A build that fails any check is never served. The API keeps serving the last
+   good build, or returns `502` if it has none. A failed tag is not retried for a minute.
+4. The launcher loads `Build/<tag>/WebGL.loader.js` and the three `.unityweb` files from the Worker.
+   The tag is in every URL, so a cached file can never be the wrong build and the Worker caches it
+   for a year. `ETag` and `Last-Modified` change with each build, which is what makes Unity replace
+   its IndexedDB copy of the data file.
+
+Render's free instance sleeps after 15 idle minutes, so the first visitor after a long gap waits
+for the wake-up and, after a release, for the download and checks. The launcher says so when the
+wait passes four seconds, and gives up after 100 seconds.
+
+The `.unityweb` files are stored gzipped. The API sends them as plain `application/octet-stream`
+with no `Content-Encoding`, and the Worker adds `Content-Encoding: gzip` with `encodeBody: 'manual'`.
+This is deliberate: the Workers runtime inflates any `fetch()` response labeled gzip, and relaying
+the inflated bytes under a gzip label gives the browser a corrupt file.
+
+Rolling back:
+
+- Set `GOLEM_PIN_TAG` in the Render dashboard to a `webgl-v...` tag. `latest` then serves that
+  release until the variable is cleared.
+- Or call `GET /api/v1/golem-miners/latest?tag=<tag>` to look at an older release. The tag must be
+  one of the 30 newest published releases. The API holds the default build and one other, loads a
+  second non-default build at most once a minute, and answers `429` after that.
+
+`scripts/publish-golem-build.sh` is the old manual path and is no longer used. It stays until the
+first build has reached production through the API, then it can be deleted along with the
+`golem-miners-webgl-latest` release.
 
 ### Backend on Render
 
@@ -412,6 +449,12 @@ is also `sync: false`; unlike `GH_TOKEN`, leaving it unset means `/api/v1/resume
 to fall back to. `GET /api/v1/resume/status` reports the missing token directly, without a
 dashboard visit. Create the token as a fine-grained PAT with read-only Contents access to
 `alcash55/Resume`, then set it in the Render dashboard.
+
+`GOLEM_GH_TOKEN` is `sync: false` too, and without it the Golem Miners routes return `503` and the
+play page shows an error. Create a fine-grained PAT with read-only Contents access to
+`alcash55/Golem-Miners` only, then set it in the Render dashboard. It does not fall back to
+`GH_TOKEN`. The API writes the extracted build under the system temp directory, so a restart or
+redeploy re-downloads it on the first request.
 
 Two things Render handles that the app relies on:
 

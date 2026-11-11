@@ -136,6 +136,28 @@ func TestResumeRoutes_Mounted(t *testing.T) {
 	}
 }
 
+// TestGolemRoutes_Mounted pins that routes.New mounts both Golem Miners
+// routes. With no GOLEM_GH_TOKEN they answer 503 before any GitHub call, so a
+// 404 means the route is missing.
+func TestGolemRoutes_Mounted(t *testing.T) {
+	router := New(testConfig([]string{"https://example.com"}, false))
+
+	for _, path := range []string{
+		"/api/v1/golem-miners/latest",
+		"/api/v1/golem-miners/builds/webgl-v1.0.6-abc123/WebGL.loader.js",
+	} {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusServiceUnavailable {
+				t.Errorf("GET %s: status = %d, want %d (no GOLEM_GH_TOKEN configured)", path, rec.Code, http.StatusServiceUnavailable)
+			}
+		})
+	}
+}
+
 // TestResumeStatusRoute_Mounted proves GET /api/v1/resume/status resolves to
 // the status diagnostic rather than being swallowed by the /:variant route -
 // the ordering routes.New registers them in is what makes gin prefer the
