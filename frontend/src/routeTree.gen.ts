@@ -16,6 +16,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ExperienceSlugRouteImport } from './routes/experience.$slug'
 import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
 import { Route as WorkSlugRouteImport } from './routes/work.$slug'
+import { Route as PlayGolemMinersLatestDotjsonRouteImport } from './routes/play.golem-miners.latest[.]json'
 import { Route as PlayGolemMinersBuildSplatRouteImport } from './routes/play.golem-miners.Build.$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,12 @@ const WorkSlugRoute = WorkSlugRouteImport.update({
   path: '/work/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayGolemMinersLatestDotjsonRoute =
+  PlayGolemMinersLatestDotjsonRouteImport.update({
+    id: '/play/golem-miners/latest.json',
+    path: '/play/golem-miners/latest.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PlayGolemMinersBuildSplatRoute =
   PlayGolemMinersBuildSplatRouteImport.update({
     id: '/play/golem-miners/Build/$',
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/experience/$slug': typeof ExperienceSlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/play/golem-miners/latest.json': typeof PlayGolemMinersLatestDotjsonRoute
   '/play/golem-miners/Build/$': typeof PlayGolemMinersBuildSplatRoute
 }
 export interface FileRoutesByTo {
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/experience/$slug': typeof ExperienceSlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/play/golem-miners/latest.json': typeof PlayGolemMinersLatestDotjsonRoute
   '/play/golem-miners/Build/$': typeof PlayGolemMinersBuildSplatRoute
 }
 export interface FileRoutesById {
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/experience/$slug': typeof ExperienceSlugRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/work/$slug': typeof WorkSlugRoute
+  '/play/golem-miners/latest.json': typeof PlayGolemMinersLatestDotjsonRoute
   '/play/golem-miners/Build/$': typeof PlayGolemMinersBuildSplatRoute
 }
 export interface FileRouteTypes {
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/experience/$slug'
     | '/projects/$slug'
     | '/work/$slug'
+    | '/play/golem-miners/latest.json'
     | '/play/golem-miners/Build/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/experience/$slug'
     | '/projects/$slug'
     | '/work/$slug'
+    | '/play/golem-miners/latest.json'
     | '/play/golem-miners/Build/$'
   id:
     | '__root__'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/experience/$slug'
     | '/projects/$slug'
     | '/work/$slug'
+    | '/play/golem-miners/latest.json'
     | '/play/golem-miners/Build/$'
   fileRoutesById: FileRoutesById
 }
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   ExperienceSlugRoute: typeof ExperienceSlugRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   WorkSlugRoute: typeof WorkSlugRoute
+  PlayGolemMinersLatestDotjsonRoute: typeof PlayGolemMinersLatestDotjsonRoute
   PlayGolemMinersBuildSplatRoute: typeof PlayGolemMinersBuildSplatRoute
 }
 
@@ -186,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/golem-miners/latest.json': {
+      id: '/play/golem-miners/latest.json'
+      path: '/play/golem-miners/latest.json'
+      fullPath: '/play/golem-miners/latest.json'
+      preLoaderRoute: typeof PlayGolemMinersLatestDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/golem-miners/Build/$': {
       id: '/play/golem-miners/Build/$'
       path: '/play/golem-miners/Build/$'
@@ -204,6 +225,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExperienceSlugRoute: ExperienceSlugRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   WorkSlugRoute: WorkSlugRoute,
+  PlayGolemMinersLatestDotjsonRoute: PlayGolemMinersLatestDotjsonRoute,
   PlayGolemMinersBuildSplatRoute: PlayGolemMinersBuildSplatRoute,
 }
 export const routeTree = rootRouteImport

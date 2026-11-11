@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -36,6 +37,8 @@ type Config struct {
 	Port           int      `env:"PORT"`
 	GHToken        string   `env:"GH_TOKEN"`
 	ResumeGHToken  string   `env:"RESUME_GH_TOKEN"`
+	GolemGHToken   string   `env:"GOLEM_GH_TOKEN"`
+	GolemPinTag    string   `env:"GOLEM_PIN_TAG"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS"`
 	ProjectRepos   []string `env:"PROJECT_REPOS"`
 
@@ -79,6 +82,8 @@ func fromEnv() (Config, error) {
 		Port:              port,
 		GHToken:           os.Getenv("GH_TOKEN"),
 		ResumeGHToken:     os.Getenv("RESUME_GH_TOKEN"),
+		GolemGHToken:      os.Getenv("GOLEM_GH_TOKEN"),
+		GolemPinTag:       strings.TrimSpace(os.Getenv("GOLEM_PIN_TAG")),
 		AllowedOrigins:    origins,
 		ProjectRepos:      projectRepos,
 		AllowAnyLocalhost: usingDefaultOrigins,
@@ -96,6 +101,11 @@ func fromEnv() (Config, error) {
 	if cfg.ResumeGHToken == "" {
 		cfg.ResumeGHToken = cfg.GHToken
 	}
+	// A pin that the golem handler would reject at request time is a typo, and
+	// it would otherwise surface as a 502 on the play page. Fail the boot.
+	if cfg.GolemPinTag != "" && !IsGolemTag(cfg.GolemPinTag) {
+		return Config{}, fmt.Errorf("GOLEM_PIN_TAG must look like webgl-v1.0.6-abc123, got %q", cfg.GolemPinTag)
+	}
 	for _, env := range []string{"WEBHOOK_URL"} {
 		if os.Getenv(env) == "" {
 			return Config{}, fmt.Errorf("%s is required", env)
@@ -104,6 +114,17 @@ func fromEnv() (Config, error) {
 
 	return cfg, nil
 }
+
+// golemTag matches a Golem Miners production WebGL release tag, such as
+// webgl-v1.0.6-8ae0558d8559-42903441642.1. The prefix is the contract with the
+// game repo's release workflow. The character class keeps a tag safe to place
+// in a URL path and a file name without escaping.
+var golemTag = regexp.MustCompile(`^webgl-v[A-Za-z0-9._-]{1,120}$`)
+
+// IsGolemTag reports whether tag is a well-formed Golem Miners production
+// WebGL release tag. Config and the golem handler share it so a pin, a ?tag=
+// query and a release GitHub reports are all held to the same rule.
+func IsGolemTag(tag string) bool { return golemTag.MatchString(tag) }
 
 // resolveCommaList reads envVar as a comma-separated list, following the
 // ALLOWED_ORIGINS precedent: unset falls back to defaults (usingDefaults =
