@@ -486,6 +486,12 @@ succeeds; analytics just stays off, since `frontend/src/lib/analytics.ts`
 never loads the SDK without a token. Both values are read at build time, so changing
 one needs a rebuild.
 
+Crawlers and AI agents such as GPTBot and ClaudeBot never run the SDK, so the Worker
+logs them itself. `frontend/src/server.ts` is the Worker entry (`main` in
+`frontend/wrangler.jsonc`). It wraps the default TanStack Start handler and sends a
+`$http_log` event for each page request whose user agent looks like a crawler. PostHog
+classifies the row by user agent. Requests from ordinary browsers are never sent.
+
 `ALLOWED_ORIGINS` is set to the Workers origin, `https://portfolio-website.alex-e-cash28.workers.dev`, in the blueprint. That
 **replaces** the local-development defaults rather than adding to them, so the
 deployed API accepts only the origins listed. The Render dashboard value overrides the
