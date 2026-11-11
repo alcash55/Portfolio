@@ -33,11 +33,19 @@ type CaptureArgs<E extends AnalyticsEvent> = EventProperties[E] extends undefine
   ? [properties?: undefined]
   : [properties: EventProperties[E]];
 
-/** The two SDK calls this module makes. The real `posthog` object satisfies it. */
+/** The SDK calls this module makes. The real `posthog` object satisfies it. */
 export interface SdkClient {
   init(token: string, config: Partial<PostHogConfig>): unknown;
   capture(event: string, properties?: Record<string, unknown>): unknown;
+  /** Attaches properties to every later event. */
+  register(properties: Record<string, unknown>): unknown;
 }
+
+/**
+ * Who is behind a visit, stamped on every event as `traffic_type` so the dashboard
+ * can split the owner and AI agents from real visitors.
+ */
+export type TrafficType = 'owner' | 'ai' | 'visitor';
 
 export interface AnalyticsDeps {
   /** The project token. Absent means analytics is off and the SDK is never fetched. */
@@ -49,6 +57,8 @@ export interface AnalyticsDeps {
   whenIdle: (run: () => void) => void;
   /** True when the visitor asked not to be tracked. Read on every capture. */
   optedOut: () => boolean;
+  /** Who is behind this visit. Read once, when the SDK starts. Absent means `visitor`. */
+  trafficType?: () => TrafficType;
   /** Warms the connection to the ingest host. Only `start()` calls it, after the opt-out check. */
   preconnect?: (host: string) => void;
 }
@@ -101,6 +111,9 @@ function sdkConfig(host: string | undefined): Partial<PostHogConfig> {
     disable_surveys: true,
     disable_product_tours: true,
     disable_conversations: true,
+    // Let events from automated browsers and named crawlers through. The SDK would drop
+    // them, which hides exactly the AI traffic `traffic_type` exists to label.
+    opt_out_useragent_filter: true,
     // Feature flags are not used. This also skips the /flags request on every load.
     advanced_disable_flags: true,
   };
@@ -123,6 +136,7 @@ export function createAnalytics(deps: AnalyticsDeps): Analytics {
       .loadSdk()
       .then((sdk) => {
         sdk.init(token, sdkConfig(deps.host));
+        sdk.register({ traffic_type: deps.trafficType?.() ?? 'visitor' });
         client = sdk;
         state = 'ready';
         const waiting = queue;
@@ -208,6 +222,52 @@ function browserOptedOut(): boolean {
   });
 }
 
+const OWNER_KEY = 'portfolio-owner';
+
+/** Names AI agents put in the user agent, plus the flags browser automation leaves behind. */
+const AI_AGENT_PATTERN =
+  /GPTBot|ChatGPT|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic|PerplexityBot|Perplexity-User|Google-Extended|Gemini|Bytespider|CCBot|Amazonbot|Applebot-Extended|cohere|MistralAI|HeadlessChrome|PhantomJS/i;
+
+/**
+ * Decides who is behind a visit. Owner wins, so a headless browser Alex drives
+ * himself still counts as him. Browser automation (Playwright, Selenium, headless
+ * Chrome) and AI agents that name themselves count as `ai`. An agent that drives
+ * a normal browser and says nothing looks like a visitor, and no check here can
+ * catch it.
+ */
+export function classifyTraffic(signals: {
+  owner: boolean;
+  webdriver?: boolean;
+  userAgent?: string;
+}): TrafficType {
+  if (signals.owner) return 'owner';
+  if (signals.webdriver === true || AI_AGENT_PATTERN.test(signals.userAgent ?? '')) return 'ai';
+  return 'visitor';
+}
+
+/**
+ * Open the site once with `?owner=1` to mark this browser as Alex's, and `?owner=0`
+ * to clear it. The mark is a label in this browser's own storage, not a credential:
+ * anyone who sets it only relabels their own traffic. Visitors never get anything
+ * written, because only these two explicit URLs write.
+ */
+function browserTrafficType(): TrafficType {
+  let owner = false;
+  try {
+    const flag = new URLSearchParams(window.location.search).get('owner');
+    if (flag === '1') localStorage.setItem(OWNER_KEY, '1');
+    if (flag === '0') localStorage.removeItem(OWNER_KEY);
+    owner = localStorage.getItem(OWNER_KEY) === '1';
+  } catch {
+    // Storage can be blocked. The visit is then judged on its other signals.
+  }
+  return classifyTraffic({
+    owner,
+    webdriver: navigator.webdriver,
+    userAgent: navigator.userAgent,
+  });
+}
+
 const config = readAnalyticsConfig(import.meta.env);
 
 /** The one instance the app uses. Does nothing on the server and without a token. */
@@ -223,6 +283,7 @@ export const analytics: Analytics = createAnalytics({
       : import('posthog-js').then((module) => module.default),
   whenIdle: whenBrowserIdle,
   optedOut: browserOptedOut,
+  trafficType: browserTrafficType,
   preconnect: addIngestPreconnect,
 });
 

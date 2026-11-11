@@ -3,6 +3,7 @@ import {
   ANALYTICS_EVENTS,
   createAnalytics,
   addIngestPreconnect,
+  classifyTraffic,
   privacyOptOut,
   readAnalyticsConfig,
   type AnalyticsDeps,
@@ -11,7 +12,7 @@ import {
 
 /** A stand-in for the SDK. The unit suite never opens a socket to an ingest host. */
 function fakeSdk() {
-  const sdk = { init: vi.fn(), capture: vi.fn() } satisfies SdkClient;
+  const sdk = { init: vi.fn(), capture: vi.fn(), register: vi.fn() } satisfies SdkClient;
   return sdk;
 }
 
@@ -85,6 +86,8 @@ describe('with a token', () => {
         autocapture: false,
         capture_pageview: false,
         capture_pageleave: false,
+        // Automated browsers must reach the dashboard to be labeled `ai` there.
+        opt_out_useragent_filter: true,
       }),
     );
   });
@@ -313,3 +316,45 @@ export function typeChecks() {
   analytics.capture('resume_clicked');
   analytics.capture('contact_submitted');
 }
+
+describe('traffic type', () => {
+  it('stamps every event with the type the visit was judged as', async () => {
+    const { analytics, sdk, runIdle } = setup({ trafficType: () => 'ai' });
+
+    analytics.start();
+    await runIdle();
+
+    expect(sdk.register).toHaveBeenCalledWith({ traffic_type: 'ai' });
+    // Registered before the first queued event can leave, so none goes out unlabeled.
+    const [initOrder = Infinity] = sdk.init.mock.invocationCallOrder;
+    const [registerOrder = 0] = sdk.register.mock.invocationCallOrder;
+    expect(initOrder).toBeLessThan(registerOrder);
+  });
+
+  it('calls a visit a visitor when nothing says otherwise', async () => {
+    const { analytics, sdk, runIdle } = setup();
+
+    analytics.start();
+    await runIdle();
+
+    expect(sdk.register).toHaveBeenCalledWith({ traffic_type: 'visitor' });
+  });
+});
+
+describe('classifyTraffic', () => {
+  const chrome = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/130.0 Safari/537.36';
+
+  it.each([
+    [{ owner: false, userAgent: chrome }, 'visitor'],
+    [{ owner: true, userAgent: chrome }, 'owner'],
+    [{ owner: true, webdriver: true, userAgent: 'HeadlessChrome/130' }, 'owner'],
+    [{ owner: false, webdriver: true, userAgent: chrome }, 'ai'],
+    [{ owner: false, userAgent: 'Mozilla/5.0 (compatible; GPTBot/1.2)' }, 'ai'],
+    [{ owner: false, userAgent: 'Mozilla/5.0 ChatGPT-User/1.0' }, 'ai'],
+    [{ owner: false, userAgent: 'Claude-User' }, 'ai'],
+    [{ owner: false, userAgent: 'Mozilla/5.0 HeadlessChrome/130.0 Safari/537.36' }, 'ai'],
+    [{ owner: false }, 'visitor'],
+  ] as const)('%j is %s', (signals, expected) => {
+    expect(classifyTraffic(signals)).toBe(expected);
+  });
+});
