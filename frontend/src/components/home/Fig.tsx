@@ -34,6 +34,9 @@ const PLACE: Record<FigVariant, string> = {
   portrait: [
     'w-full min-[900px]:self-stretch',
     'min-[900px]:min-h-[calc((100svh-var(--hdr))*0.4)]',
+    // The 4:3 photo box follows the column width, which makes the figure taller than the first
+    // screen on a wide desktop. The cap keeps it in view, and the column centers it.
+    'min-[900px]:max-w-[34rem] min-[900px]:justify-self-center',
   ].join(' '),
 };
 const BODY_PLACE: Record<FigVariant, string> = {
