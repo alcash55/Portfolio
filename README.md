@@ -349,7 +349,7 @@ The two halves deploy independently:
 
 ### Deploying the frontend
 
-Cloudflare Workers Builds runs `bun install && bun run build` in `frontend/` and then `npx wrangler deploy` on every push to `main`. The four `VITE_*` values below are build variables in the Cloudflare dashboard. To deploy from your machine instead, build with the production values and deploy. The worker is named `portfolio-website` in
+Cloudflare Workers Builds runs `bun install && bun run build` in `frontend/` and then `npx wrangler deploy` on every push to `main`. The four `VITE_*` values below are build variables in the Cloudflare dashboard. If merges stop deploying and the Workers Builds settings show "This project is disconnected from your Git account", reauthorize the Cloudflare GitHub app from **Manage** next to the Git repository. Pushes made while it is disconnected never trigger a build. To deploy from your machine instead, build with the production values and deploy. The worker is named `portfolio-website` in
 `frontend/wrangler.jsonc`.
 
 ```sh
