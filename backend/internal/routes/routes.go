@@ -8,6 +8,7 @@ import (
 
 	"github.com/alcash55/Portfolio/internal/handlers/ciactions"
 	"github.com/alcash55/Portfolio/internal/handlers/contact"
+	"github.com/alcash55/Portfolio/internal/handlers/contributions"
 	"github.com/alcash55/Portfolio/internal/handlers/golem"
 	"github.com/alcash55/Portfolio/internal/handlers/projects"
 	"github.com/alcash55/Portfolio/internal/handlers/resume"
@@ -100,6 +101,7 @@ func New(cfg config.Config) *gin.Engine {
 	contactHandler := contact.New(cfg)
 	projectsHandler := projects.New(cfg)
 	ciActionsHandler := ciactions.New(cfg)
+	contributionsHandler := contributions.New(cfg)
 	resumeHandler := resume.New(cfg)
 	golemHandler := golem.New(cfg)
 
@@ -143,6 +145,10 @@ func New(cfg config.Config) *gin.Engine {
 			// action) happens at most once an hour in ciactions.Handler's
 			// cache, however many requests arrive.
 			v1.GET("/ci-actions", ciActionsHandler.GetCIActions)
+
+			// /api/v1/contributions - not rate limited, same reasoning as
+			// /projects: one GraphQL call an hour at most, whatever the traffic.
+			v1.GET("/contributions", contributionsHandler.GetContributions)
 
 			// /api/v1/resume[/:variant] - deliberately not behind the rate
 			// limiter, same reasoning as /projects: its real cost (a GitHub
