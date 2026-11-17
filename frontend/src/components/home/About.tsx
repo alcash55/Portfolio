@@ -1,6 +1,7 @@
 import { PhotoCarousel } from '~/components/people/PhotoCarousel';
 import { ResumeLink } from '~/components/people/ResumeLink';
 import { ABOUT } from '~/content/home';
+import { ContributionGraph } from './ContributionGraph';
 import {
   ABOUT_HEADING,
   BUTTON,
@@ -60,6 +61,7 @@ export function About() {
               </a>
             ))}
           </div>
+          <ContributionGraph />
         </div>
         {/* The portrait is the largest thing on the first screen, so its photo loads eagerly. */}
         <PhotoCarousel
