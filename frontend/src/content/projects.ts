@@ -812,16 +812,22 @@ export const DETAILS: Readonly<Record<DetailSlug, Detail>> = {
           'l',
           'Four analytics pipelines to BigQuery: accessibility, Google Tag Manager, Qualtrics and FullStory data.',
         ),
-        link('bq', 'r', 'lk', 'l', 'BigQuery to Looker: the reports.'),
+        link(
+          'bq',
+          'r',
+          'lk',
+          'l',
+          'BigQuery to Looker: Looker connects to BigQuery, and the table relationships are modeled there for the dashboards.',
+        ),
       ],
-      alt: 'Product teams keep Markdown in their own GitHub repositories. Each pull request runs checks for spelling, Markdown validity and image alt text, and the review comment on the pull request updates as new commits arrive. Content that passes goes through remark into Strapi as HTML. The Next.js docs site serves 2,300+ pages across 23 products, and renders selected HTML as React design-system components. Separately, four analytics pipelines for accessibility, Google Tag Manager, Qualtrics and FullStory feed BigQuery, and Looker reports on them.', // NV-06
+      alt: 'Product teams keep Markdown in their own GitHub repositories. Each pull request runs checks for spelling, Markdown validity and image alt text, and the review comment on the pull request updates as new commits arrive. Content that passes goes through remark into Strapi as HTML. The Next.js docs site serves 2,300+ pages across 23 products, and renders selected HTML as React design-system components. Separately, four analytics pipelines for accessibility, Google Tag Manager, Qualtrics and FullStory feed BigQuery. Looker connects to BigQuery, with the table relationships modeled for the dashboards.', // NV-06
     },
     built: [
       'Product teams kept Markdown in their own GitHub repositories. CI/CD pulls it into Strapi, so documentation ships from the teams that own the products.', // NV-07
       'I extended the static analysis composite GitHub Actions that gate every merge on the Voyix Doc Site. Pull requests run checks for spelling, Markdown validity and image alt text. CI reads the changed files from GitHub API diffs, and the review comment updates as new commits arrive.', // NV-08
       'Content that passes goes through remark into Strapi as HTML. The Next.js site maps selected HTML elements to React design-system components when it renders.', // NV-09
       'I also restructured and expanded the Commerce Design Docs that product teams build against.', // NV-09a
-      'Four analytics pipelines for accessibility, Google Tag Manager, Qualtrics and FullStory feed BigQuery, and Looker reports on them.', // NV-10
+      'Four analytics pipelines for accessibility, Google Tag Manager, Qualtrics and FullStory feed BigQuery. I connected Looker to BigQuery and modeled the relationships between the tables, so the dashboards could use them.', // NV-10
     ],
   },
 
