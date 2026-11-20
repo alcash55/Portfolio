@@ -5,4 +5,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "observability": { "enabled": true },
+  // Workers Builds runs `wrangler preview` for non-main branches, and it refuses
+  // a config without this block. Empty because the worker reads no runtime vars
+  // or bindings: the VITE_* values are baked in at build time.
+  "previews": {},
 }

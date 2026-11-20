@@ -43,6 +43,8 @@ How the pieces fit:
   fetches `GET /api/v1/resume` and streams the PDF back, or renders an explanation page when the
   API cannot supply it. The AC Composite Actions figure renders a fixed list on the server and,
   after hydration, swaps in `GET /api/v1/ci-actions` if the figure is still below the screen.
+  The About section's contribution graph renders a blank grid on the server and fills it from
+  `GET /api/v1/contributions` after hydration.
 - `/play/golem-miners/` is a launcher page. The Unity build is not in the repo or the deploy. The
   launcher reads `/play/golem-miners/latest.json` to learn the newest release tag, then loads the
   four build files from `/play/golem-miners/Build/<tag>/`. The Worker streams those from the Go
@@ -76,6 +78,7 @@ at compile time.
 | `POST` | `/api/v1/contact`  | `{"name","email","message"}`  | `200` ok · `400` validation · `413` >64 KiB · `429` rate limited · `502` webhook unreachable/rejected     |
 | `GET`  | `/api/v1/projects` | –                              | `200 {"projects":[...],"stale":bool}` · `502` if every configured repo failed to fetch                   |
 | `GET`  | `/api/v1/ci-actions` | –                            | `200 {"actions":[{"name","description"}],"treeSha":"...","stale":bool}` · `502` if the repo tree could not be read and nothing is cached |
+| `GET`  | `/api/v1/contributions` | –                         | `200 {"weeks":[{"start","days"}],"stale":bool}` · `502` no `GH_TOKEN`, or GitHub failed and nothing is cached |
 | `GET`  | `/api/v1/resume`   | –                              | `200` PDF, fullstack variant · `502` upstream fetch failed and nothing is cached · `503` no `RESUME_GH_TOKEN`/`GH_TOKEN` configured |
 | `GET`  | `/api/v1/resume/:variant` | –                        | `200` PDF (`:variant` is `fullstack`, `frontend`, or `backend`) · `404` unknown variant · `502` upstream fetch failed and nothing is cached · `503` no token configured |
 | `GET`  | `/api/v1/resume/status` | –                          | `200` diagnostic: token presence, per-variant cache state, last success/failure. See "Diagnosing a broken resume link" below |
@@ -208,7 +211,7 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
-| `GH_TOKEN`        | no       | GitHub token that `/api/v1/projects` and `/api/v1/ci-actions` send to the GitHub API. Optional, see below |
+| `GH_TOKEN`        | no       | GitHub token that `/api/v1/projects`, `/api/v1/ci-actions`, and `/api/v1/contributions` send to the GitHub API. Optional, see below |
 | `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 503 until it's set (check `GET /api/v1/resume/status`) |
 | `GOLEM_GH_TOKEN`  | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Golem-Miners` repo. Powers `GET /api/v1/golem-miners/*`. Optional at boot, but those routes 503 until it's set. It never falls back to `GH_TOKEN` |
 | `GOLEM_PIN_TAG`   | no       | A `webgl-v...` release tag to serve instead of the newest one. Unset follows the newest release. A value that is not a `webgl-v` tag stops the server at boot |
@@ -220,6 +223,10 @@ unauthenticated against the public GitHub API (60 requests/hour, and the four de
 a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just raises the limit to
 5000/hour. A token that GitHub rejects (expired, revoked, wrong scope) doesn't fail the request
 either. The handler retries that one refresh unauthenticated instead.
+
+The one exception is `/api/v1/contributions`. It reads the contribution calendar from GitHub's
+GraphQL API, which rejects every unauthenticated request. Without `GH_TOKEN` it returns `502`, and
+the About section drops its contribution graph. Any token works, since the calendar is public.
 
 `RESUME_GH_TOKEN` is meant to be a dedicated, narrower-scoped token: reading the private Resume
 repo is a bigger grant than `GH_TOKEN`'s job of raising a public-repo rate limit. When unset, it
@@ -349,7 +356,7 @@ The two halves deploy independently:
 
 ### Deploying the frontend
 
-Cloudflare Workers Builds runs `bun install && bun run build` in `frontend/` and then `npx wrangler deploy` on every push to `main`. The four `VITE_*` values below are build variables in the Cloudflare dashboard. If merges stop deploying and the Workers Builds settings show "This project is disconnected from your Git account", reauthorize the Cloudflare GitHub app from **Manage** next to the Git repository. Pushes made while it is disconnected never trigger a build. To deploy from your machine instead, build with the production values and deploy. The worker is named `portfolio-website` in
+Cloudflare Workers Builds runs `bun install && bun run build` in `frontend/` and then `npx wrangler deploy` on every push to `main`. The four `VITE_*` values below are build variables in the Cloudflare dashboard. Pushes to any other branch, `dev` and PR branches included, run the same build and then `npx wrangler preview`, which publishes a Preview URL for that branch and reports the "Workers Builds: portfolio-website" check on the PR. `wrangler preview` refuses to run unless `frontend/wrangler.jsonc` has a `previews` block. The block is empty because the worker reads no runtime vars or bindings. If you add one, add a Preview-safe copy under `previews` too, because Previews do not inherit production settings. Workers Builds has one set of build variables for every branch, so `vite.config.ts` blanks `VITE_POSTHOG_PROJECT_TOKEN` in any Workers Builds run whose `WORKERS_CI_BRANCH` is not `main`. Previews run with analytics off, and the build log says so. If merges stop deploying and the Workers Builds settings show "This project is disconnected from your Git account", reauthorize the Cloudflare GitHub app from **Manage** next to the Git repository. Pushes made while it is disconnected never trigger a build. To deploy from your machine instead, build with the production values and deploy. The worker is named `portfolio-website` in
 `frontend/wrangler.jsonc`.
 
 ```sh
