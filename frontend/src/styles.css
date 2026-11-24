@@ -176,6 +176,9 @@
   /* The chapter index slides down as it opens. It moves the translate property, because the
      popover's centering is a transform. */
   --animate-cidx-in: cidx-in 200ms var(--ease-lift);
+  /* The GitHub graph shimmers while it waits for the API: a highlight crosses the grid. It moves
+     the translate property from its offscreen start, and only runs when motion is allowed. */
+  --animate-gh-sweep: gh-sweep 1600ms var(--ease-color) infinite;
 
   @keyframes prog {
     to {
@@ -186,6 +189,11 @@
     from {
       opacity: 0;
       translate: 0 -8px;
+    }
+  }
+  @keyframes gh-sweep {
+    to {
+      translate: 100% 0;
     }
   }
 }
