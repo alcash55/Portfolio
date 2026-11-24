@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ContributionWeek } from '~/lib/contributions';
 import { ContributionGraph } from './ContributionGraph';
 
@@ -18,6 +18,16 @@ describe('ContributionGraph', () => {
     expect(grid.children).toHaveLength(26 * 7);
     expect(grid.querySelectorAll('[data-level="0"]')).toHaveLength(26 * 7);
     expect(screen.getByText('Loading GitHub activity')).toBeInTheDocument();
+  });
+
+  it('keeps square cells when the API sends fewer weeks than the grid holds', async () => {
+    render(<ContributionGraph load={() => Promise.resolve(weeks)} />);
+
+    await screen.findByText('90 contributions on GitHub since November');
+    // Two columns would stretch each square to half the grid's width.
+    expect(screen.getByTestId('contribution-grid')).toHaveStyle({
+      gridTemplateColumns: 'repeat(26, minmax(0, 1fr))',
+    });
   });
 
   it('shades each day and says how many contributions it shows', async () => {
@@ -48,10 +58,60 @@ describe('ContributionGraph', () => {
     ]);
   });
 
-  it('leaves the page when the API has no answer', async () => {
-    const { container } = render(<ContributionGraph load={() => Promise.resolve(null)} />);
+  it('keeps the grid, dimmed, and says so when the API has no answer', async () => {
+    render(<ContributionGraph load={() => Promise.resolve(null)} />);
 
-    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    expect(await screen.findByText('GitHub activity did not load.')).toBeInTheDocument();
+    const grid = screen.getByTestId('contribution-grid');
+    expect(grid.children).toHaveLength(26 * 7);
+    expect(grid).toHaveAttribute('data-state', 'failed');
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
+  it('asks the API again when Try again is pressed', async () => {
+    const load = vi
+      .fn<() => Promise<ContributionWeek[] | null>>()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(weeks);
+    render(<ContributionGraph load={load} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+
+    expect(
+      await screen.findByText('90 contributions on GitHub since November'),
+    ).toBeInTheDocument();
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
+  it('shows the loading state again while a retry waits', async () => {
+    const load = vi
+      .fn<() => Promise<ContributionWeek[] | null>>()
+      .mockResolvedValueOnce(null)
+      .mockReturnValueOnce(pending());
+    render(<ContributionGraph load={load} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+
+    expect(screen.getByText('Loading GitHub activity')).toBeInTheDocument();
+    expect(screen.getByTestId('contribution-grid')).toHaveAttribute('data-state', 'loading');
+  });
+
+  describe('when the API is slow', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('says the API is waking up after a few seconds, without moving the grid', () => {
+      vi.useFakeTimers();
+      render(<ContributionGraph load={pending} />);
+      expect(screen.getByText('Loading GitHub activity')).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(4_000);
+      });
+
+      expect(screen.getByText('Still loading, the API is waking up')).toBeInTheDocument();
+      expect(screen.getByTestId('contribution-grid').children).toHaveLength(26 * 7);
+    });
   });
 
   it('hides the squares from screen readers, which get the sentence instead', () => {

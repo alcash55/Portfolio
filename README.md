@@ -225,8 +225,11 @@ a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just rai
 either. The handler retries that one refresh unauthenticated instead.
 
 The one exception is `/api/v1/contributions`. It reads the contribution calendar from GitHub's
-GraphQL API, which rejects every unauthenticated request. Without `GH_TOKEN` it returns `502`, and
-the About section drops its contribution graph. Any token works, since the calendar is public.
+GraphQL API, which rejects every unauthenticated request. Without `GH_TOKEN`, or with one GitHub
+rejects, it returns `502`, and the About section shows a dimmed grid with "GitHub activity did not
+load" and a Try again button. Any token works, since the calendar is public. A `502` from this
+route in production means the token on Render is missing or revoked: `projects` and `ci-actions`
+fall back to unauthenticated calls, so they keep working and hide the problem.
 
 `RESUME_GH_TOKEN` is meant to be a dedicated, narrower-scoped token: reading the private Resume
 repo is a bigger grant than `GH_TOKEN`'s job of raising a public-repo rate limit. When unset, it
