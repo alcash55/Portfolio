@@ -13,6 +13,8 @@ func baseEnv(t *testing.T) {
 	t.Helper()
 	t.Setenv("PORT", "8080")
 	t.Setenv("WEBHOOK_URL", "https://discord.com/api/webhooks/x/y")
+	// It overrides GH_TOKEN, so a developer's own value would change results.
+	unsetEnv(t, "GOLEM_GH_TOKEN")
 }
 
 // unsetEnv guarantees key is absent from the environment for the duration of
@@ -417,6 +419,43 @@ func TestLoad_GolemPinTag(t *testing.T) {
 			}
 			if cfg.GolemPinTag != tt.want {
 				t.Errorf("GolemPinTag = %q, want %q", cfg.GolemPinTag, tt.want)
+			}
+		})
+	}
+}
+
+// The public GitHub reads take GOLEM_GH_TOKEN over GH_TOKEN, so a missing or
+// dead GH_TOKEN in the dashboard cannot break them. The Resume repo must not
+// receive that token, because it cannot read it.
+func TestLoad_GolemTokenServesPublicReads(t *testing.T) {
+	tests := []struct {
+		name       string
+		gh         string
+		golem      string
+		wantPublic string
+		wantResume string
+	}{
+		{name: "golem only", golem: "golem-token", wantPublic: "golem-token", wantResume: ""},
+		{name: "golem wins over gh", gh: "gh-token", golem: "golem-token", wantPublic: "golem-token", wantResume: "gh-token"},
+		{name: "gh without golem", gh: "gh-token", wantPublic: "gh-token", wantResume: "gh-token"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			baseEnv(t)
+			unsetEnv(t, "RESUME_GH_TOKEN")
+			t.Setenv("GH_TOKEN", tt.gh)
+			t.Setenv("GOLEM_GH_TOKEN", tt.golem)
+
+			cfg, err := fromEnv()
+			if err != nil {
+				t.Fatalf("fromEnv(): unexpected error: %v", err)
+			}
+			if cfg.GHToken != tt.wantPublic {
+				t.Errorf("GH_TOKEN=%q GOLEM_GH_TOKEN=%q: GHToken = %q, want %q", tt.gh, tt.golem, cfg.GHToken, tt.wantPublic)
+			}
+			if cfg.ResumeGHToken != tt.wantResume {
+				t.Errorf("GH_TOKEN=%q GOLEM_GH_TOKEN=%q: ResumeGHToken = %q, want %q", tt.gh, tt.golem, cfg.ResumeGHToken, tt.wantResume)
 			}
 		})
 	}
