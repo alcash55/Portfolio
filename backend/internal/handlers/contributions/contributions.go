@@ -119,7 +119,7 @@ func (h *Handler) GetContributions(c *gin.Context) {
 func (h *Handler) fetch(ctx context.Context) ([]Week, error) {
 	// GitHub's GraphQL API rejects every unauthenticated request.
 	if h.cfg.GHToken == "" {
-		return nil, errors.New("GH_TOKEN is not set")
+		return nil, errors.New("neither GOLEM_GH_TOKEN nor GH_TOKEN is set")
 	}
 
 	payload, err := json.Marshal(map[string]any{

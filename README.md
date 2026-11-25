@@ -211,25 +211,24 @@ Copy `backend/.env.example` to `backend/.env` and fill it in:
 | ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `PORT`            | yes      | Port to listen on, e.g. `8080`. Render injects this automatically                              |
 | `WEBHOOK_URL`     | yes      | Discord webhook the contact form forwards to                                                   |
-| `GH_TOKEN`        | no       | GitHub token that `/api/v1/projects`, `/api/v1/ci-actions`, and `/api/v1/contributions` send to the GitHub API. Optional, see below |
+| `GH_TOKEN`        | no       | GitHub token that `/api/v1/projects`, `/api/v1/ci-actions`, and `/api/v1/contributions` send to the GitHub API when `GOLEM_GH_TOKEN` is unset. Optional, see below |
 | `RESUME_GH_TOKEN` | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Resume` repo. Powers `GET /api/v1/resume[/:variant]`. Optional at boot, but those routes 503 until it's set (check `GET /api/v1/resume/status`) |
-| `GOLEM_GH_TOKEN`  | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Golem-Miners` repo. Powers `GET /api/v1/golem-miners/*`. Optional at boot, but those routes 503 until it's set. It never falls back to `GH_TOKEN` |
+| `GOLEM_GH_TOKEN`  | no*      | Fine-grained GitHub PAT, read-only Contents access to the private `alcash55/Golem-Miners` repo. Powers `GET /api/v1/golem-miners/*`. Optional at boot, but those routes 503 until it's set. It never falls back to `GH_TOKEN`. When set, it also replaces `GH_TOKEN` for the three public routes above |
 | `GOLEM_PIN_TAG`   | no       | A `webgl-v...` release tag to serve instead of the newest one. Unset follows the newest release. A value that is not a `webgl-v` tag stops the server at boot |
 | `ALLOWED_ORIGINS` | no       | Comma-separated CORS origins. Unset uses the defaults below                                    |
 | `PROJECT_REPOS`   | no       | Comma-separated repo names (owned by `alcash55`) curated for `GET /api/v1/projects`. Unset defaults to `Little-Town,ac-composite-actions,Royalty-VS-Code-Theme,Portfolio` |
 
-`GH_TOKEN` is genuinely optional. You can run this backend without one. `/api/v1/projects` works
-unauthenticated against the public GitHub API (60 requests/hour, and the four default repos behind
-a 1-hour cache only cost ~4 requests/hour, well under that). Setting it just raises the limit to
-5000/hour. A token that GitHub rejects (expired, revoked, wrong scope) doesn't fail the request
-either. The handler retries that one refresh unauthenticated instead.
+Both tokens are optional at boot. `/api/v1/projects`, `/api/v1/ci-actions` and
+`/api/v1/contributions` send `GOLEM_GH_TOKEN` when it is set, and `GH_TOKEN` otherwise. A
+fine-grained PAT can always read public data, so the Golem Miners token covers all three. With
+neither, `projects` and `ci-actions` call GitHub unauthenticated (60 requests an hour per IP). A
+token that GitHub rejects gets the same unauthenticated retry on those two routes.
 
-The one exception is `/api/v1/contributions`. It reads the contribution calendar from GitHub's
-GraphQL API, which rejects every unauthenticated request. Without `GH_TOKEN`, or with one GitHub
-rejects, it returns `502`, and the About section shows a dimmed grid with "GitHub activity did not
-load" and a Try again button. Any token works, since the calendar is public. A `502` from this
-route in production means the token on Render is missing or revoked: `projects` and `ci-actions`
-fall back to unauthenticated calls, so they keep working and hide the problem.
+`/api/v1/contributions` has no such retry. It reads the contribution calendar from GitHub's
+GraphQL API, which rejects every unauthenticated request. Without a token GitHub accepts, it
+returns `502`, and the About section shows a dimmed grid with "GitHub activity did not load" and a
+Try again button. Render's shared IP can use up the unauthenticated limit, so a dead token in
+production can turn all three routes into `502`.
 
 `RESUME_GH_TOKEN` is meant to be a dedicated, narrower-scoped token: reading the private Resume
 repo is a bigger grant than `GH_TOKEN`'s job of raising a public-repo rate limit. When unset, it
@@ -452,8 +451,8 @@ changes don't trigger a redeploy) and health-checks `/healthz`.
 
 Set `WEBHOOK_URL` in the Render dashboard. It's marked `sync: false` in the blueprint precisely so
 the secret never lives in this repo. `GH_TOKEN` is in the blueprint the same way (`sync: false`)
-but is optional at the application level (see the env var table above), so leaving it unset in the
-dashboard is fine; `/api/v1/projects` just runs unauthenticated against GitHub. `RESUME_GH_TOKEN`
+but is optional at the application level (see the env var table above). Leaving it unset in the
+dashboard is fine while `GOLEM_GH_TOKEN` is set. `RESUME_GH_TOKEN`
 is also `sync: false`; unlike `GH_TOKEN`, leaving it unset means `/api/v1/resume[/:variant]` return
 `503` rather than degrading gracefully, since the Resume repo has no public, unauthenticated path
 to fall back to. `GET /api/v1/resume/status` reports the missing token directly, without a
