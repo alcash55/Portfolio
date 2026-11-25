@@ -101,6 +101,13 @@ func fromEnv() (Config, error) {
 	if cfg.ResumeGHToken == "" {
 		cfg.ResumeGHToken = cfg.GHToken
 	}
+	// GOLEM_GH_TOKEN also serves the public reads (projects, ci-actions,
+	// contributions), because a fine-grained PAT can always read public data.
+	// It wins over GH_TOKEN so a dead GH_TOKEN cannot break those routes. This
+	// stays after the resume fallback, which needs GH_TOKEN's own value.
+	if cfg.GolemGHToken != "" {
+		cfg.GHToken = cfg.GolemGHToken
+	}
 	// A pin that the golem handler would reject at request time is a typo, and
 	// it would otherwise surface as a 502 on the play page. Fail the boot.
 	if cfg.GolemPinTag != "" && !IsGolemTag(cfg.GolemPinTag) {
